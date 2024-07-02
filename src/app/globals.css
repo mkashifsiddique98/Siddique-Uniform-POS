@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* Target the whole scrollbar */
+::-webkit-scrollbar {
+    width: 12px; /* Set the width of the scrollbar */
+    margin-right: 2px;
+  }
+  
+  /* Track - the area where the scrollbar is located */
+  ::-webkit-scrollbar-track {
+    background-color: #f1f1f1; /* Set the color of the scrollbar track */
+  }
+  
+  /* Handle - the draggable part of the scrollbar */
+  ::-webkit-scrollbar-thumb {
+    background-color: #b9b6b6d9; /* Set the color of the scrollbar handle */
+    /* border-radius: 6px; Set the border radius for a rounded handle */
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #9e9a9a; /* Set a different color when the handle is hovered */
+  }
+  
