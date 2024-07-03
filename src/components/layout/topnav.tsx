@@ -20,11 +20,11 @@ export function Topnav({
   const route = useRouter()
 
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  console.log(message)
+  
+ 
   const handleUpdate = async () => {
       setLoading(true);
-      setMessage('');
+      
       try {
           const response = await fetch('/api/setting', {
               method: 'POST',
@@ -32,13 +32,10 @@ export function Topnav({
 
           if (response.ok) {
               const data = await response.json();
-              setMessage(data.message);
-          } else {
-              const errorData = await response.json();
-              setMessage(`Error: ${errorData.error}`);
+             
           }
-      } catch (error) {
-          setMessage(`Error: ${error.message}`);
+      } catch (error:any) {
+          console.log("Error",error)
       } finally {
           setLoading(false);
       }

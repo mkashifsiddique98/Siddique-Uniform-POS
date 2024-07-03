@@ -9,8 +9,6 @@ import { formSchema } from "@/validation/product";
 import { toast } from "@/components/ui/use-toast";
 import BreadCrum from "@/components/custom-components/bread-crum";
 import ProductForm from "@/components/Product/product-form"; // Import the Reused component
-import { ProductFormState } from "@/types/product";
-import { METHODS } from "http";
 async function getAllSchoolDetail() {
   const res = await fetch("http://localhost:3000/api/customer", {
     cache: "no-store",

@@ -44,10 +44,11 @@ export async function PUT(request: Request) {
 export async function POST(request: Request) {
   try {
     const productID = await request.json();
-    const { _id } = productID;
-    const getProduct = Product.findById(_id);
+    // const { _id } = productID;
+   
+    const getProduct =await Product.findById({_id:productID});
     console.log("getProduct", getProduct);
-    return Response.json({ response: "getProduct" }, { status: 200 });
+    return Response.json(getProduct , { status: 200 });
   } catch (error) {
     return Response.json({ error: "Server error" }, { status: 500 });
   }
