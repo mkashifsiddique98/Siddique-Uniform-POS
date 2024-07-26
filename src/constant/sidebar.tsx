@@ -7,7 +7,10 @@ import {
   User,
   School,
   SquareStack,
-  GitGraph
+  GitGraph,
+  ShoppingCart,
+  ScrollText,
+  Layers
 } from "lucide-react";
 
 export const sidebarItems = [
@@ -52,5 +55,22 @@ export const sidebarItems = [
     title: "Sales",
     href: "/invoice",
     icon: <GitGraph />,
+  },
+  {
+    title: "Purchase",
+    href: "/purchase",
+    icon: <ShoppingCart />,
+    subItems: [
+      {
+        title: "Made Purchase",
+        href: "/purchase",
+        icon: <ScrollText />,
+      },
+      {
+        title: "Whole Saler",
+        href: "/purchase/wholesaler",
+        icon: <Layers />,
+      },
+    ]
   },
 ];

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -21,15 +21,18 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import { ProductFormState } from "@/types/product";
 import { formSchema } from "@/validation/product";
+
 interface sizeListTemplateProps {
   name: string;
   size: string[];
 }
+
 interface schoolList {
-  location:string;
-  name:string;
-  _id?: string
+  location: string;
+  name: string;
+  _id?: string;
 }
+
 interface ProductFormProps {
   form: ReturnType<typeof useForm<ProductFormState>>;
   onSubmit: (values: z.infer<typeof formSchema>) => Promise<void>;
@@ -37,6 +40,7 @@ interface ProductFormProps {
   schoolList: schoolList[];
   sizeListTemplate: sizeListTemplateProps[];
 }
+
 const ProductForm: React.FC<ProductFormProps> = ({
   form,
   onSubmit,
@@ -45,6 +49,20 @@ const ProductForm: React.FC<ProductFormProps> = ({
   mode,
 }) => {
   const [sizeList, setSizeList] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Initialize form values when the component mounts or when mode/initial data changes
+    if (mode === "Edit Product") {
+      const initialValues = form.getValues();
+      if (initialValues.category) {
+        const selectedData = sizeListTemplate.find(
+          (item) => item.name.toLowerCase() === initialValues.category.toLowerCase()
+        );
+        setSizeList(selectedData?.size || []);
+      }
+    }
+  }, [form.getValues, sizeListTemplate, mode]);
+
   return (
     <Form {...form}>
       <form
@@ -73,11 +91,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 <FormLabel>School Name</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}  // Use value instead of defaultValue
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a School Name" />
+                      <SelectValue>
+                        {field.value || "Select a School Name"}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -88,6 +108,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     ))}
                   </SelectContent>
                 </Select>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -105,13 +126,12 @@ const ProductForm: React.FC<ProductFormProps> = ({
                       onValueChange={(value) => {
                         field.onChange(value);
                         const selectedData = sizeListTemplate.find(
-                          (item) =>
-                            item.name.toLowerCase() === value.toLowerCase()
+                          (item) => item.name.toLowerCase() === value.toLowerCase()
                         );
                         setSizeList(selectedData?.size || []);
                       }}
-                      defaultValue={field.value}
-                      className="flex flex-wrap  space-x-1"
+                      value={field.value}  // Use value instead of defaultValue
+                      className="flex flex-wrap space-x-1"
                     >
                       {sizeListTemplate.map((item, index) => (
                         <FormItem
@@ -142,11 +162,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   <FormLabel>Size</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}  // Use value instead of defaultValue
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a Size for Product" />
+                        <SelectValue>
+                          {field.value || "Select a Size for Product"}
+                        </SelectValue>
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -169,7 +191,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 <FormItem>
                   <FormLabel>Stock Alert</FormLabel>
                   <FormControl>
-                    <Input placeholder="stock Alert" {...field} type="number" />
+                    <Input placeholder="Stock Alert" {...field} type="number" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -186,7 +208,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 <FormItem>
                   <FormLabel>Product Cost</FormLabel>
                   <FormControl>
-                    <Input placeholder="productCost" type="number" {...field} />
+                    <Input placeholder="Product Cost" type="number" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -202,7 +224,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   <FormLabel>Wholesale Price</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="wholesale Price"
+                      placeholder="Wholesale Price"
                       {...field}
                       type="number"
                     />
@@ -220,7 +242,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 <FormItem>
                   <FormLabel>Sell Price</FormLabel>
                   <FormControl>
-                    <Input placeholder="sell Price" {...field} type="number" />
+                    <Input placeholder="Sell Price" {...field} type="number" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

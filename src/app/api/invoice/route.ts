@@ -30,8 +30,9 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     
-    const invoice = await Invoice.find().populate('customer');
-    return Response.json({ response: invoice }, { status: 200 });
+    const invoices = await Invoice.find()
+    // .populate('customer');
+    return Response.json({ response: invoices }, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

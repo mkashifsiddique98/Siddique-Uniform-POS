@@ -18,7 +18,8 @@ const MasterLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <Provider store={store}>
       {/* <QueryClientProvider client={queryClient}> */}
-      <div className="flex h-screen overflow-hidden flex-col">
+      <div className="flex h-screen  flex-col">  
+        {/* overflow-hidden from upper line */}
       {pathname === "/pos" ? (
         <div>{children}</div>
       ) : (
