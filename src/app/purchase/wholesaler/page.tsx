@@ -190,7 +190,8 @@ function WholesalerList({ data, onDelete }: DataTableDemoProps) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
-
+   
+   
   const table = useReactTable({
     data,
     columns,

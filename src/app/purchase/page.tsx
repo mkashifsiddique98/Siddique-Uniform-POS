@@ -109,6 +109,7 @@ const PurchasePage = () => {
     // Calculating 
     const purchaseDetails = {
       wholesaler: {
+        _id: selectedWholesaler._id,
         name: selectedWholesaler.name,
         location: selectedWholesaler.location,
         phone: selectedWholesaler.phone,

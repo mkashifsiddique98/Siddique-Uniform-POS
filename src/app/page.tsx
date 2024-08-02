@@ -103,7 +103,7 @@ export default async function DashboardPage() {
                     </svg>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">$45,231.89</div>
+                    <div className="text-2xl font-bold">RS 45,231.89</div>
                     <p className="text-xs text-muted-foreground">
                       +20.1% from last month
                     </p>
@@ -112,7 +112,7 @@ export default async function DashboardPage() {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
-                      Subscriptions
+                      Purchase
                     </CardTitle>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -130,7 +130,7 @@ export default async function DashboardPage() {
                     </svg>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">+2350</div>
+                    <div className="text-2xl font-bold">Rs 2350</div>
                     <p className="text-xs text-muted-foreground">
                       +180.1% from last month
                     </p>
@@ -154,7 +154,7 @@ export default async function DashboardPage() {
                     </svg>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">+12,234</div>
+                    <div className="text-2xl font-bold">RS 12,234</div>
                     <p className="text-xs text-muted-foreground">
                       +19% from last month
                     </p>
@@ -179,9 +179,9 @@ export default async function DashboardPage() {
                     </svg>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">+573</div>
+                    <div className="text-2xl font-bold">10+</div>
                     <p className="text-xs text-muted-foreground">
-                      +201 since last hour
+                      View Details
                     </p>
                   </CardContent>
                 </Card>

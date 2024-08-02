@@ -14,16 +14,30 @@ export async function POST(request: Request) {
     const newPurchase = new Purchase(res);
     const { wholesaler, products, isPaid } = newPurchase;
 
+    // Check if wholesaler exists
+    const existingWholesaler = await WholeSaler.findById(wholesaler._id);
+    if (!existingWholesaler) {
+      return NextResponse.json({ error: "Wholesaler not found" }, { status: 404 });
+    }
+
     // Update wholesaler information
-    await WholeSaler.findByIdAndUpdate(wholesaler._id, wholesaler);
+  const updateWholesaler =  await WholeSaler.findByIdAndUpdate(
+      wholesaler._id,
+      {
+        paymentStatus: wholesaler.paymentStatus,
+        pendingBalance: wholesaler.pendingBalance,
+      }
+    );
 
     // Function to update product quantities
-    const updateProductQuantities = async (products:ProductFormState[]) => {
+    const updateProductQuantities = async (products: ProductFormState[]) => {
       for (const product of products) {
         const existingProduct = await Product.findById(product._id);
         if (existingProduct) {
           existingProduct.quantity += product.quantity;
           await existingProduct.save();
+        } else {
+          return NextResponse.json({ error: `Product with ID ${product._id} not found` }, { status: 404 });
         }
       }
     };
@@ -60,10 +74,16 @@ export async function DELETE(request: Request) {
     const deletedPurchase = await Purchase.findByIdAndDelete(id);
 
     if (!deletedPurchase) {
-      return NextResponse.json({ error: "Purchase not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Purchase not found" },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json({ response: "Purchase deleted successfully" }, { status: 200 });
+    return NextResponse.json(
+      { response: "Purchase deleted successfully" },
+      { status: 200 }
+    );
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
