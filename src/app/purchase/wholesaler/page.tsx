@@ -42,7 +42,7 @@ interface WholesalerFormProps {
   onAdd: () => void;
 }
 
-const AddWholesalerForm: React.FC<WholesalerFormProps> = ({ onAdd }) => {
+export const AddWholesalerForm: React.FC<WholesalerFormProps> = ({ onAdd }) => {
   const [form, setForm] = useState({
     name: "",
     location: "",
