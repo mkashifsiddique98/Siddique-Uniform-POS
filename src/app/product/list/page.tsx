@@ -9,7 +9,7 @@ async function getAllProductData() {
     cache: "no-store",
   });
   if (!res.ok) {
-    throw new Error("Failed to fetch data");
+    console.log("Failed to fetch data");
   }
 
   return res.json();

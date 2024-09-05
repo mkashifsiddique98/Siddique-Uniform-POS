@@ -42,12 +42,14 @@ const PayNowChart: React.FC<{
   productList: Products[];
   disInPercentage: number;
   selectedCustomer?: customer;
+  handleReset: ()=>void
 }> = ({
   grandTotal,
   discount,
   productList,
   disInPercentage,
   selectedCustomer,
+  handleReset
 }) => {
   const [date, setDate] = useState<Date>(new Date());
   const [payingAmount, setPayingAmount] = useState<number>(0);
@@ -76,12 +78,13 @@ const PayNowChart: React.FC<{
       });
       if (response.ok) {
         dispatch(clearChart());
+        grandTotal = 0
       }
     } catch (error) {
       console.log("Server Error", error);
     }
   };
-  // Handle Qty
+  // Handle Qty after saler done
   const handleProductQty = async () => {
     try {
       const response = await fetch("/api/product/edit", {
@@ -149,6 +152,7 @@ const PayNowChart: React.FC<{
   const handlePrint = async () => {
     handleProductQty();
     handleInvoiceGenerate();
+    handleReset()
     try {
       Button;
       let _port = port;
@@ -172,6 +176,7 @@ const PayNowChart: React.FC<{
   );
   const dispatch = useAppDispatch();
   const handleNoReceipt = () =>{
+    handleReset()
     handleProductQty();
     handleInvoiceGenerate();
   }

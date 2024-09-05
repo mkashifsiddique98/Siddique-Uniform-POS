@@ -157,6 +157,7 @@ const BillTable: FC<BillTableProps> = ({ selectedCustomer }) => {
             productList={chartList}
             disInPercentage={disInPrecentage}
             selectedCustomer={selectedCustomer}
+            handleReset={handleReset}
           />
         </div>
       </div>
