@@ -37,7 +37,8 @@ const BillBook = ({ listCustomer }: { listCustomer: customer[] }) => {
     setSelectedCustomer(filteredCustomers[0]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customerName]);
-
+  // Reset Custoer Name 
+ 
   return (
     <div className="container m-2">
       <div className="flex gap-2">

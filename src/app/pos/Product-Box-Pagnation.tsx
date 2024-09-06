@@ -36,7 +36,7 @@ const ProductBox: React.FC<Props> = ({ items, perPage }) => {
       : true;
 
     const matchesFilter = filterElement.filterValue
-      ? item[filterElement.filterBy] 
+      ? item[filterElement.filterBy]
           .toLowerCase()
           .trim()
           .includes(filterElement.filterValue.toLowerCase().trim())
@@ -105,25 +105,47 @@ const ProductBox: React.FC<Props> = ({ items, perPage }) => {
                 </button>
               </li>
               {Array.from(
-                {
-                  length: Math.ceil(totalFilteredItems / perPage),
-                },
-                (_, index) => (
-                  <li key={`pagination-${index + 1}`}>
-                    <button
-                      onClick={() => handlePaginationClick(index + 1)}
-                      className={cn(
-                        "flex items-center justify-center px-3 h-8 leading-tight font-bold text-gray-500 bg-white border border-gray-300 hover:bg-gray-950 hover:text-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white",
-                        {
-                          "bg-gray-950 text-white": currentPage === index + 1,
-                        }
-                      )}
-                    >
-                      {index + 1}
-                    </button>
-                  </li>
-                )
+                { length: Math.ceil(totalFilteredItems / perPage) },
+                (_, index) => {
+                  const pageNumber = index + 1;
+                  const totalPages = Math.ceil(totalFilteredItems / perPage);
+                  const isNearStart = pageNumber <= 5;
+                  const isNearEnd = pageNumber >= totalPages - 4;
+                  const isCurrentPage = currentPage === pageNumber;
+
+                  // Show the first 5 pages, the current page, and the last page
+                  if (isNearStart || isNearEnd || isCurrentPage) {
+                    return (
+                      <li key={`pagination-${pageNumber}`}>
+                        <button
+                          onClick={() => handlePaginationClick(pageNumber)}
+                          className={cn(
+                            "flex items-center justify-center px-3 h-8 leading-tight font-bold text-gray-500 bg-white border border-gray-300 hover:bg-gray-950 hover:text-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white",
+                            {
+                              "bg-gray-950 text-white":
+                                currentPage === pageNumber,
+                            }
+                          )}
+                        >
+                          {pageNumber}
+                        </button>
+                      </li>
+                    );
+                  }
+
+                  // Show ellipsis if it's in the middle (between start and end)
+                  if (pageNumber === 3 || pageNumber === totalPages - 10) {
+                    return (
+                      <li key={`pagination-ellipsis-${pageNumber}`}>
+                        <span className="px-3">...</span>
+                      </li>
+                    );
+                  }
+
+                  return null; // Don't render anything if the number is hidden
+                }
               )}
+
               <li>
                 <button
                   disabled={
@@ -137,13 +159,13 @@ const ProductBox: React.FC<Props> = ({ items, perPage }) => {
               </li>
             </ul>
           </nav>
-
-          <div className="font-extrabold ">
+          {/* Showing Result and Toatal Data  */}
+          {/* <div className="font-extrabold ">
             <p>
               Showing {currentPage} to {currentItems.length} of {items.length}{" "}
               results
             </p>
-          </div>
+          </div> */}
         </div>
       )}
     </div>

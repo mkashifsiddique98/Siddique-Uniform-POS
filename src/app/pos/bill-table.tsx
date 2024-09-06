@@ -24,6 +24,7 @@ import { calculatePercentage } from "@/utils";
 import { customer } from "@/types/customer";
 interface BillTableProps {
   selectedCustomer?: customer;
+  
 }
 const BillTable: FC<BillTableProps> = ({ selectedCustomer }) => {
 //  ==============================================

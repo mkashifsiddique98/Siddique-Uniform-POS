@@ -58,9 +58,50 @@ export const PaginationControl: FC<PaginationControlProps> = ({
           <span className="text-sm">Prev</span>
         </button>
 
-        {Array.from({ length: Number(totalPages) }, (_, index) =>
-          renderPageNumber(index + 1)
-        )}
+        {/* Pagination Logic */}
+        {Array.from({ length: Number(totalPages) }, (_, index) => {
+          const pageNumber = index + 1;
+          const total = Number(totalPages);
+          const currentPage = Number(page);
+
+          // Show the first 5 pages or the current page if it's past the first 5
+          if (
+            pageNumber <= 5 ||
+            (pageNumber === currentPage && currentPage > 5)
+          ) {
+            return renderPageNumber(pageNumber);
+          }
+
+          // Show ellipsis if we're beyond page 5
+          if (pageNumber === 6 && currentPage > 5 && total > 6) {
+            return (
+              <li key={`pagination-ellipsis-${pageNumber}`}>
+                <span className="px-2">...</span>
+              </li>
+            );
+          }
+
+          // Show the next page if you're on page 6 or greater
+          if (pageNumber === currentPage + 1 && currentPage >= 5) {
+            return renderPageNumber(pageNumber);
+          }
+
+          // Show ellipsis before the last page if there are hidden pages
+          if (pageNumber === total - 1 && currentPage + 1 < total - 1) {
+            return (
+              <li key={`pagination-ellipsis-end-${pageNumber}`}>
+                <span className="px-3">...</span>
+              </li>
+            );
+          }
+
+          // Show the last page
+          if (pageNumber === total) {
+            return renderPageNumber(pageNumber);
+          }
+
+          return null; // Hide other pages
+        })}
 
         <button
           disabled={!hasNextPage}
