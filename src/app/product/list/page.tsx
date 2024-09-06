@@ -5,15 +5,21 @@ export const metadata: Metadata = {
   title: "All Product",
 };
 async function getAllProductData() {
-  const res = await fetch("http://localhost:3000/api/product/", {
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    console.log("Failed to fetch data");
+  try {
+    const res = await fetch("http://localhost:3000/api/product/", {
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+  
+    return await res.json();
+  } catch (error:any) {
+    console.error("Failed to fetch data:", error.message);
+    return null;
   }
-
-  return res.json();
 }
+
 export default async function AllProduct({
   searchParams,
 }: {
@@ -28,7 +34,6 @@ export default async function AllProduct({
   const entries = response.slice(start, end);
   const totalEntries = response.length;
   const totalPages = Math.ceil(totalEntries / Number(per_page));
-
   return (
     <div className="container p-6">
       <BreadCrum mainfolder="Product" subfolder="List Product" />

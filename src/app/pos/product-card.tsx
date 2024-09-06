@@ -54,8 +54,9 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
         </p>
       </div>
       <div className="ml-3 text-sm whitespace-nowrap gap-2 flex flex-col">
-        <p className="text-[13px] font-bold">{product?.productName}</p>
-        <p>code</p>
+        <p className="text-[13px] font-bold w-36 truncate capitalize">{product?.productName}</p>
+        <p className="capitalize">{product?.category}</p>  
+        {/* Code */}
         <p className="bg-black text-white text-[10px] rounded-md w-16 px-3">
           Rs {product?.sellPrice}
         </p>

@@ -1,7 +1,6 @@
 "use client";
 import AutoComplete from "@/components/custom-components/AutoComplete";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -13,33 +12,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Popover } from "@/components/ui/popover";
 import { customer } from "@/types/customer";
-import { PopoverContent, PopoverTrigger } from "@radix-ui/react-popover";
+import { randomFillSync } from "crypto";
 import { UserRoundPlus } from "lucide-react";
-import { ChangeEvent, ChangeEventHandler, useEffect, useState } from "react";
-const frameworks = [
-  {
-    value: "gps",
-    label: "Gujrat Public School",
-  },
-  {
-    value: "danish school",
-    label: "Danish School",
-  },
-  {
-    value: "nuxt.js",
-    label: "Nuxt.js",
-  },
-  {
-    value: "remix",
-    label: "Remix",
-  },
-  {
-    value: "astro",
-    label: "Astro",
-  },
-];
+import { ChangeEvent, useEffect, useState } from "react";
+
 const customerType = [
   {
     value: "special-sitching",
@@ -60,8 +37,8 @@ export default function CreateCustomerModel({
   handleGetAllCustomer: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [customerDetail, SetCustomerDetail] = useState<customer>({customerName: "",schoolName:"",_id:""});
-
+  const [customerDetail, SetCustomerDetail] = useState<customer>({customerName: "",schoolName:""});
+  const [schoolList,setSchoolList] = useState([])
   const HandleSchoolNameChange = (value: string) => {
     SetCustomerDetail({ ...customerDetail, schoolName: value });
   };
@@ -74,6 +51,7 @@ export default function CreateCustomerModel({
   };
   const handleCustomerDetailSubmit = async () => {
     try {
+      console.log("customerDetail",customerDetail)
       if (customerDetail) {
         const response = await fetch("/api/customer", {
           method: "POST",
@@ -92,6 +70,27 @@ export default function CreateCustomerModel({
       console.error("Error fetching Cusomter data:", error.message);
     }
   };
+  // get All School Name 
+  const handleSchool = async()=>{
+    try {
+      const res = await fetch("/api/product/school-name");
+      const data = await res.json();
+      const { response } = data;
+      const onlySchoolName = response.map((item: { name: string; _id?:string }) => ({
+        label: item.name,
+        value: "0"+ item.name+"1", 
+      }));
+      
+      console.log(onlySchoolName)
+      setSchoolList(onlySchoolName)
+    } catch (error) {
+       console.log(error)
+    }
+  }
+  useEffect(() => {
+    handleSchool()
+  }, [])
+  
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -144,9 +143,11 @@ export default function CreateCustomerModel({
             </Label>
             <AutoComplete
               label="School Name"
-              arrayList={frameworks}
+              arrayList={schoolList}
               selectvalueFn={HandleSchoolNameChange}
+              // need to Fix
             />
+          
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="customer-type" className="text-right">
@@ -156,6 +157,7 @@ export default function CreateCustomerModel({
               label="Customer Type"
               arrayList={customerType}
               selectvalueFn={HandleCustomerType}
+            
             />
           </div>
         </div>

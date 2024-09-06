@@ -4,5 +4,5 @@ export interface customer {
   type?: string;
   phone?: number;
   prevBalance?: number;
-  _id:string
+  _id?:string
 }

@@ -52,6 +52,7 @@
     "react-to-print": "^2.14.15",
     "recharts": "^2.10.4",
     "shadcn-ui": "^0.8.0",
+    "sharp": "^0.33.5",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
     "toast": "^0.5.4",

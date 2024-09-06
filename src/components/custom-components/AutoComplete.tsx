@@ -61,7 +61,7 @@ const AutoComplete: React.FC<AutoComplete> = ({
           <CommandGroup>
             {arrayList.map((framework) => (
               <CommandItem
-                key={framework.value}
+                key={framework.label}
                 value={framework.value}
                 onSelect={(currentValue) => {
                   setValue(currentValue === value ? "" : currentValue);

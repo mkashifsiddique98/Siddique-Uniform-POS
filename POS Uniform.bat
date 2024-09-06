@@ -16,6 +16,7 @@ if exist %BUILD_DIR% (
     if %ERRORLEVEL% equ 0 (
         echo Build succeeded. Starting the application...
         start cmd /c "%START_CMD%"
+        pause
     ) else (
         echo Build failed. Please check the error messages above.
         exit /b %ERRORLEVEL%

@@ -100,7 +100,7 @@ const FilterBtnProduct: FC<FilterBtnProductProps> = ({
         <X className="mr-2" />
         Clear filter
       </Button>
-      <Button>Advance Filter</Button>
+      {/* <Button >Advance Filter</Button> */}
       {isSidebarVisible && (
         <div className="fixed top-0 right-0 h-full w-72 bg-white  p-4 transition-transform transform translate-x-0 z-40 shadow-2xl">
           {/* Sidebar content goes here */}
