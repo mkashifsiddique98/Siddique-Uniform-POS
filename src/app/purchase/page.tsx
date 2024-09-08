@@ -127,10 +127,10 @@ const PurchasePage = () => {
       products: selectedProducts,
       isPaid,
     };
-    console.log(purchaseDetails);
+   
     try {
       const response = await axios.post("/api/purchase", purchaseDetails);
-      console.log(purchaseDetails);
+     
       if (response) {
         toast({ title: "Purchase Confirmed" });
         // Clear the form or redirect if needed

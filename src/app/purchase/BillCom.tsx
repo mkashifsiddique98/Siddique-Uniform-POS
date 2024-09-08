@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC } from 'react';
 import {
     Table,
     TableBody,
@@ -8,6 +8,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { Input } from '@/components/ui/input';
 
 interface ProductFormState {
   _id: string;
@@ -30,17 +31,13 @@ interface BillProps {
 }
 
 const Bill: FC<BillProps> = ({ wholesaler, products, onQuantityChange, onPriceChange }) => {
-  const [editIndex, setEditIndex] = useState<number | null>(null);
-
-  const handleQuantityChange = (id: string, e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  
+  const handleQuantityChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuantity = parseInt(e.target.value, 10) || 0;
-    if (editIndex === null || editIndex === index) {
-      setEditIndex(index);
-      onQuantityChange(id, newQuantity);
-    }
+    onQuantityChange(id, newQuantity);
   };
 
-  const handlePriceChange = (id: string, e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const handlePriceChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const newPrice = parseFloat(e.target.value) || 0;
     onPriceChange(id, newPrice);
   };
@@ -75,22 +72,22 @@ const Bill: FC<BillProps> = ({ wholesaler, products, onQuantityChange, onPriceCh
               <TableCell>{index + 1}</TableCell>
               <TableCell>{product.productName}</TableCell>
               <TableCell>
-                <input
+                <Input
                   type="number"
                   min="0"
-                  step="0.01"
-                  value={product.sellPrice.toFixed(2)}
-                  onChange={(e) => handlePriceChange(product._id, e, index)}
-                  className="w-full"
+                  value={product.sellPrice || 1}
+                  onChange={(e) => handlePriceChange(product._id, e)}
+                  className="w-40"
                 />
               </TableCell>
               <TableCell>
-                <input
+                <Input
+                  
                   type="number"
                   min="0"
-                  value={product.quantity || 0}
-                  onChange={(e) => handleQuantityChange(product._id, e, index)}
-                  className="w-full"
+                  value={product.quantity || 1}
+                  onChange={(e) => handleQuantityChange(product._id, e)}
+                  className="w-28"
                 />
               </TableCell>
               <TableCell className="text-right">Rs {(product.sellPrice * (product.quantity || 0)).toFixed(2)}</TableCell>
