@@ -13,7 +13,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { customer } from "@/types/customer";
-import { randomFillSync } from "crypto";
 import { UserRoundPlus } from "lucide-react";
 import { ChangeEvent, useEffect, useState } from "react";
 
@@ -23,7 +22,7 @@ const customerType = [
     label: "Special-Sitching",
   },
   {
-    value: "whole",
+    value: "wholesale",
     label: "whole-Sale",
   },
   {
@@ -145,7 +144,7 @@ export default function CreateCustomerModel({
               label="School Name"
               arrayList={schoolList}
               selectvalueFn={HandleSchoolNameChange}
-              // need to Fix
+              // need to Fix :::
             />
           
           </div>

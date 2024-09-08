@@ -5,15 +5,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, ViewIcon, Edit2Icon, BadgeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { handleSingleRowDataFn } from "./useProduct";
+import { getAllProductDetail, handleSingleRowDataFn } from "./useProduct";
 import { ProductFormState as Product } from "@/types/product";
 import { usePathname, useRouter } from "next/navigation";
 
 interface DeteleBtnSingleRowModalProps {
   productId: object | undefined;
+  onDelete?: ()=>void;
 }
-const DeteleBtnSingleRowModal: FC<DeteleBtnSingleRowModalProps> = ({
+export const DeteleBtnSingleRowModal: FC<DeteleBtnSingleRowModalProps> = ({
   productId,
+  onDelete
 }) => {
   const route = useRouter();
   const pathName = usePathname();
@@ -54,6 +56,7 @@ const DeteleBtnSingleRowModal: FC<DeteleBtnSingleRowModalProps> = ({
                 onClick={async (e) => {
                   const response = await handleSingleRowDataFn(productId);
                   if (response) {
+                  
                     route.push(pathName)
                     toast({
                       description: `Product deleted!`,
@@ -76,6 +79,7 @@ const DeteleBtnSingleRowModal: FC<DeteleBtnSingleRowModalProps> = ({
     </div>
   );
 };
+
 export const columns: ColumnDef<Product>[] = [
   {
     id: "select",
@@ -133,10 +137,24 @@ export const columns: ColumnDef<Product>[] = [
     ),
   },
   {
+    accessorKey: "sellPrice",
+    header: "Sale Price",
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("sellPrice")}</div>
+    ),
+  },
+  {
     accessorKey: "productCost",
     header: "Product Cost",
     cell: ({ row }) => (
       <div className="capitalize">{row.getValue("productCost")}</div>
+    ),
+  },
+  {
+    accessorKey: "wholesalePrice",
+    header: "wholesale Price",
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("wholesalePrice")}</div>
     ),
   },
   {
@@ -180,6 +198,7 @@ export const columns: ColumnDef<Product>[] = [
               </span>
             </div>
           </Link>
+          {/* In Future If we want this then we use Redux or Context managment Libray */}
           <div className="group flex relative text-red-500 hover:bg-red-500 hover:text-white  p-1 rounded-full">
             <DeteleBtnSingleRowModal productId={product._id} />
             <span

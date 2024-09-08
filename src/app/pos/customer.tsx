@@ -99,13 +99,13 @@ export default function Customer({
   handleChangeValue:(value: string | undefined)=>void
 }) {
   return (
-    <>
+    <div className="flex justify-between w-full">
       <CusomterAutoComplete
         customerList={customerDetailList}
         label="Customer"
         selectvalueFn={handleChangeValue}
       />
       <CreateCustomerModel handleGetAllCustomer={handleGetAllCustomer} />
-    </>
+    </div>
   );
 }

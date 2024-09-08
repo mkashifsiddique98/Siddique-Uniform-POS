@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 connectDB(); // Connect to MongoDB
 // Create New Product
+
 export async function POST(request: Request) {
   try {
     const res = await request.json();
@@ -30,21 +31,22 @@ export async function GET() {
 export async function PUT(request: Request) {
   try {
     const updateData = await request.json();
-  
-      const {
-        _id,
-        productName,
-        schoolName,
-        supplier,
-        size,
-        sellPrice,
-        wholesalePrice,
-        category,
-        quantity,
-      } = updateData;
+    const {
+      productid,
+      productName,
+      schoolName,
+      supplier,
+      size,
+      sellPrice,
+      wholesalePrice,
+      category,
+      quantity,
+    } = updateData;
 
-      // Use findByIdAndUpdate to update the document by _id
-      await Product.findByIdAndUpdate(_id, {
+    // Use findByIdAndUpdate to update the document by _id
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productid,
+      {
         productName,
         schoolName,
         supplier,
@@ -53,13 +55,20 @@ export async function PUT(request: Request) {
         wholesalePrice,
         category,
         quantity,
-      });
-   
- console.log("Products updated in the database");
-    return Response.json({ response: "Products updated" }, { status: 200 });
+      },
+      { new: true } 
+    );
+    
+    if (!updatedProduct) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    }
+
+    console.log("Updated product:", updatedProduct);
+
+    return NextResponse.json({ response: "Product updated", updatedProduct }, { status: 200 });
   } catch (error) {
     console.error(error);
-    return Response.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 

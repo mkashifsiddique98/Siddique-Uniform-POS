@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
+import React, { useState, useEffect, useMemo } from "react";
+import { useForm, SubmitHandler, useWatch } from "react-hook-form";
 import { z } from "zod";
 import {
   Form,
@@ -22,12 +22,12 @@ import { Button } from "@/components/ui/button";
 import { ProductFormState } from "@/types/product";
 import { formSchema } from "@/validation/product";
 
-interface sizeListTemplateProps {
+interface SizeListTemplateProps {
   name: string;
   size: string[];
 }
 
-interface schoolList {
+interface School {
   location: string;
   name: string;
   _id?: string;
@@ -37,8 +37,8 @@ interface ProductFormProps {
   form: ReturnType<typeof useForm<ProductFormState>>;
   onSubmit: (values: z.infer<typeof formSchema>) => Promise<void>;
   mode: string;
-  schoolList: schoolList[];
-  sizeListTemplate: sizeListTemplateProps[];
+  schoolList: School[];
+  sizeListTemplate: SizeListTemplateProps[];
 }
 
 const ProductForm: React.FC<ProductFormProps> = ({
@@ -48,20 +48,15 @@ const ProductForm: React.FC<ProductFormProps> = ({
   sizeListTemplate,
   mode,
 }) => {
-  const [sizeList, setSizeList] = useState<string[]>([]);
+  const category = useWatch({ control: form.control, name: "category" });
 
-  useEffect(() => {
-    // Initialize form values when the component mounts or when mode/initial data changes
-    if (mode === "Edit Product") {
-      const initialValues = form.getValues();
-      if (initialValues.category) {
-        const selectedData = sizeListTemplate.find(
-          (item) => item.name.toLowerCase() === initialValues.category.toLowerCase()
-        );
-        setSizeList(selectedData?.size || []);
-      }
-    }
-  }, [form.getValues, sizeListTemplate, mode]);
+  // Use useMemo to derive sizeList based on category change
+  const sizeList = useMemo(() => {
+    const selectedData = sizeListTemplate.find(
+      (item) => item.name.toLowerCase() === category?.toLowerCase()
+    );
+    return selectedData?.size || [];
+  }, [category, sizeListTemplate]);
 
   return (
     <Form {...form}>
@@ -91,7 +86,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 <FormLabel>School Name</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  value={field.value}  // Use value instead of defaultValue
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -123,14 +118,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   <FormLabel>Category</FormLabel>
                   <FormControl>
                     <RadioGroup
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        const selectedData = sizeListTemplate.find(
-                          (item) => item.name.toLowerCase() === value.toLowerCase()
-                        );
-                        setSizeList(selectedData?.size || []);
-                      }}
-                      value={field.value}  // Use value instead of defaultValue
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      
                       className="flex flex-wrap space-x-1"
                     >
                       {sizeListTemplate.map((item, index) => (
@@ -162,7 +152,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   <FormLabel>Size</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    value={field.value}  // Use value instead of defaultValue
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -179,6 +169,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
                 </FormItem>
               )}
             />

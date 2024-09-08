@@ -32,7 +32,9 @@ export default function RootLayout({
         />
         <MasterLayout>
       
-          {children}</MasterLayout>
+          {children}
+          
+          </MasterLayout>
         <Toaster />
         
       </body>

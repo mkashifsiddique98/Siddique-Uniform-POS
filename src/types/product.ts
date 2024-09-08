@@ -1,16 +1,16 @@
 export interface ProductFormState {
   productName: string;
   schoolName: string;
-  supplier: string;
+  supplier?: string;
   category: string;
   stockAlert: number;
   size: string;
   sellPrice: number;
   wholesalePrice: number;
   productCost: number;
-  quantity: number;
+  quantity?: number;
   _id?:object,
-  id: number,
+  id?: number,
   __v?:number,
   
 }

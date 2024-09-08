@@ -4,9 +4,10 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "All Product",
 };
+const DOMAIN_NAME = process.env.DOMAIN_NAME;
 async function getAllProductData() {
   try {
-    const res = await fetch("http://localhost:3000/api/product/", {
+    const res = await fetch(`${DOMAIN_NAME}/api/product/`, {
       cache: "no-store",
     });
     if (!res.ok) {
@@ -27,6 +28,7 @@ export default async function AllProduct({
 }) {
   const data = await getAllProductData();
   const { response } = data;
+ 
   const page = searchParams["page"] ?? 1;
   const per_page = searchParams["per_page"] ?? 5;
   const start = (Number(page) - 1) * Number(per_page);
@@ -34,6 +36,7 @@ export default async function AllProduct({
   const entries = response.slice(start, end);
   const totalEntries = response.length;
   const totalPages = Math.ceil(totalEntries / Number(per_page));
+  
   return (
     <div className="container p-6">
       <BreadCrum mainfolder="Product" subfolder="List Product" />

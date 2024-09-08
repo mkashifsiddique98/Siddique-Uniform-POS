@@ -5,7 +5,11 @@ import { NextResponse } from "next/server";
 
 connectDB(); // Connect to MongoDB
 // Create New Product
-// POS Page : Qty - Function
+// POS Page : Qty - Function    
+// ***********************************************************
+// ***********************************************************
+//               We can Manage POS Functionality Here
+// ***********************************************************
 export async function PUT(request: Request) {
   try {
     const productsToUpdate = await request.json();
@@ -40,14 +44,12 @@ export async function PUT(request: Request) {
     return Response.json({ error: "Server error" }, { status: 500 });
   }
 }
-
+// This basically like get Product by Id for Edit Page 
+// This only get details
 export async function POST(request: Request) {
   try {
     const productID = await request.json();
-    // const { _id } = productID;
-   
     const getProduct =await Product.findById({_id:productID});
-    console.log("getProduct", getProduct);
     return Response.json(getProduct , { status: 200 });
   } catch (error) {
     return Response.json({ error: "Server error" }, { status: 500 });

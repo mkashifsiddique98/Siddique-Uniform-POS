@@ -5,24 +5,35 @@ import BillBook from "./bill-book";
 import Fullscreen from "@/utils/fullScreen";
 
 async function getAllCustomerDetail() {
-  const res = await fetch("http://localhost:3000/api/customer", {
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    throw new Error("Failed to fetch data");
+  try {
+    const res = await fetch("http://localhost:3000/api/customer", {
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      console.log("Failed to fetch data");
+    }
+  
+    return res.json();
+  } catch (error) {
+     return null 
   }
-
-  return res.json();
+  
 }
 async function getAllProductData() {
-  const res = await fetch("http://localhost:3000/api/product/", {
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    throw new Error("Failed to fetch data");
+  try {
+    const res = await fetch("http://localhost:3000/api/product/", {
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      console.log("Failed to fetch data");
+    }
+  
+    return res.json();
+  } catch (error) {
+      
+     return null  
   }
-
-  return res.json();
+ 
 }
 const PointOfSale = async () => {
   const data = await getAllProductData();
