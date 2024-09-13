@@ -23,3 +23,9 @@
     background-color: #9e9a9a; /* Set a different color when the handle is hovered */
   }
   /* styles.css */
+  /* @media print {
+    @page {
+      size: 58mm auto;
+      margin: 1mm;
+    }
+  } */

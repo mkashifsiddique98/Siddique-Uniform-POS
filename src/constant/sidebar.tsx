@@ -10,7 +10,7 @@ import {
   GitGraph,
   ShoppingCart,
   ScrollText,
-  Layers
+  Layers,
 } from "lucide-react";
 
 export const sidebarItems = [
@@ -18,7 +18,7 @@ export const sidebarItems = [
     title: "Dashboard",
     href: "/",
     icon: <AreaChart />,
-  }, 
+  },
   {
     title: "Product",
     href: "#",
@@ -47,16 +47,6 @@ export const sidebarItems = [
     ],
   },
   {
-    title: "Users",
-    href: "#",
-    icon: <User />,
-  },
-  {
-    title: "Sales",
-    href: "/invoice",
-    icon: <GitGraph />,
-  },
-  {
     title: "Purchase",
     href: "/purchase",
     icon: <ShoppingCart />,
@@ -71,6 +61,17 @@ export const sidebarItems = [
         href: "/purchase/wholesaler",
         icon: <Layers />,
       },
-    ]
+    ],
+  },
+
+  {
+    title: "Sales",
+    href: "/invoice",
+    icon: <GitGraph />,
+  },
+  {
+    title: "Users",
+    href: "#",
+    icon: <User />,
   },
 ];

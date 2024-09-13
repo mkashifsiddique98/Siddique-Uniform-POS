@@ -5,8 +5,8 @@ import {
 } from "@/components/ui/avatar"
 import { invoice } from "@/types/invoice"
 
-export function RecentSales({customerName,grandTotal}:{grandTotal: Number,customerName: String,}) {
- 
+export function RecentSales({sale}) {
+ console.log("response",sale)
   return (
     <div className="space-y-8">
       <div className="flex items-center">
@@ -20,7 +20,7 @@ export function RecentSales({customerName,grandTotal}:{grandTotal: Number,custom
           WalkinCustomer@mail.com
           </p>
         </div>
-        <div className="ml-auto font-medium">+RS 2000</div>
+        <div className="ml-auto font-medium">RS {}</div>
       </div>
     </div>
   )

@@ -41,7 +41,7 @@ async function getAllInvoiceDetail() {
 export default async function DashboardPage() {
   const data = await getAllInvoiceDetail();
   const { response } = data;
-    console.log(response)
+    console.log("Sales",response)
   return (
     <>
       <div className="md:hidden">
@@ -204,9 +204,9 @@ export default async function DashboardPage() {
                   </CardHeader>
                   <CardContent>
                   {/* {response.map((sale,index)=>(
-                    <RecentSales key={index} invoiceData={response} customerName={sale.}  />
-                  ))} */}
-                   
+                    <RecentSales key={index} sale={sale}  />
+                  ))}
+                    */}
                   </CardContent>
                 </Card>
               </div>

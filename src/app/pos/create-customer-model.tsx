@@ -50,7 +50,7 @@ export default function CreateCustomerModel({
   };
   const handleCustomerDetailSubmit = async () => {
     try {
-      console.log("customerDetail",customerDetail)
+     
       if (customerDetail) {
         const response = await fetch("/api/customer", {
           method: "POST",
@@ -80,7 +80,7 @@ export default function CreateCustomerModel({
         value: "0"+ item.name+"1", 
       }));
       
-      console.log(onlySchoolName)
+     
       setSchoolList(onlySchoolName)
     } catch (error) {
        console.log(error)

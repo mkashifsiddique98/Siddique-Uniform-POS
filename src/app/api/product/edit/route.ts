@@ -21,12 +21,8 @@ export async function PUT(request: Request) {
       const productId = productData.productId;
       const quantityToUpdate = productData.quantity;
 
-      // Find the product by productId and update its quantity
-      const product = await Product.findOneAndUpdate(
-        { _id: productId },
-        { $inc: { quantity: -quantityToUpdate } }, // Decrement quantity by the specified amount
-        { new: true }
-      );
+      // Find the product by productId
+      const product = await Product.findOne({ _id: productId });
 
       if (!product) {
         return Response.json(
@@ -35,15 +31,28 @@ export async function PUT(request: Request) {
         );
       }
 
-      updatedProducts.push(product);
+      // Check if the quantity to update is more than the current quantity
+      if (product.quantity > 0 && product.quantity - quantityToUpdate >= 0) {
+        // Update the quantity only if it's valid
+        const updatedProduct = await Product.findOneAndUpdate(
+          { _id: productId },
+          { $inc: { quantity: -quantityToUpdate } }, // Decrement quantity by the specified amount
+          { new: true }
+        );
+        updatedProducts.push(updatedProduct);
+      } else {
+        // If the quantity is 0 or less, don't update and log a message or handle accordingly
+        console.log(`Product with ID ${productId} has insufficient quantity or is already 0.`);
+      }
     }
 
-    return Response.json({ response: "products" }, { status: 200 });
+    return Response.json({ response: updatedProducts }, { status: 200 });
   } catch (error) {
     console.error(error);
     return Response.json({ error: "Server error" }, { status: 500 });
   }
 }
+
 // This basically like get Product by Id for Edit Page 
 // This only get details
 export async function POST(request: Request) {
