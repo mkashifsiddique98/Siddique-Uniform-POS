@@ -5,7 +5,7 @@ import { toggleFullScreen } from "@/utils/screenUtils";
 import { Button } from "../ui/button";
 import { AlertNav } from "../custom-components/alert-nav";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { usePathname ,useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function Topnav({
@@ -17,34 +17,35 @@ export function Topnav({
     toggleFullScreen();
   };
   const pathName = usePathname();
-  const route = useRouter()
+  const route = useRouter();
 
   const [loading, setLoading] = useState(false);
-  
- 
-  const handleUpdate = async () => {
-      setLoading(true);
-      
-      try {
-          const response = await fetch('/api/setting', {
-              method: 'POST',
-          });
 
-          if (response.ok) {
-              const data = await response.json();
-             
-          }
-      } catch (error:any) {
-          console.log("Error",error)
-      } finally {
-          setLoading(false);
+  const handleUpdate = async () => {
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/setting", {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
       }
+    } catch (error: any) {
+      console.log("Error", error);
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <div className="border-b shadow-md z-50">
       <div className="flex h-16 items-center px-4 justify-between w-full ">
         {/* <TeamSwitcher /> */}
-        <Avatar className="ml-2 h-12 w-12  mr-5 border cursor-pointer" onClick={()=>route.push("/")}>
+        <Avatar
+          className="ml-2 h-12 w-12  mr-5 border cursor-pointer"
+          onClick={() => route.push("/")}
+        >
           <AvatarImage src="/73804159Siddique.png" alt="@Siddique" />
           <AvatarFallback>SU</AvatarFallback>
         </Avatar>
@@ -59,13 +60,15 @@ export function Topnav({
           {pathName !== "/pos" && (
             <div>
               <Button
-                onClick={()=>route.push("/pos")}
+                onClick={() => route.push("/pos")}
                 className="bg-white shadow-md hover:bg-black  hover:text-white"
                 variant="outline"
               >
                 POS
               </Button>
-              <Button onClick={handleUpdate} className="ml-1" size={"sm"}>{loading? "Updating...":"Update Software"}</Button>
+              <Button onClick={handleUpdate} className="ml-1" size={"sm"} disabled={loading}>
+                {loading ? "Updating..." : "Update Software"}
+              </Button>
             </div>
           )}
           <div
@@ -77,7 +80,6 @@ export function Topnav({
           {pathName !== "/pos" && (
             <div>
               <AlertNav />
-              
             </div>
           )}
           <UserNav />

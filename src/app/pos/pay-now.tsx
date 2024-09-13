@@ -86,7 +86,7 @@ const PayNowChart: React.FC<{
       <Text>Saran Market Karianwala</Text>
       <Text>{new Date().toLocaleDateString()}</Text>
       <Text>Receipt #: 001</Text>
-      <Text>Cashier: Kashif</Text>
+      <Text>Cashier: Saram</Text>
       <Br />
       <Line />
       <Row left="Product Name" center="Qty" right="Price" />

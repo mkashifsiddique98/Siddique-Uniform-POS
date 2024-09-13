@@ -1,4 +1,3 @@
-
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { exec } from 'child_process';
 import path from 'path';
@@ -8,10 +7,11 @@ type Data = {
     message?: string;
     error?: string;
 };
+
 const PROJECT_DIR = path.join(process.cwd(), '');
 const execPromise = util.promisify(exec);
 
-export  async function POST(req: NextApiRequest, res: NextApiResponse<Data>) {
+export async function POST(req: NextApiRequest, res: NextApiResponse<Data>) {
     try {
         const gitPullCommand = 'git pull origin main';
         const npmInstallCommand = 'npm install';
@@ -38,9 +38,9 @@ export  async function POST(req: NextApiRequest, res: NextApiResponse<Data>) {
         const npmStart = await execPromise(npmStartCommand, { cwd: PROJECT_DIR });
         console.log(`npm start stdout: ${npmStart.stdout}`);
         console.error(`npm start stderr: ${npmStart.stderr}`);
-         return Response.json({ message: 'Update complete' });
-    } catch (error:any) {
-        return Response.json(error);
+
+        return res.status(200).json({ message: 'Update complete' });
+    } catch (error: any) {
+        return res.status(500).json({ error: error.message || 'An error occurred' });
     }
-   
 }
