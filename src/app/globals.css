@@ -29,3 +29,13 @@
       margin: 1mm;
     }
   } */
+
+  .pagination-ellipsis::marker {
+    unicode-bidi: normal;
+    font-variant-numeric: normal;
+    text-transform: initial;
+    text-indent: initial;
+    text-align: initial;
+    text-align-last: initial;
+  }
+  

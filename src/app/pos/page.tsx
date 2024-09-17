@@ -40,7 +40,6 @@ const PointOfSale = async () => {
 
   const listCustomer = customer?.listCustomer || []; // Ensure it's an empty array if undefined or null
   const response = data?.response || []; // Ensure it's an empty array if undefined or null
-
   return (
     <div className="flex">
       <Fullscreen />

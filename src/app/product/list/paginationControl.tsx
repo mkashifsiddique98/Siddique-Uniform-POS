@@ -76,8 +76,9 @@ export const PaginationControl: FC<PaginationControlProps> = ({
             (pageNumber === totalPages - 1 && page + 1 < totalPages - 1)
           ) {
             return (
-              <li key={`pagination-ellipsis-${pageNumber}`} >
-                <span className="px-3">...</span>
+              <li key={`pagination-ellipsis-${pageNumber}`} 
+              className="pagination-ellipsis">
+                <span className="">...</span>
               </li>
             );
           }

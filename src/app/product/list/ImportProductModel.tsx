@@ -66,7 +66,11 @@ const ImportProductBtn = ({
 };
 // Main
 
-const ImportProductModal = () => {
+const ImportProductModal = ({
+  setData,
+}: {
+  setData: React.Dispatch<React.SetStateAction<ProductTypes[]>>;
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const showModal = () => {
     setIsModalOpen(true);
@@ -75,7 +79,7 @@ const ImportProductModal = () => {
   const hideModal = () => {
     setIsModalOpen(false);
   };
-  
+
   const requiredFields = [
     "productName",
     "schoolName",
@@ -111,6 +115,8 @@ const ImportProductModal = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       } else {
+        const list = await getAllProductDetail();
+        setData(list);
         return response;
       }
     } catch (error: any) {

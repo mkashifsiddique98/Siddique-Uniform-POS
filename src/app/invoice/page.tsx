@@ -1,5 +1,5 @@
 "use client";
-import BreadCrum from "@/components/custom-components/bread-crum";
+
 import React, { useEffect, useState } from "react";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
@@ -9,10 +9,10 @@ import { useForm } from "react-hook-form";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
+  FormDescription,
   FormMessage,
 } from "@/components/ui/form";
 import {
@@ -23,6 +23,19 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { Search } from "@/components/dashboard/search";
+import BreadCrum from "@/components/custom-components/bread-crum";
 
 const FormSchema = z.object({
   dob: z.date({
@@ -30,27 +43,39 @@ const FormSchema = z.object({
   }),
 });
 
-const SaleList = () => {
-  const [invoices, setInvoices] = useState([]);
+const DOMAIN_NAME = process.env.DOMAIN_NAME || "http://localhost:3000";
 
-  const getAllInvoice = async () => {
-    const res = await fetch("/api/invoice/");
-    const data = await res.json();
-    const { response } = data;
-    if (response) {
-      setInvoices(response);  // Set the invoices in the state
+// Fetching invoices as a separate async function
+async function fetchInvoiceData() {
+  try {
+    const res = await fetch(`${DOMAIN_NAME}/api/invoice/`, { cache: "no-store" });
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
     }
-  };
+    return await res.json();
+  } catch (error: any) {
+    console.error("Failed to fetch data:", error.message);
+    return [];
+  }
+}
+
+const SaleList: React.FC = () => {
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  
 
   useEffect(() => {
-    getAllInvoice();
+    async function loadData() {
+      const data = await fetchInvoiceData();
+      setInvoices(data.response || []); // Handle missing response
+    }
+    loadData();
   }, []);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
+  const onSubmit = (data: z.infer<typeof FormSchema>) => {
     toast({
       title: "You submitted the following values:",
       description: (
@@ -59,15 +84,13 @@ const SaleList = () => {
         </pre>
       ),
     });
-  }
+  };
 
   return (
     <div className="container p-6">
       <BreadCrum mainfolder="Sale" subfolder="List Sale" />
-      <div className="flex justify-between">
-        <div>
-          <Search />
-        </div>
+      <div className="flex justify-between mb-4">
+        <Search />
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
@@ -79,17 +102,15 @@ const SaleList = () => {
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
-                          variant={"outline"}
+                          variant="outline"
                           className={cn(
                             "w-[240px] pl-3 text-left font-normal",
                             !field.value && "text-muted-foreground"
                           )}
                         >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
+                          {field.value
+                            ? format(field.value, "PPP")
+                            : "Pick a date"}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
@@ -100,7 +121,7 @@ const SaleList = () => {
                         selected={field.value}
                         onSelect={field.onChange}
                         disabled={(date) =>
-                          date > new Date() || date < new Date("1900-01-01")
+                          date > new Date() || date < new Date("2024-01-01")
                         }
                         initialFocus
                       />
@@ -116,30 +137,23 @@ const SaleList = () => {
           </form>
         </Form>
       </div>
-      <div>
+
+      {invoices.length > 0 ? (
         <TableDemo invoices={invoices} />
-      </div>
+      ) : (
+        <p>No invoices found.</p>
+      )}
     </div>
   );
 };
 
 export default SaleList;
 
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Search } from "@/components/dashboard/search";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-
 type Invoice = {
   _id: string;
+  customerName: string;
+  customerId: string;
+  customerType: string;
   invoiceDate: string;
   grandTotal: number;
 };
@@ -148,29 +162,36 @@ interface TableDemoProps {
   invoices: Invoice[];
 }
 
-export const TableDemo: React.FC<TableDemoProps> = ({ invoices }) => {
+const TableDemo: React.FC<TableDemoProps> = ({ invoices }) => {
   const router = useRouter();
 
   const handleViewClick = (id: string) => {
-    router.push(`/invoices/view/${id}`);
+    router.push(`/invoice/view/${id}`);
   };
 
   return (
     <Table>
-      <TableCaption>A list of your recent invoices.</TableCaption>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-[100px]">Invoice ID</TableHead>
+          <TableHead className="w-[100px]">#</TableHead>
+          <TableHead>Customer ID</TableHead>
+          <TableHead>Type</TableHead>
           <TableHead>Invoice Date</TableHead>
           <TableHead>Total</TableHead>
           <TableHead className="text-right">Action</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {invoices.map((invoice) => (
+        {invoices.map((invoice, index) => (
           <TableRow key={invoice._id}>
-            <TableCell className="font-medium">{invoice._id}</TableCell>
-            <TableCell>{new Date(invoice.invoiceDate).toLocaleDateString()}</TableCell>
+            <TableCell className="font-medium">{index + 1}</TableCell>
+            <TableCell>{invoice.customerId}</TableCell>
+            <TableCell>{invoice.customerType}</TableCell>
+            <TableCell>
+              {new Date(invoice.invoiceDate).toLocaleDateString()}
+              <br/>
+              {new Date(invoice.invoiceDate).toLocaleTimeString()}
+            </TableCell>
             <TableCell>Rs {invoice.grandTotal}</TableCell>
             <TableCell className="text-right">
               <Button

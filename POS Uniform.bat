@@ -1,44 +1,23 @@
 @echo off
 setlocal
 
-REM Define the paths and commands
-set "BUILD_DIR=.next"
+REM Define the commands and paths
 set "START_CMD=npm run start"
 set "BUILD_CMD=npm run build"
 set "URL=http://localhost:3000"
+set "CHROME_PATH=C:\Program Files\Google\Chrome\Application\chrome.exe"
 
-REM Function to start the application
-:StartApplication
-    echo Starting the application...
-    start "" cmd /c "%START_CMD%"
-    exit /b
-
-REM Function to build the application
-:BuildApplication
-    echo Building the application...
-    %BUILD_CMD%
-    if %ERRORLEVEL% neq 0 (
-        echo Build failed. Please check the error messages above.
-        exit /b %ERRORLEVEL%
-    )
-    call :StartApplication
-    exit /b
-
-REM Check if the build directory exists and start the application accordingly
-if exist "%BUILD_DIR%" (
-    echo Build directory found.
-    call :StartApplication
+REM Check if the build directory exists and either build or start the application
+if exist ".next" (
+    %START_CMD%
 ) else (
-    echo Build directory not found.
-    call :BuildApplication
+    %BUILD_CMD% && %START_CMD%
 )
 
-REM Wait for a moment to ensure the server starts
-timeout /t 5 /nobreak > nul
+REM Wait a few seconds to allow the server to start
+timeout /t 5 >nul
 
 REM Open Chrome with the specified URL
-echo Opening Chrome...
-start "" chrome "%URL%"
+start "" "%CHROME_PATH%" "%URL%"
 
-pause
 endlocal

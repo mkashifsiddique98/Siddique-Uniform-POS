@@ -176,7 +176,7 @@ export default function AllProductTable({
           >
             <Sheet size={14} /> &nbsp; Excel
           </Button>
-          <ImportProductModal />
+          <ImportProductModal  setData={setData}/>
           <Button onClick={() => router.push("/product/create")}>
             <BadgePlus size={14} /> &nbsp; Create
           </Button>
