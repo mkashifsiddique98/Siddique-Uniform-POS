@@ -89,84 +89,93 @@ const ProductBox: React.FC<Props> = ({ items, perPage }) => {
         </div>
       )}
       {currentItems.length >= 1 && (
-        <div className="flex justify-between items-center">
-          <nav
-            aria-label="Page nsa avigation"
-            className="flex justify-between items-center"
-          >
-            <ul className="inline-flex -space-x-px text-sm">
-              <li>
-                <button
-                  disabled={currentPage <= 1}
-                  onClick={() => handlePaginationClick(currentPage - 1)}
-                  className="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-              </li>
-              {Array.from(
-                { length: Math.ceil(totalFilteredItems / perPage) },
-                (_, index) => {
-                  const pageNumber = index + 1;
-                  const totalPages = Math.ceil(totalFilteredItems / perPage);
-                  const isNearStart = pageNumber <= 5;
-                  const isNearEnd = pageNumber >= totalPages - 4;
-                  const isCurrentPage = currentPage === pageNumber;
-
-                  // Show the first 5 pages, the current page, and the last page
-                  if (isNearStart || isNearEnd || isCurrentPage) {
-                    return (
-                      <li key={`pagination-${pageNumber}`}>
-                        <button
-                          onClick={() => handlePaginationClick(pageNumber)}
-                          className={cn(
-                            "flex items-center justify-center px-3 h-8 leading-tight font-bold text-gray-500 bg-white border border-gray-300 hover:bg-gray-950 hover:text-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white",
-                            {
-                              "bg-gray-950 text-white":
-                                currentPage === pageNumber,
-                            }
-                          )}
-                        >
-                          {pageNumber}
-                        </button>
-                      </li>
-                    );
-                  }
-
-                  // Show ellipsis if it's in the middle (between start and end)
-                  if (pageNumber === 3 || pageNumber === totalPages - 10) {
-                    return (
-                      <li key={`pagination-ellipsis-${pageNumber}`}>
-                        <span className="px-3">...</span>
-                      </li>
-                    );
-                  }
-
-                  return null; // Don't render anything if the number is hidden
+        <nav aria-label="Pagination Navigation" className="flex justify-between items-center">
+        <ul className="inline-flex -space-x-px text-sm">
+          {/* Previous Button */}
+          <li>
+            <button
+              disabled={currentPage <= 1}
+              onClick={() => handlePaginationClick(currentPage - 1)}
+              className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+              aria-label="Previous Page"
+            >
+              &laquo; Previous
+            </button>
+          </li>
+      
+          {/* Pagination Numbers */}
+          {(() => {
+            const pages = [];
+            const totalPages = Math.ceil(totalFilteredItems / perPage);
+      
+            // Always show the first five pages
+            for (let i = 1; i <= Math.min(5, totalPages); i++) {
+              pages.push(i);
+            }
+      
+            // Show ellipsis if needed
+            if (totalPages > 5) {
+              if (currentPage > 6) {
+                pages.push('...');
+              }
+      
+              // Show pages around the current page
+              const startPage = Math.max(currentPage - 2, 6);
+              const endPage = Math.min(currentPage + 2, totalPages - 5);
+      
+              for (let i = startPage; i <= endPage; i++) {
+                pages.push(i);
+              }
+      
+              // Show ellipsis if needed
+              if (totalPages > endPage + 1) {
+                pages.push('...');
+              }
+      
+              // Always show the last five pages if not already included
+              for (let i = Math.max(totalPages - 4, endPage + 1); i <= totalPages; i++) {
+                if (!pages.includes(i) && i !== '...') {
+                  pages.push(i);
                 }
-              )}
-
-              <li>
-                <button
-                  disabled={
-                    currentPage >= Math.ceil(totalFilteredItems / perPage)
-                  }
-                  onClick={() => handlePaginationClick(currentPage + 1)}
-                  className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
+              }
+            }
+      
+            return pages.map((page, index) => (
+              <li key={`pagination-${page}`}>
+                {page === '...' ? (
+                  <span className="px-3 text-gray-500 dark:text-gray-400">...</span>
+                ) : (
+                  <button
+                    onClick={() => handlePaginationClick(page)}
+                    className={`flex items-center justify-center px-3 h-8 leading-tight font-bold border border-gray-300 dark:border-gray-700 ${
+                      currentPage === page
+                        ? "bg-gray-950 text-white dark:bg-gray-700 dark:text-white"
+                        : "bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+                    }`}
+                    aria-current={currentPage === page ? "page" : undefined}
+                  >
+                    {page}
+                  </button>
+                )}
               </li>
-            </ul>
-          </nav>
-          {/* Showing Result and Toatal Data  */}
-          {/* <div className="font-extrabold ">
-            <p>
-              Showing {currentPage} to {currentItems.length} of {items.length}{" "}
-              results
-            </p>
-          </div> */}
-        </div>
+            ));
+          })()}
+      
+          {/* Next Button */}
+          <li>
+            <button
+              disabled={currentPage >= Math.ceil(totalFilteredItems / perPage)}
+              onClick={() => handlePaginationClick(currentPage + 1)}
+              className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+              aria-label="Next Page"
+            >
+              Next &raquo;
+            </button>
+          </li>
+        </ul>
+      </nav>
+      
+      
       )}
     </div>
   );

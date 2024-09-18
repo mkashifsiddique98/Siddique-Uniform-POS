@@ -121,8 +121,8 @@ const BillTable: FC<BillTableProps> = ({ selectedCustomer }) => {
         </TableBody>
       </Table>
       {chartList.length === 0 && (
-        <div className="relative -top-28 mt-1 text-center text-white capitalize bg-gray-400 text-lg w-full p-2">
-          No Product Data Available
+        <div className="relative -top-28 mt-1 text-center text-white capitalize bg-gray-400 text-lg w-full p-2 animate-pulse">
+          Empty Product List
         </div>
       )}
       <div>
