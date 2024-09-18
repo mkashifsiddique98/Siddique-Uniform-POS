@@ -11,7 +11,7 @@ const ProductSchema: Schema = new Schema({
 
 const invoiceSchema: Schema = new Schema({
   invoiceNo: { type: Number },
-  customer: { type: Schema.Types.ObjectId, ref: "Customer" },
+  customer: { type: Schema.Types.ObjectId, ref: "Customer" }, // ref to "Customer"
   productDetail: [ProductSchema],
   prevBalance: { type: Number, default: 0 },
   grandTotal: { type: Number, default: 0 },

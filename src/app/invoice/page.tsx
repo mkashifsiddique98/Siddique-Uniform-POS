@@ -11,7 +11,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormDescription,
   FormMessage,
 } from "@/components/ui/form";
@@ -26,7 +25,6 @@ import { format } from "date-fns";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -48,7 +46,9 @@ const DOMAIN_NAME = process.env.DOMAIN_NAME || "http://localhost:3000";
 // Fetching invoices as a separate async function
 async function fetchInvoiceData() {
   try {
-    const res = await fetch(`${DOMAIN_NAME}/api/invoice/`, { cache: "no-store" });
+    const res = await fetch(`${DOMAIN_NAME}/api/invoice/`, {
+      cache: "no-store",
+    });
     if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);
     }
@@ -61,29 +61,58 @@ async function fetchInvoiceData() {
 
 const SaleList: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  
-
-  useEffect(() => {
-    async function loadData() {
-      const data = await fetchInvoiceData();
-      setInvoices(data.response || []); // Handle missing response
-    }
-    loadData();
-  }, []);
+  const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
+  const [totalDaySale, setTotalDaySale] = useState<number>(0);
+  const today = new Date();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
+    defaultValues: {
+      dob: today, // Set the default value to today's date
+    },
   });
 
-  const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
+  // Filter invoices by date
+  const filterInvoicesByDate = (date: Date) => {
+    const selectedDate = date.toLocaleDateString();
+    const filtered = invoices.filter((invoice) => {
+      const invoiceDate = new Date(invoice.invoiceDate).toLocaleDateString();
+      return invoiceDate === selectedDate;
     });
+    setFilteredInvoices(filtered);
+    calculateTotalSale(filtered);
+  };
+
+  // Calculate total sales for the selected date
+  const calculateTotalSale = (invoiceList: Invoice[]) => {
+    const totalSale = invoiceList.reduce(
+      (total, sale) => total + sale.grandTotal,
+      0
+    );
+    setTotalDaySale(totalSale);
+  };
+
+  // Load invoices and filter by current date on initial load
+  useEffect(() => {
+    const loadData = async () => {
+      const data = await fetchInvoiceData();
+      setInvoices(data.response || []);
+    };
+    loadData();
+  }, []);
+
+  // Recalculate filtered invoices and total sales when invoices or date change
+  useEffect(() => {
+    if (invoices.length > 0) {
+      filterInvoicesByDate(today); // Filter by today's date when invoices are loaded
+    }
+  }, [invoices]);
+
+  // Handle date change
+  const handleDateChange = (date: Date | undefined) => {
+    if (date) {
+      filterInvoicesByDate(date);
+    }
   };
 
   return (
@@ -91,8 +120,11 @@ const SaleList: React.FC = () => {
       <BreadCrum mainfolder="Sale" subfolder="List Sale" />
       <div className="flex justify-between mb-4">
         <Search />
+        <div className="font-extrabold">
+          Total Sale of Day : Rs {totalDaySale}
+        </div>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form className="space-y-8">
             <FormField
               control={form.control}
               name="dob"
@@ -119,7 +151,10 @@ const SaleList: React.FC = () => {
                       <Calendar
                         mode="single"
                         selected={field.value}
-                        onSelect={field.onChange}
+                        onSelect={(date) => {
+                          field.onChange(date);
+                          handleDateChange(date);
+                        }}
                         disabled={(date) =>
                           date > new Date() || date < new Date("2024-01-01")
                         }
@@ -127,9 +162,6 @@ const SaleList: React.FC = () => {
                       />
                     </PopoverContent>
                   </Popover>
-                  <FormDescription>
-                    List Date to view Specific Day Sales
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -137,11 +169,12 @@ const SaleList: React.FC = () => {
           </form>
         </Form>
       </div>
-
-      {invoices.length > 0 ? (
-        <TableDemo invoices={invoices} />
+      {filteredInvoices.length > 0 ? (
+        <TableDemo invoices={filteredInvoices} />
       ) : (
-        <p>No invoices found.</p>
+        <p className="font-extrabold text-center">
+          No invoices found for the selected date.
+        </p>
       )}
     </div>
   );
@@ -149,6 +182,7 @@ const SaleList: React.FC = () => {
 
 export default SaleList;
 
+// Define the Invoice type and TableDemo component
 type Invoice = {
   _id: string;
   customerName: string;
@@ -189,7 +223,7 @@ const TableDemo: React.FC<TableDemoProps> = ({ invoices }) => {
             <TableCell>{invoice.customerType}</TableCell>
             <TableCell>
               {new Date(invoice.invoiceDate).toLocaleDateString()}
-              <br/>
+              <br />
               {new Date(invoice.invoiceDate).toLocaleTimeString()}
             </TableCell>
             <TableCell>Rs {invoice.grandTotal}</TableCell>

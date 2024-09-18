@@ -6,13 +6,16 @@ import { Button } from "../ui/button";
 import { AlertNav } from "../custom-components/alert-nav";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Label } from "../ui/label";
 
 export function Topnav({
   handleToggleSidebar,
 }: {
   handleToggleSidebar?: () => void;
 }) {
+  const [dateTime, setDateTime] = useState(new Date());
   const handleFullScreen = () => {
     toggleFullScreen();
   };
@@ -38,42 +41,64 @@ export function Topnav({
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setDateTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
-    <div className="border-b shadow-md z-50">
-      <div className="flex h-16 items-center px-4 justify-between w-full ">
-        {/* <TeamSwitcher /> */}
-        <Avatar
-          className="ml-2 h-12 w-12  mr-5 border cursor-pointer"
-          onClick={() => route.push("/")}
-        >
-          <AvatarImage src="/73804159Siddique.png" alt="@Siddique" />
-          <AvatarFallback>SU</AvatarFallback>
-        </Avatar>
-        {pathName !== "/pos" && (
-          <div>
-            <div onClick={handleToggleSidebar}>
-              <Menu className="ml-4 cursor-pointer" />
+    <div className="border-b shadow-md z-50 relative">
+      <div className="flex justify-between items-center h-16 px-4 w-full">
+        <div className="flex items-center">
+          <Avatar
+            className="ml-2 h-12 w-12 mr-5 border cursor-pointer"
+            onClick={() => route.push("/")}
+          >
+            <AvatarImage src="/73804159Siddique.png" alt="@Siddique" />
+            <AvatarFallback>SU</AvatarFallback>
+          </Avatar>
+          {pathName !== "/pos" && (
+            <div>
+              <div onClick={handleToggleSidebar}>
+                <Menu className="ml-4 cursor-pointer" />
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Centered Date and Time */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 top-1/2 -translate-y-1/2 text-center ">
+          <p className="font-extrabold">
+            {dateTime.toLocaleDateString()} {dateTime.toLocaleTimeString()}
+          </p>
+        </div>
+
         <div className="ml-auto flex items-center space-x-4">
           {pathName !== "/pos" && (
             <div>
               <Button
                 onClick={() => route.push("/pos")}
-                className="bg-white shadow-md hover:bg-black  hover:text-white"
+                className="bg-white shadow-md hover:bg-black hover:text-white"
                 variant="outline"
               >
                 POS
               </Button>
-              <Button onClick={handleUpdate} className="ml-1" size={"sm"} disabled={loading}>
+              <Button
+                onClick={handleUpdate}
+                className="ml-1"
+                size={"sm"}
+                disabled={loading}
+              >
                 {loading ? "Updating..." : "Update Software"}
               </Button>
             </div>
           )}
           <div
             onClick={handleFullScreen}
-            className="cursor-pointer  hover:bg-gray-100 p-2 rounded-md hidden md:block"
+            className="cursor-pointer hover:bg-gray-100 p-2 rounded-md hidden md:block"
           >
             <Expand />
           </div>

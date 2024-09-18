@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type ProductDetail = {
   _id: string;
@@ -74,58 +75,57 @@ const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => 
   }
 
   const ProductTable: React.FC<{ products: ProductDetail[] }> = ({ products }) => (
-    <table className="w-full text-left border-collapse border border-gray-300">
-      <thead>
-        <tr>
-          <th className="border border-gray-300 p-2">Product Name</th>
-          <th className="border border-gray-300 p-2">Quantity</th>
-          <th className="border border-gray-300 p-2">Price</th>
-          <th className="border border-gray-300 p-2">Line Total</th>
-        </tr>
-      </thead>
-      <tbody>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="font-bold">Product Name</TableHead>
+          <TableHead className="font-bold">Quantity</TableHead>
+          <TableHead className="font-bold">Price</TableHead>
+          <TableHead className="font-bold">Line Total</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {products.map((product) => (
-          <tr key={product._id}>
-            <td className="border border-gray-300 p-2">{product.productName}</td>
-            <td className="border border-gray-300 p-2">{product.quantity}</td>
-            <td className="border border-gray-300 p-2">Rs {product.sellPrice}</td>
-            <td className="border border-gray-300 p-2">Rs {(product.quantity * product.sellPrice).toFixed(2)}</td>
-          </tr>
+          <TableRow key={product._id}>
+            <TableCell>{product.productName}</TableCell>
+            <TableCell>{product.quantity}</TableCell>
+            <TableCell>Rs {product.sellPrice}</TableCell>
+            <TableCell>Rs {(product.quantity * product.sellPrice)}</TableCell>
+          </TableRow>
         ))}
-        <tr>
-          <td className="border border-gray-300 p-2 font-bold" colSpan={3}>
-            Grand Total
-          </td>
-          <td className="border border-gray-300 p-2 font-bold" colSpan={1}>Rs {invoice.grandTotal}</td>
-        </tr>
-      </tbody>
-    </table>
+       <TableRow>
+            <TableCell colSpan={2}></TableCell>
+            <TableCell colSpan={1} className="font-bold">Grand Total</TableCell>
+            <TableCell colSpan={1} className="font-bold">Rs {invoice.grandTotal}</TableCell>
+          </TableRow>
+      </TableBody>
+    </Table>
   );
 
   return (
     <div className="container p-6">
       <h1 className="text-2xl font-bold mb-4">Invoice Details</h1>
 
-      <table className="w-full text-left mb-6 border-collapse border border-gray-300">
-        <thead>
-          <tr>
-            <th className="border border-gray-300 p-2">Invoice ID</th>
-            <th className="border border-gray-300 p-2">Invoice Date</th>
-            <th className="border border-gray-300 p-2">Customer</th>
-            <th className="border border-gray-300 p-2">Previous Balance</th>
-            <th className="border border-gray-300 p-2">Message</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td className="border border-gray-300 p-2">{invoice._id}</td>
-            <td className="border border-gray-300 p-2">{new Date(invoice.invoiceDate).toLocaleDateString()}</td>
-            <td className="border border-gray-300 p-2">{invoice.customer}</td>
-            <td className="border border-gray-300 p-2">Rs {invoice.prevBalance}</td>
-            <td className="border border-gray-300 p-2">{invoice.anyMessage || "N/A"}</td>
-          </tr>
-        </tbody>
-      </table>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Invoice ID</TableHead>
+            <TableHead>Invoice Date</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead>Previous Balance</TableHead>
+            <TableHead>Message</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell>{invoice._id}</TableCell>
+            <TableCell>{new Date(invoice.invoiceDate).toLocaleDateString()}</TableCell>
+            <TableCell>{invoice.customer}</TableCell>
+            <TableCell>Rs {invoice.prevBalance}</TableCell>
+            <TableCell>{invoice.anyMessage || "N/A"}</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
 
       <h2 className="text-xl font-semibold mb-2">Product Details</h2>
 

@@ -30,11 +30,11 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     
-    const invoices = await Invoice.find()
-    // .populate('Customer');
+    const invoices = await Invoice.find().populate('customer');
     return Response.json({ response: invoices }, { status: 200 });
   } catch (error) {
     console.error(error);
+    console.error("Error populating customer:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

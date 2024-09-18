@@ -33,7 +33,7 @@ export function AlertNav() {
             </div>
             <p className="text-sm font-medium leading-none">
               {" "}
-              2 Product Qauntity Alert
+              Move to Dashboard
             </p>
           </div>
         </DropdownMenuLabel>

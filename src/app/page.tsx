@@ -12,36 +12,55 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalendarDateRangePicker } from "@/components/dashboard/date-range-picker";
 import { Overview } from "@/components/dashboard/overview";
 import { RecentSales } from "@/components/dashboard/recent-sales";
+import { ProductFormState } from "@/types/product";
+import LOWSTOCK from "@/components/dashboard/low-stock";
+const DOMAIN_NAME = process.env.DOMAIN_NAME || "http://localhost:3000";
 
+async function getAllProductData() {
+  try {
+    const res = await fetch(`${DOMAIN_NAME}/api/product`, {
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
+    return await res.json();
+  } catch (error: any) {
+    console.error("Failed to fetch data:", error.message);
+    return null; // Return an empty array to handle missing data gracefully
+  }
+}
 
 export const metadata: Metadata = {
   title: "Dashboard",
   description: "dashboard app.",
 };
 async function getAllInvoiceDetail() {
-  
   try {
-    const res = await fetch(`${process.env.DOMAIN_NAME}/api/invoice/`
-    //   , {
-    //   cache: "no-store",
-    // }
-  );
+    const res = await fetch(
+      `${process.env.DOMAIN_NAME}/api/invoice/`
+        , {
+        cache: "no-store",
+      }
+    );
     if (!res.ok) {
-      getAllInvoiceDetail()
+      getAllInvoiceDetail();
     }
-  
+
     return res.json();
   } catch (error) {
     console.error(error);
     return { response: [] };
   }
-  
-  
 }
 export default async function DashboardPage() {
   const data = await getAllInvoiceDetail();
   const { response } = data;
-    console.log("Sales",response)
+  const dataProduct = await getAllProductData();
+  const productResponse: ProductFormState[] = dataProduct?.response || [];
+  
+
   return (
     <>
       <div className="md:hidden">
@@ -160,31 +179,7 @@ export default async function DashboardPage() {
                     </p>
                   </CardContent>
                 </Card>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Low Stock Product
-                    </CardTitle>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      className="h-4 w-4 text-muted-foreground"
-                    >
-                      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                    </svg>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">10+</div>
-                    <p className="text-xs text-muted-foreground">
-                      View Details
-                    </p>
-                  </CardContent>
-                </Card>
+                <LOWSTOCK productResponse={productResponse}/>
               </div>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                 <Card className="col-span-4">
@@ -203,10 +198,9 @@ export default async function DashboardPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                  {/* {response.map((sale,index)=>(
+                    {/* {response.map((sale,index)=>(
                     <RecentSales key={index} sale={sale}  />
-                  ))}
-                    */}
+                  ))} */}
                   </CardContent>
                 </Card>
               </div>
