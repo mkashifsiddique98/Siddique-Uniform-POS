@@ -2,19 +2,22 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { X, XCircle } from "lucide-react";
 import React, { FC, useState } from "react";
-import { schoolList, sizeListTemplate } from "@/data";
+import { sizeListTemplate } from "@/data";
 import { FilterElementProps } from "@/types/product";
+import { School } from "@/types/school-name";
 
 const FilterSchoolCom = ({
   toggleSidebarSchool,
   handleClearFilter,
   handleFilterChangeElement,
+  schoolList,
   filterElement,
 }: {
   toggleSidebarSchool: () => void;
   handleClearFilter: () => void;
   handleFilterChangeElement: (filterElement: FilterElementProps) => void;
   filterElement: FilterElementProps;
+  schoolList: School[];
 }) => {
   return (
     <>
@@ -28,25 +31,27 @@ const FilterSchoolCom = ({
         </button>
         <div>
           <p className="leading-1 font-bold text-xl">Filter School</p>
-          <div className="grid grid-cols-1 gap-1 mt-5">
-            {schoolList.map((school, index) => (
-              <Card
-                key={school + index}
-                className={`p-4 w-full h-14 border hover:border-black cursor-pointer capitalize flex items-center justify-center"  ${
-                  school == filterElement.filterValue ? "border-black" : ""
-                }`}
-                onClick={() => {
-                  const filterElementTem = {
-                    filterBy: "schoolName",
-                    filterValue: school,
-                  };
-                  // Need to Work Here
-                  // handleFilterChangeElement(filterElementTem);
-                }}
-              >
-                <p className="leading-6 text-lg ">{school}</p>
-              </Card>
-            ))}
+          <div className="grid grid-cols-1 gap-1 mt-5 overflow-auto">
+            {schoolList &&
+              schoolList.map((school, index) => (
+                <Card
+                  key={school.location + index}
+                  className={`p-4 w-full h-14 border hover:border-black cursor-pointer capitalize flex items-center justify-center"  ${
+                    school.name == filterElement.filterValue
+                      ? "border-black"
+                      : ""
+                  }`}
+                  onClick={() => {
+                    const filterElementTem = {
+                      filterBy: "schoolName",
+                      filterValue: school.name,
+                    };
+                    handleFilterChangeElement(filterElementTem);
+                  }}
+                >
+                  <p className="leading-6 text-lg ">{school.name}</p>
+                </Card>
+              ))}
           </div>
           <div className="mt-4 flex justify-center items-center">
             <Button variant="outline" onClick={handleClearFilter}>
@@ -63,8 +68,10 @@ const FilterSchoolCom = ({
 interface FilterBtnProductProps {
   handleFilterChangeElement: (filterElement: FilterElementProps) => void;
   filterElement: FilterElementProps;
+  schoolList: School[];
 }
 const FilterBtnProduct: FC<FilterBtnProductProps> = ({
+  schoolList,
   filterElement,
   handleFilterChangeElement,
 }) => {
@@ -88,13 +95,19 @@ const FilterBtnProduct: FC<FilterBtnProductProps> = ({
     <div className="flex justify-between m-2">
       <Button onClick={toggleSidebar} className="relative ">
         Filter Category
-        {filterElement.filterValue !="" && (
+        {filterElement.filterBy == "category" && (
           <span className="absolute font-semibold p-1 text-[10px] -top-3 -right-2 rounded-md bg-green-400">
             {filterElement.filterValue}
           </span>
         )}
       </Button>
-      <Button onClick={toggleSidebarSchool}>Filter School</Button>
+      <Button onClick={toggleSidebarSchool} className="relative">Filter School
+      {filterElement.filterBy == "schoolName" && (
+          <span className="absolute font-semibold p-1 text-[10px] -top-4 left-12 rounded-md bg-green-400">
+            {filterElement.filterValue}
+          </span>
+        )}
+      </Button>
       <Button variant="outline" onClick={handleClearFilter}>
         {" "}
         <X className="mr-2" />
@@ -144,7 +157,9 @@ const FilterBtnProduct: FC<FilterBtnProductProps> = ({
         </div>
       )}
       {isSidebarVisibleSchool && (
+
         <FilterSchoolCom
+          schoolList={schoolList}
           toggleSidebarSchool={toggleSidebarSchool}
           handleClearFilter={handleClearFilter}
           handleFilterChangeElement={handleFilterChangeElement}

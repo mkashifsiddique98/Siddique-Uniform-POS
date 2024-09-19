@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { MinusSquare, PlusSquare, RotateCcw, XCircle } from "lucide-react";
+import { BadgePlus, MinusSquare, PlusSquare, RotateCcw, XCircle } from "lucide-react";
 import React, { FC, useState } from "react";
 import PayNowChart from "./pay-now";
 import { Label } from "@/components/ui/label";
@@ -24,10 +24,9 @@ import { calculatePercentage } from "@/utils";
 import { customer } from "@/types/customer";
 interface BillTableProps {
   selectedCustomer?: customer;
-  
 }
 const BillTable: FC<BillTableProps> = ({ selectedCustomer }) => {
-//  ==============================================
+  //  ==============================================
   const chartList: Products[] = useTypedSelector(
     (state) => state.chart.chartList
   );
@@ -65,66 +64,132 @@ const BillTable: FC<BillTableProps> = ({ selectedCustomer }) => {
   const handleRemoveItem = (productName: string) => {
     dispatch(removeItemChart({ productName }));
   };
+  // *************************************for Special stiching Customer ***********
+  const [specialProductName, setSpecialProductName] = useState("");
+  const [specialProductPrice, setSpecialProductPrice] = useState<number | "">(
+    ""
+  );
+  const [specialProductQty, setSpecialProductQty] = useState<number | "">("");
+
+  const handleAddSpecialProduct = () => {
+    if (specialProductName && specialProductPrice && specialProductQty) {
+      const newProduct: Products ={
+          productName: specialProductName,
+          sellPrice: specialProductPrice,
+          quantity: specialProductQty,
+          category: 'special', // or another default category if needed
+          size: "N/A", // handle size or set to default if not applicable
+          productCost: 0, // you may want to adjust this based on your logic
+          stockAlert: 0, // if you need to track this for special stitching
+          productId:Object, 
+          schoolName:"special", 
+          wholesalePrice:0
+      }
+      dispatch(
+        updateChart(newProduct)
+      );
+      console.log("chartList",chartList)
+      // Reset special product inputs after adding
+      setSpecialProductName("");
+      setSpecialProductPrice("");
+      setSpecialProductQty("");
+    } else {
+      console.error("All fields must be filled");
+    }
+  };
+
   return (
     <div className="flex flex-col justify-between h-[75vh]">
-      <Table className="border-t">
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[200px] text-left font-semibold">
-              Product
-            </TableHead>
-            <TableHead className="text-right font-semibold">Price</TableHead>
-            <TableHead className="text-center font-semibold">
-              Quantity
-            </TableHead>
-            <TableHead className="text-right font-semibold">
-              Sub Total
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {chartList.map((product, index) => (
-            <TableRow key={index}>
-              <TableCell>{product.productName}</TableCell>
-              <TableCell className="text-right">{product.sellPrice}</TableCell>
-              <TableCell className="text-center">
-                <div className="flex justify-evenly items-center">
-                  <button onClick={() => handleUpdate(product.productName, -1)}>
-                    <MinusSquare />
-                  </button>
-                  <input
-                    className="w-6"
-                    value={product.quantity}
-                    // onChange={(e) => {
-                    //   setLiveQty(parseInt(e.target.value, 10));
-                    // }}
-                  />
+      <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-[200px] text-left font-semibold">
+            Product
+          </TableHead>
+          <TableHead className="text-right font-semibold">Price</TableHead>
+          <TableHead className="text-center font-semibold">Quantity</TableHead>
+        </TableRow>
+      </TableHeader>
 
-                  <button onClick={() => handleUpdate(product.productName, 1)}>
-                    <PlusSquare />
-                  </button>
-                </div>
-              </TableCell>
-              <TableCell className="text-right">
-                {product.quantity * product.sellPrice}
-              </TableCell>
-              <TableCell>
-                <span
-                  className="cursor-pointer"
-                  onClick={() => handleRemoveItem(product.productName)}
-                >
-                  <XCircle className="text-red-500" />
-                </span>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
+      <TableBody>
+        {chartList.map((product, index) => (
+          <TableRow key={index}>
+            <TableCell>{product.productName}</TableCell>
+            <TableCell className="text-right">{product.sellPrice}</TableCell>
+            <TableCell className="text-center">
+              <div className="flex justify-evenly items-center">
+                <button onClick={() => handleUpdate(product.productName, -1)}>
+                  <MinusSquare />
+                </button>
+                <input className="w-6" value={product.quantity} />
+                <button onClick={() => handleUpdate(product.productName, 1)}>
+                  <PlusSquare />
+                </button>
+              </div>
+            </TableCell>
+            <TableCell className="text-right">
+              {product.quantity * product.sellPrice}
+            </TableCell>
+            <TableCell>
+              <span
+                className="cursor-pointer"
+                onClick={() => handleRemoveItem(product.productName)}
+              >
+                <XCircle className="text-red-500" />
+              </span>
+            </TableCell>
+          </TableRow>
+        ))}
+
+        {/* Special Stitching Product Input */}
+        {selectedCustomer?.type === "special-sitching" && (
+          <TableRow>
+            <TableCell>
+              <Input
+                placeholder="Product Name"
+                style={{minWidth:"250px"}}
+                value={specialProductName} // state for the special product name
+                onChange={(e) => setSpecialProductName(e.target.value)}
+              />
+            </TableCell>
+            <TableCell className="text-right">
+              <Input
+                placeholder="Sell Price"
+                type="number"
+                value={specialProductPrice} // state for the special product price
+                onChange={(e) =>
+                  setSpecialProductPrice(parseFloat(e.target.value))
+                }
+              />
+            </TableCell>
+            <TableCell className="text-right">
+              <Input
+                placeholder="Qty"
+                type="number"
+                value={specialProductQty} // state for the special product quantity
+                onChange={(e) =>
+                  setSpecialProductQty(parseInt(e.target.value, 10))
+                }
+              />
+            </TableCell>
+            <TableCell>
+              <Button onClick={handleAddSpecialProduct} size={"sm"}>
+              <BadgePlus />
+              </Button>
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
       </Table>
+     
       {chartList.length === 0 && (
-        <div className="relative -top-28 mt-1 text-center text-white capitalize bg-gray-400 text-lg w-full p-2 animate-pulse">
+        <div className="relative  mt-1 text-center text-white capitalize bg-gray-400 text-lg w-full p-2 animate-pulse">
           Empty Product List
         </div>
       )}
+     
+      
+      
       <div>
         <div className="w-full bg-black p-2 text-center text-white">
           <p className="font-semibold">

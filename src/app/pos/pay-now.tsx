@@ -32,7 +32,7 @@ const PayNowChart: React.FC<{
   selectedCustomer?: customer;
   handleReset: () => void;
 }> = ({ grandTotal, discount, productList, disInPercentage, selectedCustomer, handleReset }) => {
-  const [date, setDate] = useState<Date>(new Date());
+  const [dueDate, setDueDate] = useState<Date>(new Date());
   const [payingAmount, setPayingAmount] = useState<number>(grandTotal);
   const [receiveAmount, setReceiveAmount] = useState<number>(0);
   const [customerNotes, setCustomerNotes] = useState("");
@@ -47,12 +47,12 @@ const PayNowChart: React.FC<{
 
   const handleInvoiceGenerate = async () => {
     const invoiceDetail = {
-      customer: selectedCustomer?._id,
+      customer: selectedCustomer,
       productDetail: chartList,
       grandTotal,
       anyMessage: customerNotes,
-    };
-
+      dueDate: dueDate === new Date()? null :dueDate // for Special Customer Only =>
+    }; 
     try {
       const response = await fetch("/api/invoice/", {
         method: "POST",
@@ -209,7 +209,7 @@ const PayNowChart: React.FC<{
             {selectedCustomer?.type === "special-sitching" && (
               <div>
                 <Label htmlFor="calendar">Due Date for Special Stitching</Label>
-                <Calendar date={date} handleDateChange={setDate} />
+                <Calendar date={dueDate} handleDateChange={setDueDate} />
               </div>
             )}
           </div>

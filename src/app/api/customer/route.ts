@@ -8,7 +8,6 @@ export async function POST(request: Request) {
   try {
     const res = await request.json();
     const newCustomer = new Customer(res);
-    console.log(res);
     const savedCustomer = await newCustomer.save();
     return Response.json({ response: savedCustomer }, { status: 201 });
   } catch (error) {

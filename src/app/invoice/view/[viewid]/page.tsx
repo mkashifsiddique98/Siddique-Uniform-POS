@@ -3,24 +3,17 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
-type ProductDetail = {
-  _id: string;
-  productName: string;
-  quantity: number;
-  sellPrice: number;
-};
-
-interface Invoice {
-  _id: string;
-  invoiceDate: string;
-  customer: string;
-  grandTotal: number;
-  prevBalance: number;
-  anyMessage: string;
-  productDetail: ProductDetail[];
-}
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Invoice, ProductDetail } from "@/types/invoice";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
@@ -52,8 +45,8 @@ const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => 
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-[100vh]">
-        <p>Loading...</p>
+      <div className="flex justify-center  h-[100vh]">
+        <Skeleton className="h-[60vh] w-[60vw]"/>
       </div>
     );
   }
@@ -85,19 +78,19 @@ const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => 
         </TableRow>
       </TableHeader>
       <TableBody>
-        {products.map((product) => (
-          <TableRow key={product._id}>
+        {products.map((product, index) => (
+          <TableRow key={index}>
             <TableCell>{product.productName}</TableCell>
             <TableCell>{product.quantity}</TableCell>
             <TableCell>Rs {product.sellPrice}</TableCell>
-            <TableCell>Rs {(product.quantity * product.sellPrice)}</TableCell>
+            <TableCell>Rs {product.quantity * product.sellPrice}</TableCell>
           </TableRow>
         ))}
-       <TableRow>
-            <TableCell colSpan={2}></TableCell>
-            <TableCell colSpan={1} className="font-bold">Grand Total</TableCell>
-            <TableCell colSpan={1} className="font-bold">Rs {invoice.grandTotal}</TableCell>
-          </TableRow>
+        <TableRow>
+          <TableCell colSpan={2}></TableCell>
+          <TableCell className="font-bold">Grand Total</TableCell>
+          <TableCell className="font-bold">Rs {invoice.grandTotal}</TableCell>
+        </TableRow>
       </TableBody>
     </Table>
   );
@@ -111,7 +104,8 @@ const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => 
           <TableRow>
             <TableHead>Invoice ID</TableHead>
             <TableHead>Invoice Date</TableHead>
-            <TableHead>Customer</TableHead>
+            <TableHead>Customer Name</TableHead>
+            <TableHead>Customer Type</TableHead>
             <TableHead>Previous Balance</TableHead>
             <TableHead>Message</TableHead>
           </TableRow>
@@ -120,16 +114,18 @@ const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => 
           <TableRow>
             <TableCell>{invoice._id}</TableCell>
             <TableCell>{new Date(invoice.invoiceDate).toLocaleDateString()}</TableCell>
-            <TableCell>{invoice.customer}</TableCell>
+            <TableCell>{invoice.customer.customerName}</TableCell>
+            <TableCell>{invoice.customer.type}</TableCell>
+            
             <TableCell>Rs {invoice.prevBalance}</TableCell>
-            <TableCell>{invoice.anyMessage || "N/A"}</TableCell>
+            <TableCell>{invoice?.anyMessage || "N/A"}</TableCell>
           </TableRow>
         </TableBody>
       </Table>
 
       <h2 className="text-xl font-semibold mb-2">Product Details</h2>
 
-      {invoice.productDetail.length > 0 ? (
+      {invoice.productDetail && invoice.productDetail.length > 0 ? (
         <ProductTable products={invoice.productDetail} />
       ) : (
         <p className="mt-2">No products in this invoice.</p>

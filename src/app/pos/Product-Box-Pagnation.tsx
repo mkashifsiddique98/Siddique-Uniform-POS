@@ -6,13 +6,16 @@ import { FilterElementProps, ProductFormState } from "@/types/product";
 import FilterBtnProduct from "./Filter-btn-product";
 import { Search } from "@/components/custom-components/inputIcon";
 import { cn } from "@/lib/utils";
+import { School } from "@/types/school-name";
 
 interface Props {
+  schoolList: School[];
   items: ProductFormState[];
   perPage: number;
 }
 
-const ProductBox: React.FC<Props> = ({ items, perPage }) => {
+const ProductBox: React.FC<Props> = ({ schoolList,items, perPage }) => {
+  
   const [currentPage, setCurrentPage] = useState(1);
   const [query, setQuery] = useState(""); //Search
   const [filterElement, setFilterElement] = useState<FilterElementProps>({
@@ -29,21 +32,16 @@ const ProductBox: React.FC<Props> = ({ items, perPage }) => {
   // Combined filter function for search and filter
   const combinedFilter = (item: ProductFormState) => {
     const matchesSearch = query
-      ? item.productName
-          .toLowerCase()
-          .trim()
-          .includes(query.toLowerCase().trim())
+      ? item.productName.toLowerCase().trim().includes(query.toLowerCase().trim())
       : true;
-
+  
     const matchesFilter = filterElement.filterValue
-      ? item[filterElement.filterBy]
-          .toLowerCase()
-          .trim()
-          .includes(filterElement.filterValue.toLowerCase().trim())
+      ? item[filterElement.filterBy]?.toLowerCase().trim().includes(filterElement.filterValue.toLowerCase().trim())
       : true;
-
+  
     return matchesSearch && matchesFilter;
   };
+  
   const filteredItems = items.filter(combinedFilter);
 
   const totalFilteredItems = filteredItems.length;
@@ -68,6 +66,7 @@ const ProductBox: React.FC<Props> = ({ items, perPage }) => {
   return (
     <div className="my-4">
       <FilterBtnProduct
+        schoolList={schoolList}
         filterElement={filterElement}
         handleFilterChangeElement={handleFilterChangeElement}
       />

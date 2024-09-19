@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 import { customer } from "@/types/customer";
 
+
 interface ICustomer extends Document, customer {}
 
 const customerSchema: Schema = new Schema({
@@ -9,6 +10,7 @@ const customerSchema: Schema = new Schema({
   type: { type: String },
   phone: { type: Number },
   prevBalance: { type: Number, default: 0 },
+
 });
 
 const Customer =

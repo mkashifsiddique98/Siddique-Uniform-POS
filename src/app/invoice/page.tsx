@@ -34,6 +34,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Search } from "@/components/dashboard/search";
 import BreadCrum from "@/components/custom-components/bread-crum";
+import { Invoice } from "@/types/invoice";
 
 const FormSchema = z.object({
   dob: z.date({
@@ -120,8 +121,8 @@ const SaleList: React.FC = () => {
       <BreadCrum mainfolder="Sale" subfolder="List Sale" />
       <div className="flex justify-between mb-4">
         <Search />
-        <div className="font-extrabold">
-          Total Sale of Day : Rs {totalDaySale}
+        <div className="font-extrabold border rounded-md p-2 text-2xl">
+          Total Sale of Today : Rs {totalDaySale}
         </div>
         <Form {...form}>
           <form className="space-y-8">
@@ -183,14 +184,7 @@ const SaleList: React.FC = () => {
 export default SaleList;
 
 // Define the Invoice type and TableDemo component
-type Invoice = {
-  _id: string;
-  customerName: string;
-  customerId: string;
-  customerType: string;
-  invoiceDate: string;
-  grandTotal: number;
-};
+
 
 interface TableDemoProps {
   invoices: Invoice[];
@@ -199,7 +193,7 @@ interface TableDemoProps {
 const TableDemo: React.FC<TableDemoProps> = ({ invoices }) => {
   const router = useRouter();
 
-  const handleViewClick = (id: string) => {
+  const handleViewClick = (id: string | undefined) => {
     router.push(`/invoice/view/${id}`);
   };
 
@@ -208,8 +202,8 @@ const TableDemo: React.FC<TableDemoProps> = ({ invoices }) => {
       <TableHeader>
         <TableRow>
           <TableHead className="w-[100px]">#</TableHead>
-          <TableHead>Customer ID</TableHead>
-          <TableHead>Type</TableHead>
+          <TableHead>Customer Name</TableHead>
+          <TableHead>Customer Type</TableHead>
           <TableHead>Invoice Date</TableHead>
           <TableHead>Total</TableHead>
           <TableHead className="text-right">Action</TableHead>
@@ -217,16 +211,16 @@ const TableDemo: React.FC<TableDemoProps> = ({ invoices }) => {
       </TableHeader>
       <TableBody>
         {invoices.map((invoice, index) => (
-          <TableRow key={invoice._id}>
+          <TableRow key={index}>
             <TableCell className="font-medium">{index + 1}</TableCell>
-            <TableCell>{invoice.customerId}</TableCell>
-            <TableCell>{invoice.customerType}</TableCell>
-            <TableCell>
+            <TableCell>{invoice.customer.customerName}</TableCell>
+            <TableCell>{invoice.customer.type}</TableCell>
+            <TableCell className="whitespace-nowrap">
               {new Date(invoice.invoiceDate).toLocaleDateString()}
               <br />
               {new Date(invoice.invoiceDate).toLocaleTimeString()}
             </TableCell>
-            <TableCell>Rs {invoice.grandTotal}</TableCell>
+            <TableCell>Rs {invoice.grandTotal.toFixed(2)}</TableCell>
             <TableCell className="text-right">
               <Button
                 variant="outline"

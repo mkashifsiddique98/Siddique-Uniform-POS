@@ -38,7 +38,7 @@ const LOWSTOCK = ({
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{lowStock}</div>
-        <Link href={"/low-stock"}>
+        <Link href={"/product/low-stock"}>
           <p className="text-xs text-muted-foreground hover:underline cursor-pointer">
             View Details
           </p>

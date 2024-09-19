@@ -11,6 +11,7 @@ import {
   ShoppingCart,
   ScrollText,
   Layers,
+  Coins,
 } from "lucide-react";
 
 export const sidebarItems = [
@@ -68,6 +69,18 @@ export const sidebarItems = [
     title: "Sales",
     href: "/invoice",
     icon: <GitGraph />,
+    subItems: [
+      {
+        title: "Daily Invoice",
+        href: "/invoice",
+        icon: <Coins />,
+      },
+      {
+        title: "Special Order",
+        href: "/invoice/special-order",
+        icon: <ScrollText />,
+      },
+    ]
   },
   {
     title: "Users",

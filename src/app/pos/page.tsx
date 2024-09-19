@@ -1,8 +1,11 @@
 import { Topnav } from "@/components/layout/topnav";
 import React from "react";
 import ProductBox from "./Product-Box-Pagnation";
-import BillBook from "./bill-book";
+
 import Fullscreen from "@/utils/fullScreen";
+import dynamic from "next/dynamic";
+import BillBook from "./bill-book";
+import { School } from "@/types/school-name";
 
 const DOMAIN_NAME = process.env.DOMAIN_NAME || "http://localhost:3000";
 
@@ -33,13 +36,24 @@ async function getAllProductData() {
   const productData = await fetchData("/api/product/");
   return productData ? productData : { response: [] }; // Return an empty array if null
 }
+async function getAllSchoolData() {
+  const SchoolData = await fetchData("/api/product/school-name");
+  return SchoolData ? SchoolData : { response: [] }; // Return an empty array if null
+}
 
+// ***************************** Main ********************
 const PointOfSale = async () => {
+   // All Product
   const data = await getAllProductData();
+//  All customer
   const customer = await getAllCustomerDetail();
-
+ 
   const listCustomer = customer?.listCustomer || []; // Ensure it's an empty array if undefined or null
   const response = data?.response || []; // Ensure it's an empty array if undefined or null
+  // School List
+  const SchoolArray =await getAllSchoolData() 
+  const SchoolList:School[] = SchoolArray.response || []
+ 
   return (
     <div className="flex">
       <Fullscreen />
@@ -51,7 +65,9 @@ const PointOfSale = async () => {
       {/* Right Side */}
       <div className="h-screen w-6/12">
         <div className="container">
-          <ProductBox items={response} perPage={12} />
+          <ProductBox 
+          schoolList={SchoolList}
+          items={response} perPage={12} />
         </div>
       </div>
     </div>

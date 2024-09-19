@@ -7,15 +7,19 @@ import { AlertNav } from "../custom-components/alert-nav";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { Label } from "../ui/label";
+import dynamic from "next/dynamic";
 
+const DateTimeDisplay = dynamic(() => import('./DateTimeDisplay'), {
+  ssr: false, // Disable server-side rendering for this component
+});
+
+//  main 
 export function Topnav({
   handleToggleSidebar,
 }: {
   handleToggleSidebar?: () => void;
 }) {
-  const [dateTime, setDateTime] = useState(new Date());
+  
   const handleFullScreen = () => {
     toggleFullScreen();
   };
@@ -42,12 +46,7 @@ export function Topnav({
     }
   };
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setDateTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+ 
 
   return (
     <div className="border-b shadow-md z-50 relative">
@@ -70,11 +69,7 @@ export function Topnav({
         </div>
 
         {/* Centered Date and Time */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 top-1/2 -translate-y-1/2 text-center ">
-          <p className="font-extrabold">
-            {dateTime.toLocaleDateString()} {dateTime.toLocaleTimeString()}
-          </p>
-        </div>
+        <DateTimeDisplay/>
 
         <div className="ml-auto flex items-center space-x-4">
           {pathName !== "/pos" && (

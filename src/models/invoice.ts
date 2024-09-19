@@ -1,24 +1,34 @@
 // models/invoice.ts
 import mongoose, { Schema } from "mongoose";
-import { invoice } from "@/types/invoice";
-import Customer from "./customer"; // Ensure the correct path
+
+
 
 const ProductSchema: Schema = new Schema({
   productName: { type: String },
   quantity: { type: Number },
   sellPrice: { type: Number },
 });
-
+// use this method becuase populate is not working
+const customerSchema: Schema = new Schema({
+  customerName: { type: String, required: true },
+  schoolName: { type: String },
+  type: { type: String },
+  phone: { type: Number },
+  prevBalance: { type: Number, default: 0 },
+});
 const invoiceSchema: Schema = new Schema({
   invoiceNo: { type: Number },
-  customer: { type: Schema.Types.ObjectId, ref: "Customer" }, // ref to "Customer"
+  customer: customerSchema, // ref to "Customer"
   productDetail: [ProductSchema],
   prevBalance: { type: Number, default: 0 },
   grandTotal: { type: Number, default: 0 },
   anyMessage: { type: String },
   invoiceDate: { type: Date },
+  dueDate: { type: Date },
+  status: {type: String, default:"Clear"}
 });
 
-const Invoice = mongoose.models.Invoice || mongoose.model<invoice>("Invoice", invoiceSchema);
+const Invoice =
+  mongoose.models.Invoice || mongoose.model("Invoice", invoiceSchema);
 
 export default Invoice;

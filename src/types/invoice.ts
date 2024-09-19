@@ -1,14 +1,23 @@
 import { customer } from "./customer";
 
-interface Product {
-  productName: { type: String };
-  quantity: { type: Number };
-  sellPrice: { type: Number };
+// Assuming 'customer' is imported correctly
+
+export interface ProductDetail {
+  productName: string;  // Use `string` instead of `{ type: String }`
+  quantity: number;     // Use `number` instead of `{ type: Number }`
+  sellPrice: number;    // Use `number`
+  _id: string;          // Use `string`
 }
-export interface invoice {
-  invoiceNo: Number;
-  customer: customer;
-  productDetail: Product[];
-  prevBalance: Number;
-  grandTotal: Number ;
+
+export interface Invoice {
+  invoiceNo: number;          // Use `number`
+  customer: customer;         // Ensure 'Customer' is the correct imported type
+  productDetail: ProductDetail[];
+  prevBalance: number;        // Use `number`
+  grandTotal: number;         // Use `number`
+  invoiceDate: Date;          // Use `Date`
+  _id?: string;               // Use `string` and make it optional with `?`
+  anyMessage: string
+  dueDate?: Date | undefined;
+  status?:string
 }

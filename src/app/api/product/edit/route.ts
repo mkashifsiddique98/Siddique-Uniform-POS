@@ -23,13 +23,13 @@ export async function PUT(request: Request) {
 
       // Find the product by productId
       const product = await Product.findOne({ _id: productId });
-
-      if (!product) {
-        return Response.json(
-          { error: `Product with ID ${productId} not found` },
-          { status: 400 }
-        );
-      }
+      // I have to Work With Special Product that are not in list that why i commend this code 
+      // if (!product) {
+      //   return Response.json(
+      //     { error: `Product with ID ${productId} not found` },
+      //     { status: 400 }
+      //   );
+      // }
 
       // Check if the quantity to update is more than the current quantity
       if (product.quantity > 0 && product.quantity - quantityToUpdate >= 0) {
