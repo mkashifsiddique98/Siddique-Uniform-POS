@@ -6,9 +6,11 @@ const DOMAIN_NAME = process.env.DOMAIN_NAME || "http://localhost:3000";
 // Fetching invoices as a separate async function
 async function fetchInvoiceData() {
   try {
-    const res = await fetch(`${DOMAIN_NAME}/api/invoice/`, {
+    const res = await fetch(`${DOMAIN_NAME}/api/invoice/`,
+       {
       cache: "no-store",
-    });
+    }
+  );
     if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);
     }

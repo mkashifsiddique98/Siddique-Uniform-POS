@@ -6,13 +6,13 @@ export const metadata: Metadata = {
   title: "All Product",
 };
 
-const DOMAIN_NAME = process.env.DOMAIN_NAME || "http://localhost:3000";
+const DOMAIN_NAME = process.env.DOMAIN_NAME;
 
 async function getAllProductData() {
   try {
-    const res = await fetch(`${DOMAIN_NAME}/api/product`, {
-      cache: "no-store",
-    });
+    const res = await fetch(`${DOMAIN_NAME}/api/product`,
+      {next: { revalidate: 60 },}
+  );
    if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);
     }

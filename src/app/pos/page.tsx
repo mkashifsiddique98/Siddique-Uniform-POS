@@ -7,13 +7,16 @@ import dynamic from "next/dynamic";
 import BillBook from "./bill-book";
 import { School } from "@/types/school-name";
 
-const DOMAIN_NAME = process.env.DOMAIN_NAME || "http://localhost:3000";
+const DOMAIN_NAME = process.env.DOMAIN_NAME ;
 
 async function fetchData(endpoint: string) {
   try {
-    const res = await fetch(`${DOMAIN_NAME}${endpoint}`, {
-      cache: "no-store",
-    });
+    const res = await fetch(`${DOMAIN_NAME}${endpoint}`, 
+      {
+        next: { revalidate: 60 },
+    
+    }
+  );
 
     if (!res.ok) {
       console.error(`Failed to fetch data from ${endpoint}`);

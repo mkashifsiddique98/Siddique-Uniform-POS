@@ -10,48 +10,57 @@ connectDB(); // Connect to MongoDB
 // ***********************************************************
 //               We can Manage POS Functionality Here
 // ***********************************************************
+
 export async function PUT(request: Request) {
   try {
     const productsToUpdate = await request.json();
-    console.log("res ;", productsToUpdate);
-    const updatedProducts = [];
-
-    // Iterate through the array and update each product's quantity
-    for (const productData of productsToUpdate) {
-      const productId = productData.productId;
-      const quantityToUpdate = productData.quantity;
-
-      // Find the product by productId
-      const product = await Product.findOne({ _id: productId });
-      // I have to Work With Special Product that are not in list that why i commend this code 
-      // if (!product) {
-      //   return Response.json(
-      //     { error: `Product with ID ${productId} not found` },
-      //     { status: 400 }
-      //   );
-      // }
-
-      // Check if the quantity to update is more than the current quantity
-      if (product.quantity > 0 && product.quantity - quantityToUpdate >= 0) {
-        // Update the quantity only if it's valid
-        const updatedProduct = await Product.findOneAndUpdate(
-          { _id: productId },
-          { $inc: { quantity: -quantityToUpdate } }, // Decrement quantity by the specified amount
-          { new: true }
-        );
-        updatedProducts.push(updatedProduct);
-      } else {
-        // If the quantity is 0 or less, don't update and log a message or handle accordingly
-        console.log(`Product with ID ${productId} has insufficient quantity or is already 0.`);
-      }
+    
+    if (!Array.isArray(productsToUpdate)) {
+      return NextResponse.json(
+        { error: "Invalid request format. Expected an array of products." },
+        { status: 400 }
+      );
     }
 
-    return Response.json({ response: updatedProducts }, { status: 200 });
+    console.log("Received products to update:", productsToUpdate);
+
+    const updatedProducts = await Promise.all(
+      productsToUpdate.map(async (productData) => {
+        const { productId, quantity } = productData;
+
+        if (!productId || typeof quantity !== "number") {
+          return { error: `Invalid product data for productId: ${productId}` };
+        }
+
+        const product = await Product.findOne({ _id: productId });
+        if (!product) {
+          // Skip and move to the next product without making any changes
+          return null;
+        }
+
+        if (product.quantity > 0 && product.quantity - quantity >= 0) {
+          return await Product.findOneAndUpdate(
+            { _id: productId },
+            { $inc: { quantity: -quantity } },
+            { new: true }
+          );
+        } else {
+          return { error: `Insufficient quantity for product with ID ${productId}` };
+        }
+      })
+    );
+
+    const filteredUpdatedProducts = updatedProducts.filter((prod) => prod !== null);
+
+    // Always return a response, even if no products were updated
+    return NextResponse.json({ response: filteredUpdatedProducts }, { status: 200 });
   } catch (error) {
-    console.error(error);
-    return Response.json({ error: "Server error" }, { status: 500 });
+    console.error("Error updating products:", error);
+    // Ensure a response is returned on error
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+
 
 // This basically like get Product by Id for Edit Page 
 // This only get details
