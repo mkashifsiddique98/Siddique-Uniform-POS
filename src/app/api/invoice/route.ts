@@ -49,3 +49,21 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+export async function DELETE(request: Request) {
+  
+  try {
+    const { id } = await request.json(); // Assuming the ID is sent in the request body
+     
+    const deletedInvoice = await Invoice.findByIdAndDelete(id) // Use the correct deletion method for your database
+
+    if (!deletedInvoice) {
+      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: "Invoice deleted successfully" }, { status: 200 });
+  } catch (error) {
+    console.error(error);
+    console.error("Error deleting invoice:", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}

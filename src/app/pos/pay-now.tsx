@@ -32,7 +32,7 @@ const PayNowChart: React.FC<{
   selectedCustomer?: customer;
   handleReset: () => void;
 }> = ({ grandTotal, discount, productList, disInPercentage, selectedCustomer, handleReset }) => {
-  const [dueDate, setDueDate] = useState<Date>(new Date());
+  const [dueDate, setDueDate] = useState<Date | null>(null);
   const [payingAmount, setPayingAmount] = useState<number>(grandTotal);
   const [receiveAmount, setReceiveAmount] = useState<number>(0);
   const [customerNotes, setCustomerNotes] = useState("");
@@ -51,7 +51,7 @@ const PayNowChart: React.FC<{
       productDetail: chartList,
       grandTotal,
       anyMessage: customerNotes,
-      dueDate: dueDate === new Date()? null :dueDate // for Special Customer Only =>
+      dueDate: dueDate // for Special Customer Only =>
     }; 
     try {
       const response = await fetch("/api/invoice/", {
@@ -60,6 +60,7 @@ const PayNowChart: React.FC<{
       });
       if (response.ok) {
         dispatch(clearChart());
+        setDueDate(null)
       }
     } catch (error) {
       console.error("Server Error", error);

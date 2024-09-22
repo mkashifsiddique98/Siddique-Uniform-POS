@@ -15,7 +15,9 @@ import {
 import { Invoice, ProductDetail } from "@/types/invoice";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => {
+const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({
+  params,
+}) => {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,8 +47,26 @@ const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => 
 
   if (loading) {
     return (
-      <div className="flex justify-center  h-[100vh]">
-        <Skeleton className="h-[60vh] w-[60vw]"/>
+      <div className="w-full">
+        {/* Table Header Skeleton */}
+        <div className="flex items-center space-x-4 p-4">
+          <Skeleton className="h-4 w-1/6" /> {/* Column 1 */}
+          <Skeleton className="h-4 w-1/6" /> {/* Column 2 */}
+          <Skeleton className="h-4 w-1/6" /> {/* Column 3 */}
+          <Skeleton className="h-4 w-1/6" /> {/* Column 4 */}
+          <Skeleton className="h-4 w-1/6" /> {/* Column 5 */}
+        </div>
+
+        {/* Table Rows Skeleton */}
+        {[...Array(5)].map((_, index) => (
+          <div key={index} className="flex items-center space-x-4 p-4">
+            <Skeleton className="h-4 w-1/6" /> {/* Row 1 */}
+            <Skeleton className="h-4 w-1/6" /> {/* Row 2 */}
+            <Skeleton className="h-4 w-1/6" /> {/* Row 3 */}
+            <Skeleton className="h-4 w-1/6" /> {/* Row 4 */}
+            <Skeleton className="h-4 w-1/6" /> {/* Row 5 */}
+          </div>
+        ))}
       </div>
     );
   }
@@ -67,7 +87,9 @@ const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => 
     );
   }
 
-  const ProductTable: React.FC<{ products: ProductDetail[] }> = ({ products }) => (
+  const ProductTable: React.FC<{ products: ProductDetail[] }> = ({
+    products,
+  }) => (
     <Table>
       <TableHeader>
         <TableRow>
@@ -107,17 +129,24 @@ const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => 
             <TableHead>Customer Name</TableHead>
             <TableHead>Customer Type</TableHead>
             <TableHead>Previous Balance</TableHead>
+            {invoice.dueDate !== undefined && <TableHead>Due Date</TableHead>}
+
             <TableHead>Message</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           <TableRow>
             <TableCell>{invoice._id}</TableCell>
-            <TableCell>{new Date(invoice.invoiceDate).toLocaleDateString()}</TableCell>
+            <TableCell>
+              {new Date(invoice.invoiceDate).toLocaleDateString()}
+            </TableCell>
             <TableCell>{invoice.customer.customerName}</TableCell>
             <TableCell>{invoice.customer.type}</TableCell>
-            
+
             <TableCell>Rs {invoice.prevBalance}</TableCell>
+            <TableCell>
+              {new Date(invoice?.dueDate).toLocaleDateString()}
+            </TableCell>
             <TableCell>{invoice?.anyMessage || "N/A"}</TableCell>
           </TableRow>
         </TableBody>

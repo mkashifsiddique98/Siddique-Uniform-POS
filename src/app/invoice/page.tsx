@@ -183,18 +183,51 @@ export default SaleList;
 
 // Define the Invoice type and TableDemo component
 
-
 interface TableDemoProps {
   invoices: Invoice[];
 }
 
 const TableDemo: React.FC<TableDemoProps> = ({ invoices }) => {
   const router = useRouter();
-
+   const [Invoice,setInvoices] = useState<Invoice[]>([])
   const handleViewClick = (id: string | undefined) => {
     router.push(`/invoice/view/${id}`);
   };
-
+  const handleDeleteClick =async (id: string | undefined) => {
+  
+    try {
+      const response = await fetch(`/api/invoice`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        toast({
+          description: "Failed to delete invoice",
+        });
+      }
+      const updatedInvoices = invoices.filter((invoice) => invoice._id !== id);
+        setInvoices(updatedInvoices);
+      toast({
+         description: data.message,
+      });
+      
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+    }
+  };
+  useEffect(() => {
+    setInvoices(invoices)
+    return () => {
+      setInvoices([])
+    }
+  }, [invoices])
+  
   return (
     <Table>
       <TableHeader>
@@ -204,7 +237,7 @@ const TableDemo: React.FC<TableDemoProps> = ({ invoices }) => {
           <TableHead>Customer Type</TableHead>
           <TableHead>Invoice Date</TableHead>
           <TableHead>Total</TableHead>
-          <TableHead className="text-right">Action</TableHead>
+          <TableHead className="text-center">Action</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -219,12 +252,18 @@ const TableDemo: React.FC<TableDemoProps> = ({ invoices }) => {
               {new Date(invoice.invoiceDate).toLocaleTimeString()}
             </TableCell>
             <TableCell>Rs {invoice.grandTotal.toFixed(2)}</TableCell>
-            <TableCell className="text-right">
+            <TableCell className="text-center">
               <Button
                 variant="outline"
                 onClick={() => handleViewClick(invoice._id)}
               >
                 View
+              </Button>
+              <Button
+                className="ml-2"
+                onClick={() => handleDeleteClick(invoice._id)}
+              >
+                Delete
               </Button>
             </TableCell>
           </TableRow>

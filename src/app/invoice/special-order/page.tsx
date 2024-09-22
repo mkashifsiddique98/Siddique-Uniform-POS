@@ -27,6 +27,7 @@ export default async function SpecialOrder ()  {
   return (
     <div className='container p-6'>
         <BreadCrum mainfolder="Sale" subfolder="Special Order" />
+        
         <TableSpecialOrder invoiceList={invoiceList}/>
     </div>
   )
