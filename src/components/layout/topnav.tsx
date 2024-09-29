@@ -8,18 +8,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 
-const DateTimeDisplay = dynamic(() => import('./DateTimeDisplay'), {
+const DateTimeDisplay = dynamic(() => import("./DateTimeDisplay"), {
   ssr: false, // Disable server-side rendering for this component
 });
 
-//  main 
+//  main
 export function Topnav({
   handleToggleSidebar,
 }: {
   handleToggleSidebar?: () => void;
 }) {
-  
   const handleFullScreen = () => {
     toggleFullScreen();
   };
@@ -46,12 +46,11 @@ export function Topnav({
     }
   };
 
- 
-
   return (
     <div className="border-b shadow-md z-50 relative">
       <div className="flex justify-between items-center h-16 px-4 w-full">
         <div className="flex items-center">
+          <Link href={"/"}>
           <Avatar
             className="ml-2 h-12 w-12 mr-5 border cursor-pointer"
             onClick={() => route.push("/")}
@@ -59,6 +58,7 @@ export function Topnav({
             <AvatarImage src="/73804159Siddique.png" alt="@Siddique" />
             <AvatarFallback>SU</AvatarFallback>
           </Avatar>
+          </Link>
           {pathName !== "/pos" && (
             <div>
               <div onClick={handleToggleSidebar}>
@@ -69,24 +69,19 @@ export function Topnav({
         </div>
 
         {/* Centered Date and Time */}
-        <DateTimeDisplay/>
+        <DateTimeDisplay />
 
         <div className="ml-auto flex items-center space-x-4">
           {pathName !== "/pos" && (
-            <div>
-              <Button
-                onClick={() => route.push("/pos")}
-                className="bg-white shadow-md hover:bg-black hover:text-white"
-                variant="outline"
+            <div className="flex items-center gap-2">
+              <Link
+                href="/pos"
+                className="bg-white text-black hover:bg-gray-900 hover:text-white px-4 py-2 rounded-lg shadow-lg border border-gray-300 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-black focus:ring-opacity-50"
               >
                 POS
-              </Button>
-              <Button
-                onClick={handleUpdate}
-                className="ml-1"
-                size={"sm"}
-                disabled={loading}
-              >
+              </Link>
+
+              <Button onClick={handleUpdate} size={"sm"} disabled={loading}>
                 {loading ? "Updating..." : "Update Software"}
               </Button>
             </div>
