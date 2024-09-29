@@ -16,13 +16,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { clearChart, Products, useAppDispatch, useTypedSelector } from "@/lib/store";
+import {
+  clearChart,
+  Products,
+  useAppDispatch,
+  useTypedSelector,
+} from "@/lib/store";
 import { ShoppingCart } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import EscPosEncoder from 'esc-pos-encoder';
-import { customer } from "@/types/customer";
-import { Toast } from "@/components/ui/toast";
-import { toast } from "@/components/ui/use-toast";
+import React, { useEffect, useRef, useState } from "react";
+import { useReactToPrint } from "react-to-print";
 
 const PayNowChart: React.FC<{
   grandTotal: number;
@@ -31,19 +33,30 @@ const PayNowChart: React.FC<{
   disInPercentage: number;
   selectedCustomer?: customer;
   handleReset: () => void;
-}> = ({ grandTotal, discount, productList, disInPercentage, selectedCustomer, handleReset }) => {
+}> = ({
+  grandTotal,
+  discount,
+  productList,
+  disInPercentage,
+  selectedCustomer,
+  handleReset,
+}) => {
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [payingAmount, setPayingAmount] = useState<number>(grandTotal);
   const [receiveAmount, setReceiveAmount] = useState<number>(0);
   const [customerNotes, setCustomerNotes] = useState("");
   const returnChange = Math.max(receiveAmount - grandTotal, 0);
 
+  const dispatch = useAppDispatch();
+  const chartList: Products[] = useTypedSelector(
+    (state) => state.chart.chartList
+  );
+
   useEffect(() => {
     setPayingAmount(grandTotal);
   }, [grandTotal]);
 
-  const dispatch = useAppDispatch();
-  const chartList: Products[] = useTypedSelector((state) => state.chart.chartList);
+  const componentRef = useRef<HTMLDivElement>(null);
 
   const handleInvoiceGenerate = async () => {
     const invoiceDetail = {
@@ -51,8 +64,8 @@ const PayNowChart: React.FC<{
       productDetail: chartList,
       grandTotal,
       anyMessage: customerNotes,
-      dueDate: dueDate // for Special Customer Only =>
-    }; 
+      dueDate: dueDate,
+    };
     try {
       const response = await fetch("/api/invoice/", {
         method: "POST",
@@ -60,7 +73,7 @@ const PayNowChart: React.FC<{
       });
       if (response.ok) {
         dispatch(clearChart());
-        setDueDate(null)
+        setDueDate(null);
       }
     } catch (error) {
       console.error("Server Error", error);
@@ -81,61 +94,27 @@ const PayNowChart: React.FC<{
     }
   };
 
-  const handlePrint = async () => {
-    handleProductQty();
-    handleInvoiceGenerate();
-    handleReset();
-
-    // Prepare the receipt with esc-pos-encoder
-    const encoder = new EscPosEncoder();
-    const receiptData = encoder
-      .initialize()
-      .align('center')
-      .text('Siddique Uniform Centre')
-      .newline()
-      .text('Saran Market Karianwala')
-      .newline()
-      .text(`Date: ${new Date().toLocaleDateString()}`)
-      .newline()
-      .text(`Receipt #: 001`)
-      .newline()
-      .newline()
-      .align('left')
-      .text('Product Name        Qty     Price')
-      .newline();
-
-    productList.forEach((product) => {
-      receiptData
-        .text(`${product.productName}      ${product.quantity}     ${product.sellPrice}`)
-        .newline();
-    });
-
-    receiptData
-      .newline()
-      .text(`Discount: Rs ${discount} (${disInPercentage}%)`)
-      .newline()
-      .text(`Grand Total: Rs ${grandTotal}`)
-      .newline()
-      .newline()
-      .align('center')
-      .text('Thank you for shopping with us!')
-      .newline()
-      .cut()
-      .encode();
-
-    try {
-      const device = new USBDevice(); // Assume direct USB connection.
-      await device.open();
-      const writer = device.writable.getWriter();
-      await writer.write(receiptData);
-      writer.releaseLock();
-      await device.close();
-      
-    } catch (error) {
-      console.error("Error printing:", error);
-    
-    }
-  };
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+    documentTitle: "Receipt",
+    pageStyle: `
+      @page {
+        size: 80mm auto; /* Dynamic height based on content */
+        margin: 0;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: monospace;
+        width: 80mm;
+      }
+    `,
+    onAfterPrint: () => {
+      handleProductQty();
+      handleInvoiceGenerate();
+      handleReset();
+    },
+  });
 
   const handleNoReceipt = () => {
     handleReset();
@@ -199,10 +178,14 @@ const PayNowChart: React.FC<{
                     </p>
                   </TableRow>
                   <TableRow>
-                    <p className="p-4 font-semibold">Discount: Rs {discount} ({disInPercentage}%)</p>
+                    <p className="p-4 font-semibold">
+                      Discount: Rs {discount} ({disInPercentage}%)
+                    </p>
                   </TableRow>
                   <TableRow>
-                    <p className="p-4 font-bold whitespace-nowrap">Grand Total: Rs {grandTotal}</p>
+                    <p className="p-4 font-bold whitespace-nowrap">
+                      Grand Total: Rs {grandTotal}
+                    </p>
                   </TableRow>
                 </Table>
               </CardContent>
@@ -228,6 +211,42 @@ const PayNowChart: React.FC<{
           </div>
         </DialogFooter>
       </DialogContent>
+
+      {/* Receipt content for printing */}
+      <div style={{ display: "none"}}>
+        <div ref={componentRef}>
+          <div style={{ width: "80mm", fontFamily: "monospace"  }}>
+            <h2 style={{ textAlign: "center" }}>Siddique Uniform Centre</h2>
+            <p style={{ textAlign: "center" }}>Saran Market Karianwala</p>
+            <p>Date: {new Date().toLocaleDateString()}</p>
+            <table style={{ width: "100%" }}>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {productList.map((product) => (
+                  <tr key={product.productName}>
+                    <td className="text-center">{product.productName}</td>
+                    <td>{product.quantity}</td>
+                    <td >{product.sellPrice}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p>
+              Discount: Rs {discount} ({disInPercentage}%)
+            </p>
+            <p>Grand Total: Rs {grandTotal}</p>
+            <p style={{ textAlign: "center" }}>
+              Thank you for shopping with us!
+            </p>
+          </div>
+        </div>
+      </div>
     </Dialog>
   );
 };

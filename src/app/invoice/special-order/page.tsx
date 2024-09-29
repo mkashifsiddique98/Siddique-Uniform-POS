@@ -7,9 +7,7 @@ const DOMAIN_NAME = process.env.DOMAIN_NAME || "http://localhost:3000";
 async function fetchInvoiceData() {
   try {
     const res = await fetch(`${DOMAIN_NAME}/api/invoice/`,
-       {
-      cache: "no-store",
-    }
+      { cache: 'no-store' }
   );
     if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);
@@ -27,7 +25,6 @@ export default async function SpecialOrder ()  {
   return (
     <div className='container p-6'>
         <BreadCrum mainfolder="Sale" subfolder="Special Order" />
-        
         <TableSpecialOrder invoiceList={invoiceList}/>
     </div>
   )

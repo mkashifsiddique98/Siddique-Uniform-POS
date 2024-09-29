@@ -11,7 +11,7 @@ const DOMAIN_NAME = process.env.DOMAIN_NAME;
 async function getAllProductData() {
   try {
     const res = await fetch(`${DOMAIN_NAME}/api/product`,
-      {next: { revalidate: 60 },}
+      {cache:"no-store"}
   );
    if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);
