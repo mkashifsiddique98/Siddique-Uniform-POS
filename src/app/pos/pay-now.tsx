@@ -99,14 +99,27 @@ const PayNowChart: React.FC<{
     documentTitle: "Receipt",
     pageStyle: `
       @page {
-        size: 80mm auto; /* Dynamic height based on content */
+        size: 80mm auto; /* Set width to 80mm and allow dynamic height */
         margin: 0;
       }
       body {
         margin: 0;
         padding: 0;
         font-family: monospace;
-        width: 80mm;
+        width: 80mm; /* Fixed width for the thermal printer */
+      }
+      h2, p, table {
+        margin: 0;
+        padding: 0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 10px;
+      }
+      table th, table td {
+        border-bottom: 1px solid black;
+        padding: 2px;
       }
     `,
     onAfterPrint: () => {
@@ -115,6 +128,7 @@ const PayNowChart: React.FC<{
       handleReset();
     },
   });
+  
 
   const handleNoReceipt = () => {
     handleReset();
@@ -213,40 +227,57 @@ const PayNowChart: React.FC<{
       </DialogContent>
 
       {/* Receipt content for printing */}
-      <div style={{ display: "none"}}>
-        <div ref={componentRef}>
-          <div style={{ width: "80mm", fontFamily: "monospace"  }}>
-            <h2 style={{ textAlign: "center" }}>Siddique Uniform Centre</h2>
-            <p style={{ textAlign: "center" }}>Saran Market Karianwala</p>
-            <p>Date: {new Date().toLocaleDateString()}</p>
-            <table style={{ width: "100%" }}>
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Qty</th>
-                  <th>Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {productList.map((product) => (
-                  <tr key={product.productName}>
-                    <td className="text-center">{product.productName}</td>
-                    <td>{product.quantity}</td>
-                    <td >{product.sellPrice}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <p>
-              Discount: Rs {discount} ({disInPercentage}%)
-            </p>
-            <p>Grand Total: Rs {grandTotal}</p>
-            <p style={{ textAlign: "center" }}>
-              Thank you for shopping with us!
-            </p>
-          </div>
-        </div>
-      </div>
+    
+  <div 
+  style={{ display: "none" }}
+>
+  <div ref={componentRef}>
+    <div style={{ width: "80mm", fontFamily: "monospace", padding: "10px" }}>
+      {/* Header */}
+      <h2 style={{ textAlign: "center", margin: "5px 0" }}>Siddique Uniform Centre</h2>
+      <p style={{ textAlign: "center", margin: "0" }}>Saran Market Karianwala</p>
+      <p style={{ textAlign: "center", margin: "0 0 10px" }}>
+        Date: {new Date().toLocaleDateString()}
+      </p>
+
+      {/* Product Table */}
+      <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "10px" }}>
+        <thead>
+          <tr>
+            <th style={{ textAlign: "left", borderBottom: "1px solid black" }}>Product</th>
+            <th style={{ textAlign: "center", borderBottom: "1px solid black" }}>Qty</th>
+            <th style={{ textAlign: "right", borderBottom: "1px solid black" }}>Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {productList.map((product) => (
+            <tr key={product.productName}>
+              <td>{product.productName}</td>
+              <td style={{ textAlign: "center" }}>{product.quantity}</td>
+              <td style={{ textAlign: "right" }}>Rs {product.sellPrice}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Discounts and Totals */}
+      <p style={{ display: "flex", justifyContent: "space-between" }}>
+        <span>Discount:</span>
+        <span>Rs {discount} ({disInPercentage}%)</span>
+      </p>
+      <p style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
+        <span>Grand Total:</span>
+        <span>Rs {grandTotal}</span>
+      </p>
+
+      {/* Footer */}
+      <p style={{ textAlign: "center", margin: "0" }}>Thank you for shopping with us!</p>
+    </div>
+  </div>
+</div>
+
+
+
     </Dialog>
   );
 };
