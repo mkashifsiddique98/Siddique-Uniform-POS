@@ -265,9 +265,10 @@ const PayNowChart: React.FC<{
         <div ref={componentRef}>
           <div
             style={{
-              width: "78mm",
+              width: "70mm",
               fontFamily: "monospace",
-              padding:"10px"
+              padding:"10px",
+	      margin:"2px"
             }}
           >
             {/* Header */}
