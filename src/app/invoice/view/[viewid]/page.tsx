@@ -144,9 +144,11 @@ const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({
             <TableCell>{invoice.customer.type}</TableCell>
 
             <TableCell>Rs {invoice.prevBalance}</TableCell>
-            <TableCell>
-              {new Date(invoice?.dueDate).toLocaleDateString()}
-            </TableCell>
+            {invoice.dueDate !== undefined && (
+              <TableCell>
+                {new Date(invoice?.dueDate).toLocaleDateString()}
+              </TableCell>
+            )}
             <TableCell>{invoice?.anyMessage || "N/A"}</TableCell>
           </TableRow>
         </TableBody>

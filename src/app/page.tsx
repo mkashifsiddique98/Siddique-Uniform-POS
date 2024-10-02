@@ -14,6 +14,7 @@ import { Overview } from "@/components/dashboard/overview";
 import { RecentSales } from "@/components/dashboard/recent-sales";
 import { ProductFormState } from "@/types/product";
 import LOWSTOCK from "@/components/dashboard/low-stock";
+import Link from "next/link";
 const DOMAIN_NAME = process.env.DOMAIN_NAME || "http://localhost:3000";
 
 async function getAllProductData() {
@@ -54,12 +55,68 @@ async function getAllInvoiceDetail() {
     return { response: [] };
   }
 }
+const calculateMonthSales = (invoices: any[], year: number, month: number) => {
+  // Filter invoices for the given month and year
+  const filteredInvoices = invoices.filter((invoice) => {
+    const invoiceDate = new Date(invoice.invoiceDate);
+    return (
+      invoiceDate.getFullYear() === year &&
+      invoiceDate.getMonth() === month
+    );
+  });
+
+  // Calculate total sales for the given month
+  const totalSales = filteredInvoices.reduce(
+    (acc, invoice) => acc + invoice.grandTotal,
+    0
+  );
+
+  return totalSales;
+};
+
+const calculateCurrentAndPreviousMonthSales = (invoices: any[]) => {
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth(); // 0 is January, 11 is December
+
+  // Calculate sales for the current month
+  const currentMonthSales = calculateMonthSales(invoices, currentYear, currentMonth);
+
+  // Handle the previous month logic (if current month is January, go to December of the previous year)
+  let previousYear = currentYear;
+  let previousMonth = currentMonth - 1;
+
+  if (previousMonth < 0) {
+    previousMonth = 11; // December of the previous year
+    previousYear = currentYear - 1;
+  }
+
+  // Calculate sales for the previous month
+  const previousMonthSales = calculateMonthSales(invoices, previousYear, previousMonth);
+
+  // Calculate the percentage increase or decrease
+  let percentageChange = 0;
+  if (previousMonthSales > 0) {
+    percentageChange = ((currentMonthSales - previousMonthSales) / previousMonthSales) * 100;
+  }
+
+  return {
+    currentMonthSales,
+    previousMonthSales,
+    percentageChange,
+  };
+};
+
+
+
 export default async function DashboardPage() {
   const data = await getAllInvoiceDetail();
-  const { response } = data;
+  const { response:InvoiceData } = data;
   const dataProduct = await getAllProductData();
   const productResponse: ProductFormState[] = dataProduct?.response || [];
-  
+  // Current Month Sales 
+
+  const { currentMonthSales, percentageChange } = calculateCurrentAndPreviousMonthSales(InvoiceData);
 
   return (
     <>
@@ -97,9 +154,9 @@ export default async function DashboardPage() {
               <TabsTrigger value="reports" disabled>
                 Reports
               </TabsTrigger>
-              <TabsTrigger value="notifications" disabled>
+              {/* <TabsTrigger value="notifications" disabled>
                 Notifications
-              </TabsTrigger>
+              </TabsTrigger> */}
             </TabsList>
             <TabsContent value="overview" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -122,9 +179,9 @@ export default async function DashboardPage() {
                     </svg>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">RS 45,231.89</div>
+                    <div className="text-2xl font-bold">Rs 45,231.89</div>
                     <p className="text-xs text-muted-foreground">
-                      +20.1% from last month
+                      +19% from last month
                     </p>
                   </CardContent>
                 </Card>
@@ -155,7 +212,8 @@ export default async function DashboardPage() {
                     </p>
                   </CardContent>
                 </Card>
-                <Card>
+                <Link href={"/invoice"}>
+                <Card className="cursor-pointer">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Sales</CardTitle>
                     <svg
@@ -173,12 +231,13 @@ export default async function DashboardPage() {
                     </svg>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">RS 12,234</div>
+                    <div className="text-2xl font-bold">Rs {currentMonthSales}</div>
                     <p className="text-xs text-muted-foreground">
-                      +19% from last month
+                    {percentageChange.toFixed(2)}% from last month
                     </p>
                   </CardContent>
                 </Card>
+                </Link>
                 <LOWSTOCK productResponse={productResponse}/>
               </div>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
@@ -187,14 +246,14 @@ export default async function DashboardPage() {
                     <CardTitle>Overview</CardTitle>
                   </CardHeader>
                   <CardContent className="pl-2">
-                    <Overview />
+                    <Overview InvoiceData={InvoiceData}/>
                   </CardContent>
                 </Card>
                 <Card className="col-span-3">
                   <CardHeader>
                     <CardTitle>Recent Sales</CardTitle>
                     <CardDescription>
-                      You made {response.length} sales this month.
+                      You made {InvoiceData.length} sales this month.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>

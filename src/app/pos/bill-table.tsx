@@ -108,6 +108,8 @@ const BillTable: FC<BillTableProps> = ({ selectedCustomer }) => {
           </TableHead>
           <TableHead className="text-right font-semibold">Price</TableHead>
           <TableHead className="text-center font-semibold">Quantity</TableHead>
+          <TableHead className="text-center font-semibold">Line Total</TableHead>
+          <TableHead className="text-center font-semibold">Action</TableHead>
         </TableRow>
       </TableHeader>
 
@@ -144,7 +146,7 @@ const BillTable: FC<BillTableProps> = ({ selectedCustomer }) => {
         {/* Special Stitching Product Input */}
         {selectedCustomer?.type === "special-sitching" && (
           <TableRow>
-            <TableCell>
+            <TableCell colSpan={2}>
               <Input
                 placeholder="Product Name"
                 style={{minWidth:"250px"}}
@@ -152,16 +154,7 @@ const BillTable: FC<BillTableProps> = ({ selectedCustomer }) => {
                 onChange={(e) => setSpecialProductName(e.target.value)}
               />
             </TableCell>
-            <TableCell className="text-right">
-              <Input
-                placeholder="Sell Price"
-                type="number"
-                value={specialProductPrice} // state for the special product price
-                onChange={(e) =>
-                  setSpecialProductPrice(parseFloat(e.target.value))
-                }
-              />
-            </TableCell>
+            
             <TableCell className="text-right">
               <Input
                 placeholder="Qty"
@@ -172,7 +165,18 @@ const BillTable: FC<BillTableProps> = ({ selectedCustomer }) => {
                 }
               />
             </TableCell>
-            <TableCell>
+            <TableCell className="text-right">
+              <Input
+                placeholder="Sell Price"
+                style={{minWidth:"100px"}}
+                type="number"
+                value={specialProductPrice} // state for the special product price
+                onChange={(e) =>
+                  setSpecialProductPrice(parseFloat(e.target.value))
+                }
+              />
+            </TableCell>
+            <TableCell className="text-center">
               <Button onClick={handleAddSpecialProduct} size={"sm"}>
               <BadgePlus />
               </Button>

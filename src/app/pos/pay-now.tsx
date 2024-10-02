@@ -25,6 +25,7 @@ import {
 import { ShoppingCart } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { useReactToPrint } from "react-to-print";
+import { customer } from "@/types/customer";
 
 const PayNowChart: React.FC<{
   grandTotal: number;
@@ -64,7 +65,7 @@ const PayNowChart: React.FC<{
       productDetail: chartList,
       grandTotal,
       anyMessage: customerNotes,
-      dueDate: dueDate,
+      ...(dueDate && { dueDate }),
     };
     try {
       const response = await fetch("/api/invoice/", {
@@ -93,7 +94,7 @@ const PayNowChart: React.FC<{
       console.error("Server Error", error);
     }
   };
-
+  //1. Client Side Printing .............
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
     documentTitle: "Receipt",
@@ -128,7 +129,37 @@ const PayNowChart: React.FC<{
       handleReset();
     },
   });
-  
+
+  // Keep For Future
+  // Server Side Printing............
+  // const handlePrint = async () => {
+  //   const receiptData = {
+  //     grandTotal,
+  //     products: productList.map((product) => ({
+  //       name: product.productName,
+  //       quantity: product.quantity,
+  //       price: product.sellPrice,
+  //     })),
+  //   };
+
+  //   try {
+  //     const response = await fetch('/api/printReceipt', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({ receiptData }),
+  //     });
+
+  //     if (response.ok) {
+  //       console.log('Receipt printed successfully');
+  //     } else {
+  //       console.error('Failed to print receipt');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error printing receipt:', error);
+  //   }
+  // };
 
   const handleNoReceipt = () => {
     handleReset();
@@ -227,57 +258,183 @@ const PayNowChart: React.FC<{
       </DialogContent>
 
       {/* Receipt content for printing */}
-    
-  <div 
-  style={{ display: "none" }}
->
-  <div ref={componentRef}>
-    <div style={{ width: "80mm", fontFamily: "monospace", padding: "10px" }}>
-      {/* Header */}
-      <h2 style={{ textAlign: "center", margin: "5px 0" }}>Siddique Uniform Centre</h2>
-      <p style={{ textAlign: "center", margin: "0" }}>Saran Market Karianwala</p>
-      <p style={{ textAlign: "center", margin: "0 0 10px" }}>
-        Date: {new Date().toLocaleDateString()}
-      </p>
 
-      {/* Product Table */}
-      <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "10px" }}>
-        <thead>
-          <tr>
-            <th style={{ textAlign: "left", borderBottom: "1px solid black" }}>Product</th>
-            <th style={{ textAlign: "center", borderBottom: "1px solid black" }}>Qty</th>
-            <th style={{ textAlign: "right", borderBottom: "1px solid black" }}>Price</th>
-          </tr>
-        </thead>
-        <tbody>
-          {productList.map((product) => (
-            <tr key={product.productName}>
-              <td>{product.productName}</td>
-              <td style={{ textAlign: "center" }}>{product.quantity}</td>
-              <td style={{ textAlign: "right" }}>Rs {product.sellPrice}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div 
+      style={{ display: "none" }}
+      >
+        <div ref={componentRef}>
+          <div
+            style={{
+              width: "78mm",
+              fontFamily: "monospace",
+              padding:"10px"
+            }}
+          >
+            {/* Header */}
+            <h2
+              style={{
+                textAlign: "center",
+                margin: "5px 0",
+                fontSize: "22px",
+                fontFamily: "fantasy",
+                fontWeight: "bold",
+                borderBottom: "2px solid black",
+                paddingBottom: "5px",
+              }}
+            >
+              Siddique Uniform Centre
+            </h2>
+            <p style={{ textAlign: "center", margin: "2px 0" }}>
+              Saran Market Karianwala
+            </p>
+            <p style={{ textAlign: "center", margin: "2px 0" }}>
+              Phone: 03086139401
+            </p>
 
-      {/* Discounts and Totals */}
-      <p style={{ display: "flex", justifyContent: "space-between" }}>
-        <span>Discount:</span>
-        <span>Rs {discount} ({disInPercentage}%)</span>
-      </p>
-      <p style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
-        <span>Grand Total:</span>
-        <span>Rs {grandTotal}</span>
-      </p>
+            {/* Receipt Information */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                border: "1px solid black",
+                padding: "5px",
+                margin: "10px 0",
+                borderRadius: "3px",
+              }}
+            >
+              <p style={{ margin: "0", fontWeight: "bold" }}>Receipt No:</p>
+              <p style={{ margin: "0" }}>
+                Date: {new Date().toLocaleDateString()}
+              </p>
+            </div>
 
-      {/* Footer */}
-      <p style={{ textAlign: "center", margin: "0" }}>Thank you for shopping with us!</p>
-    </div>
-  </div>
-</div>
+            {/* Customer Info */}
+            <p
+              style={{
+                textAlign: "left",
+                textTransform: "capitalize",
+                margin: "5px 0",
+              }}
+            >
+              <strong>Customer Name:</strong> {selectedCustomer?.customerName}
+            </p>
+            <p
+              style={{
+                textAlign: "left",
+                textTransform: "capitalize",
+                margin: "5px 0",
+              }}
+            >
+              <strong>Customer Type:</strong> {selectedCustomer?.type}
+            </p>
 
+            {/* Product Table */}
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                marginBottom: "10px",
+              }}
+            >
+              <thead>
+                <tr>
+                  <th
+                    style={{
+                      textAlign: "left",
+                      borderBottom: "1px solid black",
+                      paddingBottom: "5px",
+                    }}
+                  >
+                    Product
+                  </th>
+                  <th
+                    style={{
+                      textAlign: "center",
+                      borderBottom: "1px solid black",
+                      paddingBottom: "5px",
+                    }}
+                  >
+                    Qty
+                  </th>
+                  <th
+                    style={{
+                      textAlign: "right",
+                      borderBottom: "1px solid black",
+                      paddingBottom: "5px",
+                    }}
+                  >
+                    Price
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {productList.map((product) => (
+                  <tr key={product.productName}>
+                    <td style={{ padding: "5px 0" }}>{product.productName}</td>
+                    <td style={{ textAlign: "center", padding: "5px 0" }}>
+                      {product.quantity}
+                    </td>
+                    <td style={{ textAlign: "right", padding: "5px 0" }}>
+                      Rs {product.sellPrice}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
+            {/* Discounts and Totals */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "5px 0",
+                borderTop: "1px solid black",
+              }}
+            >
+              <span>
+                <strong>Discount:</strong>
+              </span>
+              <span>
+                Rs {discount} ({disInPercentage}%)
+              </span>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "10px 0",
+                borderTop: "1px solid black",
+                fontWeight: "bold",
+              }}
+            >
+              <span>Grand Total:</span>
+              <span>Rs {grandTotal}</span>
+            </div>
 
+            {/* Footer */}
+            <p
+              style={{
+                textAlign: "center",
+                margin: "10px 0 0",
+                fontSize: "14px",
+                fontWeight: "bold",
+              }}
+            >
+              Thank you for shopping with us!
+            </p>
+            <p
+              style={{
+                textAlign: "center",
+                margin: "0",
+                fontSize: "12px",
+                fontStyle: "italic",
+              }}
+            >
+              Visit again!
+            </p>
+          </div>
+        </div>
+      </div>
     </Dialog>
   );
 };
