@@ -70,7 +70,7 @@ const PointOfSale = async () => {
         <div className="container">
           <ProductBox 
           schoolList={SchoolList}
-          items={response} perPage={12} />
+          items={response} perPage={16} />
         </div>
       </div>
     </div>
