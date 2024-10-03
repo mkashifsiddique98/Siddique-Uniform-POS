@@ -59,7 +59,7 @@ const PointOfSale = async () => {
  
   return (
     <div className="flex">
-      <Fullscreen />
+      {/* <Fullscreen /> */}
       {/* Left Side */}
       <div className="h-screen w-6/12 border-r-2 border-black">
         <Topnav />

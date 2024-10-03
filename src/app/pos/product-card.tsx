@@ -16,7 +16,7 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
     (state) => state.chart.chartList
   );
   const dispatch = useAppDispatch();
-
+  const mode = useTypedSelector((state) => state.mode); // mode
   const handleAddToChart = () => {
     const existingProductIndex = chartList.findIndex(
       (p) => p.productName === product.productName
@@ -25,10 +25,12 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
     if (existingProductIndex !== -1) {
       dispatch(updateChart({ productName: product.productName, quantity: 1 }));
     } else {
+      // Mode of sale is  being manged
       const newProduct = {
         productId: product._id,
         productName: product.productName,
-        sellPrice: product.sellPrice,
+        sellPrice:
+          mode === "wholesale" ? product.wholesalePrice : product.sellPrice,
         quantity: 1,
       };
       dispatch(addToChart(newProduct));
@@ -37,7 +39,7 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
 
   return (
     <div
-      className="h-48 w-36 border hover:border-black cursor-pointer shadow rounded-lg overflow-hidden"
+      className="h-44 w-32 border hover:border-black cursor-pointer shadow rounded-lg overflow-hidden"
       onClick={handleAddToChart}
     >
       <div className="relative">
@@ -54,12 +56,21 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
         </p>
       </div>
       <div className="ml-3 text-sm whitespace-nowrap gap-2 flex flex-col">
-        <p className="text-[13px] font-bold w-36 truncate capitalize">{product?.productName}</p>
-        <p className="capitalize">{product?.category}</p>  
-        {/* Code */}
-        <p className="bg-black text-white text-[10px] rounded-md w-16 px-3">
-          Rs {product?.sellPrice}
+        <p className="text-[13px] font-bold w-36 truncate capitalize">
+          {product?.productName}
         </p>
+        <p className="capitalize">{product?.category}</p>
+        {/* Code */}
+        {mode === "retail" && (
+          <p className="bg-black text-white text-[10px] rounded-md w-16 px-3">
+            Rs {product?.sellPrice}
+          </p>
+        )}
+        {mode === "wholesale" && (
+          <p className="bg-black text-white text-[10px] rounded-md w-16 px-3">
+            Rs {product?.wholesalePrice}
+          </p>
+        )}
       </div>
     </div>
   );

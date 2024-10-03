@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { X, XCircle } from "lucide-react";
 import React, { FC, useState } from "react";
-import { sizeListTemplate } from "@/data";
+import sizeListTemplate from "../../../public/size-catgory-template.json";
 import { FilterElementProps } from "@/types/product";
 import { School } from "@/types/school-name";
 

@@ -19,88 +19,82 @@ import { cn } from "@/lib/utils";
 import { customer } from "@/types/customer";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const defaultCustomerName = "wake-in-customer"; // Default customer details
+const defaultCustomerName = "wake-in-customer";
 
-interface AutoComplete {
+interface AutoCompleteProps {
   label: string;
   customerList: customer[];
-  setCustomerList: (customers: customer[]) => void; // Set customer list after creation
+  setCustomerList: (customers: customer[]) => void | undefined;
   selectvalueFn: (value: string) => void;
 }
 
-const CusomterAutoComplete: React.FC<AutoComplete> = ({
+const CusomterAutoComplete: React.FC<AutoCompleteProps> = ({
   customerList,
   setCustomerList,
   label,
   selectvalueFn,
 }) => {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState<string | null>(null); // Track selected value
-  const [loading, setLoading] = React.useState(true); // Track loading state
+  const [value, setValue] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
-  // Check if "wake-in-customer" exists in the customer list
-  const defaultCustomerDetails = customerList.find(
+  const defaultCustomer = customerList.find(
     (customer) => customer.customerName === defaultCustomerName
   );
 
-  // If "wake-in-customer" doesn't exist, create it and refetch the list
   const createDefaultCustomer = async () => {
-    if (!defaultCustomerDetails) {
-      const newCustomer = {
-        customerName: defaultCustomerName,
-        schoolName: "any",
-        phone: 0,
-        type: "wake-in-customer",
-      };
+    try {
+      if (!defaultCustomer) {
+        const newCustomer = {
+          customerName: defaultCustomerName,
+          schoolName: "any",
+          phone: 0,
+          type: "wake-in-customer",
+        };
 
-      try {
         const response = await fetch("/api/customer", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newCustomer),
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          throw new Error(`Failed to create customer: ${response.status}`);
         }
 
-        // Fetch the updated customer list after creation
-        const updatedList = await fetch("/api/customer", {
-          method: "GET",
-        });
+        const updatedList = await fetch("/api/customer");
         const customers = await updatedList.json();
-        setCustomerList(customers); // Update customer list
+        setCustomerList(customers);
 
-        // Automatically select the default customer after creation
         const createdCustomer = customers.find(
           (customer: customer) =>
             customer.customerName === defaultCustomerName
         );
         if (createdCustomer) {
-          setValue(createdCustomer.customerName); // Set value for default customer
-          selectvalueFn(createdCustomer.customerName); // Update parent component
+          setValue(createdCustomer.customerName);
+          selectvalueFn(createdCustomer.customerName);
         }
-      } catch (error) {
-        console.error("Error creating default customer:", error.message);
+      } else {
+        setValue(defaultCustomer.customerName);
+        selectvalueFn(defaultCustomer.customerName);
       }
-    } else {
-      setValue(defaultCustomerDetails.customerName); // Set value for default customer if it already exists
-      selectvalueFn(defaultCustomerDetails.customerName); // Update parent component
+    } catch (error) {
+      console.error("Error creating default customer:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  // Create "wake-in-customer" if not found when the component mounts
   React.useEffect(() => {
     createDefaultCustomer();
-  }, []); // Only run once on mount
+  }, []);
 
   if (loading) {
-    return <div>
-      <Skeleton className="h-10 w-auto" />
-    </div>; // Render a loading state while creating/fetching customer
+    return (
+      <div>
+        <Skeleton className="h-10 w-auto" />
+      </div>
+    );
   }
 
   return (
@@ -110,18 +104,18 @@ const CusomterAutoComplete: React.FC<AutoComplete> = ({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={`w-auto lg:w-[560px] justify-between`}
+          className="w-auto lg:w-[560px] justify-between"
         >
           {value
-            ? customerList?.find((customer) => customer.customerName === value)
+            ? customerList.find((customer) => customer.customerName.toLowerCase() === value.toLowerCase())
                 ?.customerName
             : `Select ${label}...`}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className={`w-auto lg:w-[560px] p-0`}>
+      <PopoverContent className="w-auto lg:w-[560px] p-0">
         <Command>
-          <CommandInput placeholder={`${label}...`} />
+          <CommandInput placeholder={`Search ${label}...`} />
           <CommandEmpty>No {label} found.</CommandEmpty>
           <CommandGroup>
             {customerList.map((customer) => (
@@ -130,7 +124,7 @@ const CusomterAutoComplete: React.FC<AutoComplete> = ({
                 value={customer.customerName}
                 onSelect={(currentValue) => {
                   setValue(currentValue === value ? "" : currentValue);
-                  selectvalueFn(currentValue); // Update the value properly
+                  selectvalueFn(currentValue);
                   setOpen(false);
                 }}
               >
@@ -142,7 +136,7 @@ const CusomterAutoComplete: React.FC<AutoComplete> = ({
                       : "opacity-0"
                   )}
                 />
-                {customer.customerName}
+                {customer.customerName}&nbsp;&nbsp;&nbsp;({customer.type})
               </CommandItem>
             ))}
           </CommandGroup>

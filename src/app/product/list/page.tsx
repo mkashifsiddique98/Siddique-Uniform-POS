@@ -33,7 +33,7 @@ export default async function AllProduct({
   const response = data?.response || []; 
 
   const page = Number(searchParams["page"] ?? 1);
-  const per_page = Number(searchParams["per_page"] ?? 5);
+  const per_page = Number(searchParams["per_page"] ?? 10);
   const start = (page - 1) * per_page;
   const end = start + per_page;
 

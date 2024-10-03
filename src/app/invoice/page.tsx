@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
@@ -11,7 +10,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormDescription,
   FormMessage,
 } from "@/components/ui/form";
 import {
@@ -32,10 +30,125 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { Search } from "@/components/dashboard/search";
 import BreadCrum from "@/components/custom-components/bread-crum";
 import { Invoice } from "@/types/invoice";
+import { Input } from "@/components/ui/input";
+// ***************************************Serach ***********************
+interface SearchProps {
+  searchTerm: string;
+  onSearchChange: (term: string) => void;
+}
 
+const Search: React.FC<SearchProps> = ({ searchTerm, onSearchChange }) => {
+  return (
+    <Input
+      type="text"
+      value={searchTerm}
+      onChange={(e) => onSearchChange(e.target.value)}
+      placeholder="Search by customer name e.g wake-in"
+      className="max-w-72"
+    />
+  );
+};
+// Demo Table is mainTable Of
+interface TableDemoProps {
+  invoices: Invoice[];
+}
+const TableDemo: React.FC<TableDemoProps> = ({ invoices }) => {
+  const router = useRouter();
+  const [sortedInvoices, setSortedInvoices] = useState<Invoice[]>([]);
+
+  const handleViewClick = (id: string | undefined) => {
+    router.push(`/invoice/view/${id}`);
+  };
+
+  const handleDeleteClick = async (id: string | undefined) => {
+    try {
+      const response = await fetch(`/api/invoice`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast({
+          description: "Failed to delete invoice",
+        });
+      }
+
+      const updatedInvoices = sortedInvoices.filter(
+        (invoice) => invoice._id !== id
+      );
+      setSortedInvoices(updatedInvoices);
+      toast({
+        description: data.message,
+      });
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+    }
+  };
+
+  useEffect(() => {
+    // Sort the invoices by `invoiceDate` in descending order (most recent first)
+    const sorted = [...invoices].sort((a, b) => {
+      return (
+        new Date(b.invoiceDate).getTime() - new Date(a.invoiceDate).getTime()
+      );
+    });
+    setSortedInvoices(sorted);
+  }, [invoices]);
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-[100px]">#</TableHead>
+          <TableHead>Customer Name</TableHead>
+          <TableHead>Customer Type</TableHead>
+          <TableHead>Invoice Date</TableHead>
+          <TableHead>Total</TableHead>
+          <TableHead className="text-center">Action</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {sortedInvoices.map((invoice, index) => (
+          <TableRow key={index}>
+            <TableCell className="font-medium">{index + 1}</TableCell>
+            <TableCell>{invoice.customer?.customerName || "Unknown"}</TableCell>
+            <TableCell>{invoice.customer?.type || "Unknown"}</TableCell>
+
+            <TableCell className="whitespace-nowrap">
+              {new Date(invoice.invoiceDate).toLocaleDateString()}
+              <br />
+              {new Date(invoice.invoiceDate).toLocaleTimeString()}
+            </TableCell>
+            <TableCell>Rs {invoice.grandTotal.toFixed(2)}</TableCell>
+            <TableCell className="text-center">
+              <Button
+                variant="outline"
+                onClick={() => handleViewClick(invoice._id)}
+              >
+                View
+              </Button>
+              <Button
+                className="ml-2"
+                onClick={() => handleDeleteClick(invoice._id)}
+              >
+                Delete
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+};
+
+// *********************************** fetch Server Side ****************
 const FormSchema = z.object({
   dob: z.date({
     required_error: "A date is required.",
@@ -62,6 +175,7 @@ const SaleList: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [totalDaySale, setTotalDaySale] = useState<number>(0);
+  const [searchTerm, setSearchTerm] = useState(""); // State for the search term
   const today = new Date();
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -71,12 +185,18 @@ const SaleList: React.FC = () => {
     },
   });
 
-  // Filter invoices by date
-  const filterInvoicesByDate = (date: Date) => {
+  // Filter invoices by date and customer name
+  const filterInvoices = (date: Date, term: string) => {
     const selectedDate = date.toLocaleDateString();
     const filtered = invoices.filter((invoice) => {
       const invoiceDate = new Date(invoice.invoiceDate).toLocaleDateString();
-      return invoiceDate === selectedDate;
+      const matchesDate = invoiceDate === selectedDate;
+      const matchesName =
+        invoice.customer?.customerName
+          ?.toLowerCase()
+          .includes(term.toLowerCase()) ?? false;
+
+      return matchesDate && matchesName;
     });
     setFilteredInvoices(filtered);
     calculateTotalSale(filtered);
@@ -100,25 +220,32 @@ const SaleList: React.FC = () => {
     loadData();
   }, []);
 
-  // Recalculate filtered invoices and total sales when invoices or date change
+  // Recalculate filtered invoices and total sales when invoices, date, or search term change
   useEffect(() => {
     if (invoices.length > 0) {
-      filterInvoicesByDate(today); // Filter by today's date when invoices are loaded
+      filterInvoices(today, searchTerm); // Filter by today's date and search term
     }
-  }, [invoices]);
+  }, [invoices, searchTerm]);
 
   // Handle date change
   const handleDateChange = (date: Date | undefined) => {
     if (date) {
-      filterInvoicesByDate(date);
+      filterInvoices(date, searchTerm);
     }
+  };
+
+  // Handle search input change
+  const handleSearchChange = (term: string) => {
+    setSearchTerm(term);
+    filterInvoices(form.getValues("dob"), term); // Filter when search term changes
   };
 
   return (
     <div className="container p-6">
       <BreadCrum mainfolder="Sale" subfolder="List Sale" />
       <div className="flex justify-between mb-4">
-        <Search />
+        {/* Pass search term to the Search component */}
+        <Search searchTerm={searchTerm} onSearchChange={handleSearchChange} />
         <div className="font-extrabold border rounded-md p-2 text-2xl">
           Total Sale of Today : Rs {totalDaySale}
         </div>
@@ -172,7 +299,7 @@ const SaleList: React.FC = () => {
         <TableDemo invoices={filteredInvoices} />
       ) : (
         <p className="font-extrabold text-center">
-          No invoices found for the selected date.
+          No invoices found for the selected date or customer name.
         </p>
       )}
     </div>
@@ -180,95 +307,3 @@ const SaleList: React.FC = () => {
 };
 
 export default SaleList;
-
-// Define the Invoice type and TableDemo component
-
-interface TableDemoProps {
-  invoices: Invoice[];
-}
-
-const TableDemo: React.FC<TableDemoProps> = ({ invoices }) => {
-  const router = useRouter();
-   const [Invoice,setInvoices] = useState<Invoice[]>([])
-  const handleViewClick = (id: string | undefined) => {
-    router.push(`/invoice/view/${id}`);
-  };
-  const handleDeleteClick =async (id: string | undefined) => {
-  
-    try {
-      const response = await fetch(`/api/invoice`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id }),
-      });
-  
-      const data = await response.json();
-  
-      if (!response.ok) {
-        toast({
-          description: "Failed to delete invoice",
-        });
-      }
-      const updatedInvoices = invoices.filter((invoice) => invoice._id !== id);
-        setInvoices(updatedInvoices);
-      toast({
-         description: data.message,
-      });
-      
-    } catch (error) {
-      console.error('Error deleting invoice:', error);
-    }
-  };
-  useEffect(() => {
-    setInvoices(invoices)
-    return () => {
-      setInvoices([])
-    }
-  }, [invoices])
-  
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-[100px]">#</TableHead>
-          <TableHead>Customer Name</TableHead>
-          <TableHead>Customer Type</TableHead>
-          <TableHead>Invoice Date</TableHead>
-          <TableHead>Total</TableHead>
-          <TableHead className="text-center">Action</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {invoices.map((invoice, index) => (
-          <TableRow key={index}>
-            <TableCell className="font-medium">{index + 1}</TableCell>
-            <TableCell>{invoice.customer.customerName}</TableCell>
-            <TableCell>{invoice.customer.type}</TableCell>
-            <TableCell className="whitespace-nowrap">
-              {new Date(invoice.invoiceDate).toLocaleDateString()}
-              <br />
-              {new Date(invoice.invoiceDate).toLocaleTimeString()}
-            </TableCell>
-            <TableCell>Rs {invoice.grandTotal.toFixed(2)}</TableCell>
-            <TableCell className="text-center">
-              <Button
-                variant="outline"
-                onClick={() => handleViewClick(invoice._id)}
-              >
-                View
-              </Button>
-              <Button
-                className="ml-2"
-                onClick={() => handleDeleteClick(invoice._id)}
-              >
-                Delete
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
-};

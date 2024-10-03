@@ -18,6 +18,6 @@ export interface Invoice {
   invoiceDate: Date;          // Use `Date`
   _id?: string;               // Use `string` and make it optional with `?`
   anyMessage: string
-  dueDate?: Date | undefined;
+  dueDate?: Date | string | number;
   status?:string
 }

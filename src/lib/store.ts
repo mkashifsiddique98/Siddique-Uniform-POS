@@ -3,6 +3,7 @@ import { configureStore, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { useDispatch, useSelector, TypedUseSelectorHook } from "react-redux";
 import { RootState } from "@/types"; // Define your RootState type in a separate file
 import { ProductFormState } from "@/types/product";
+
 export interface Products extends ProductFormState {
   productId: object | undefined;
   productName: string;
@@ -18,6 +19,7 @@ const initialState: ChartState = {
   chartList: [],
 };
 
+// Chart slice
 const chartSlice = createSlice({
   name: "chart",
   initialState,
@@ -34,22 +36,20 @@ const chartSlice = createSlice({
       const existingProduct = state.chartList.find((product) => product.productName === productName);
 
       if (existingProduct) {
-        // Update the quantity of the existing product
         existingProduct.quantity = Math.max(0, existingProduct.quantity + quantity); // Prevent negative quantity
         if (sellPrice) {
           existingProduct.sellPrice = sellPrice; // Update price if provided
         }
       } else {
-        // If product doesn't exist, add it to the chartList
         state.chartList.push({
           productId: undefined,
           productName: productName,
-          quantity: Math.max(0, quantity), // Ensure quantity is not negative
-          sellPrice: sellPrice || 0, // Default sell price to 0 if not provided
-          category: 'special', // Set category to 'special' or some default
-          size: 'N/A', // Default size
-          productCost: 0, // Default product cost
-          stockAlert: 0, // Default stock alert
+          quantity: Math.max(0, quantity),
+          sellPrice: sellPrice || 0,
+          category: 'special',
+          size: 'N/A',
+          productCost: 0,
+          stockAlert: 0,
         });
       }
     },
@@ -65,14 +65,34 @@ const chartSlice = createSlice({
   },
 });
 
-export const { addToChart, updateChart, clearChart, removeItemChart } = chartSlice.actions;
-
-export const store = configureStore({
-  reducer: {
-    chart: chartSlice.reducer,
+// Mode slice (new slice for retail/wholesale mode)
+const modeSlice = createSlice({
+  name: "mode",
+  initialState: "retail", // Default is 'retail' mode
+  reducers: {
+    toggleMode: (state) => {
+      return state === "retail" ? "wholesale" : "retail";
+    },
+    setMode: (state, action: PayloadAction<"retail" | "wholesale">) => {
+      return action.payload;
+    },
   },
 });
 
+export const { addToChart, updateChart, clearChart, removeItemChart } = chartSlice.actions;
+export const { toggleMode, setMode } = modeSlice.actions;
+
+// Configure the store
+export const store = configureStore({
+  reducer: {
+    chart: chartSlice.reducer,
+    mode: modeSlice.reducer, // Add the mode slice here
+  },
+});
+
+// Hook for dispatching actions
 export type AppDispatch = typeof store.dispatch;
 export const useAppDispatch = () => useDispatch<AppDispatch>();
+
+// Hook for accessing state
 export const useTypedSelector: TypedUseSelectorHook<RootState> = useSelector;

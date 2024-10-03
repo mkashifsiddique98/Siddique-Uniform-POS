@@ -9,6 +9,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import ToggleMode from "../custom-components/mode-switch";
 
 const DateTimeDisplay = dynamic(() => import("./DateTimeDisplay"), {
   ssr: false, // Disable server-side rendering for this component
@@ -86,6 +87,9 @@ export function Topnav({
               </Button>
             </div>
           )}
+          {pathName === "/pos" &&
+          <ToggleMode/> 
+          }
           <div
             onClick={handleFullScreen}
             className="cursor-pointer hover:bg-gray-100 p-2 rounded-md hidden md:block"
@@ -97,6 +101,7 @@ export function Topnav({
               <AlertNav />
             </div>
           )}
+          
           <UserNav />
         </div>
       </div>

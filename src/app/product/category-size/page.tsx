@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import fs from "fs/promises";
-import path from "path";
 import BreadCrum from "@/components/custom-components/bread-crum";
 import { Button } from "@/components/ui/button";
 
@@ -41,6 +39,7 @@ const CategoryAndSize: React.FC = () => {
     setItemSize("");
     toggleModal();
   };
+
   const saveData = async (updatedData: Item[]) => {
     try {
       const response = await fetch("/api/product/category-and-size", {
@@ -57,6 +56,7 @@ const CategoryAndSize: React.FC = () => {
       console.error("Error saving data:", error);
     }
   };
+
   const saveItem = () => {
     if (editingItem) {
       const updatedData = data.map((item) => {
@@ -74,6 +74,7 @@ const CategoryAndSize: React.FC = () => {
         size: itemSize.split(","),
       };
       setData([...data, newItem]);
+      saveData([...data, newItem]);
     }
     toggleModal();
   };
@@ -85,8 +86,15 @@ const CategoryAndSize: React.FC = () => {
     toggleModal();
   };
 
+  const handleDelete = (id: string) => {
+    const updatedData = data.filter((item) => item.id !== id);
+    setData(updatedData);
+    saveData(updatedData);
+  };
+
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setItemName(e.target.value);
+
   const handleSizeChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setItemSize(e.target.value);
 
@@ -94,7 +102,6 @@ const CategoryAndSize: React.FC = () => {
     <div className="container mx-auto p-4">
       <BreadCrum mainfolder="Product" subfolder="Categories and their Sizes" />
       <div className="container mx-auto">
-       
         <Button
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold w-full"
           onClick={addItem}
@@ -107,8 +114,14 @@ const CategoryAndSize: React.FC = () => {
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold mb-2">{item.name}</h2>
                 <div className="flex gap-2">
-                  <Button onClick={() => handleEdit(item)} className="px-8">
+                  <Button onClick={() => handleEdit(item)} className="px-4">
                     Edit
+                  </Button>
+                  <Button
+                    onClick={() => handleDelete(item.id)}
+                    className="px-4 bg-red-500 hover:bg-red-700 text-white"
+                  >
+                    Delete
                   </Button>
                 </div>
               </div>
@@ -142,7 +155,9 @@ const CategoryAndSize: React.FC = () => {
                 value={itemSize}
                 onChange={handleSizeChange}
               />
-              <p className="text-gray-400 mt-1">Use Comma to Add New Size in List (e.g 18, 20, 22...)</p>
+              <p className="text-gray-400 mt-1">
+                Use Comma to Add New Size in List (e.g 18, 20, 22...)
+              </p>
               <div className="flex justify-end mt-4">
                 <button
                   className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"

@@ -19,7 +19,7 @@ export function UserNav() {
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
             <AvatarImage src="/avatars/01.png" alt="@shadcn" />
-            <AvatarFallback>SC</AvatarFallback>
+            <AvatarFallback>AS</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
@@ -28,7 +28,7 @@ export function UserNav() {
           <div className="flex flex-col space-y-1">
             <div className="flex justify-evenly items-center">
             <UserRoundCog />
-              <p className="text-sm font-medium leading-none">shadcn</p>
+              <p className="text-sm font-medium leading-none">ASIf</p>
             </div>
           </div>
         </DropdownMenuLabel>

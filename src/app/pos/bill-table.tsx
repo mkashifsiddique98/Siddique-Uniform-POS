@@ -31,7 +31,7 @@ const BillTable: FC<BillTableProps> = ({ selectedCustomer }) => {
     (state) => state.chart.chartList
   );
   const dispatch = useAppDispatch();
-
+  const mode = useTypedSelector((state) => state.mode); // mode
   const [discount, setDiscount] = useState<number>(0);
   let grandTotal = chartList.reduce((total, product) => {
     let lineTotal = product.quantity * product.sellPrice;
@@ -97,7 +97,6 @@ const BillTable: FC<BillTableProps> = ({ selectedCustomer }) => {
       console.error("All fields must be filled");
     }
   };
-
   return (
     <div className="flex flex-col justify-between h-[75vh]">
       <Table>
@@ -132,9 +131,9 @@ const BillTable: FC<BillTableProps> = ({ selectedCustomer }) => {
             <TableCell className="text-right">
               {product.quantity * product.sellPrice}
             </TableCell>
-            <TableCell>
+            <TableCell className="text-center">
               <span
-                className="cursor-pointer"
+                className="cursor-pointer text-center"
                 onClick={() => handleRemoveItem(product.productName)}
               >
                 <XCircle className="text-red-500" />
@@ -221,14 +220,32 @@ const BillTable: FC<BillTableProps> = ({ selectedCustomer }) => {
           <Button size={"lg"} variant="destructive" onClick={handleReset}>
             <RotateCcw className="w-4 h-4 mr-4" /> Reset
           </Button>
-          <PayNowChart
-            grandTotal={grandTotal}
-            discount={discount}
-            productList={chartList}
-            disInPercentage={disInPrecentage}
-            selectedCustomer={selectedCustomer}
-            handleReset={handleReset}
-          />
+          {/* Only show the PayNow button if customer type is wholesale and mode is wholesale */}
+          {mode ==='wholesale' && (selectedCustomer?.type?.toLocaleLowerCase() === "wholesale" ? (
+            <PayNowChart
+              grandTotal={grandTotal}
+              discount={discount}
+              productList={chartList}
+              disInPercentage={disInPrecentage}
+              selectedCustomer={selectedCustomer}
+              handleReset={handleReset}
+            />
+          ) : (
+            <Button size={"lg"} variant="destructive" className="animate-bounce">
+              <span className="text-white">
+                 Customer must be Wholesaler for Wholesale Mode
+              </span>
+            </Button>
+          ))}
+          
+          {mode==="retail" && <PayNowChart
+              grandTotal={grandTotal}
+              discount={discount}
+              productList={chartList}
+              disInPercentage={disInPrecentage}
+              selectedCustomer={selectedCustomer}
+              handleReset={handleReset}
+            />}
         </div>
       </div>
     </div>

@@ -31,7 +31,7 @@ const BillBook = ({ listCustomer }: { listCustomer: customer[] }) => {
 
   useEffect(() => {
     const filteredCustomers = customerDetailList.filter(
-      (customer) => customer.customerName === customerName
+      (customer) => customer.customerName.toLocaleLowerCase() === customerName?.toLocaleLowerCase()
     );
 
     setSelectedCustomer(filteredCustomers[0]);

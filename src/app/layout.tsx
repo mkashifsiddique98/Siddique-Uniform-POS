@@ -26,7 +26,9 @@ export default function RootLayout({
           crawlSpeed={200}
           speed={200}
         />
-        <MasterLayout>{children}</MasterLayout>
+        <MasterLayout>
+          {children}
+          </MasterLayout>
         <Toaster />
       </body>
     </html>

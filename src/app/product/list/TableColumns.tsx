@@ -174,6 +174,7 @@ export const columns: ColumnDef<Product>[] = [
 
       return (
         <div className="flex space-x-1 cursor-pointer">
+          <Link href={`/product/view/${product._id}`}>
           <div className="group flex relative hover:bg-gray-100 p-1 rounded-full">
             <ViewIcon />
             <span
@@ -185,6 +186,7 @@ export const columns: ColumnDef<Product>[] = [
               View
             </span>
           </div>
+          </Link>
           <Link href={`/product/edit/${product._id}`}>
             <div className="group flex relative hover:bg-gray-100 p-1 ">
               <Edit2Icon />
