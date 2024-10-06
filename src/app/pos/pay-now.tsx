@@ -1,41 +1,30 @@
 "use client";
+import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import Calendar from "@/components/custom-components/Calender";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  clearChart,
-  Products,
-  useAppDispatch,
-  useTypedSelector,
-} from "@/lib/store";
+import Calendar from "@/components/custom-components/Calender";
 import { ShoppingCart } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
 import { useReactToPrint } from "react-to-print";
-import { customer } from "@/types/customer";
+import { clearChart, Products, setInvoiceNumber, useAppDispatch, useTypedSelector } from "@/lib/store";
 import ReceiptTemplate from "./receipt-template";
+import { customer } from "@/types/customer";
+import { handleGenerateNewInvoiceNumber } from "./usePos";
 
-const PayNowChart: React.FC<{
+interface PayNowChartProps {
   grandTotal: number;
   discount: number;
   productList: Products[];
   disInPercentage: number;
   selectedCustomer?: customer;
   handleReset: () => void;
-}> = ({
+}
+
+const PayNowChart: React.FC<PayNowChartProps> = ({
   grandTotal,
   discount,
   productList,
@@ -48,96 +37,110 @@ const PayNowChart: React.FC<{
   const [receiveAmount, setReceiveAmount] = useState<number>(0);
   const [customerNotes, setCustomerNotes] = useState("");
   const [customerdetail, setCustomerDetail] = useState(selectedCustomer);
-  const returnChange = Math.max(receiveAmount - grandTotal, 0);
 
   const dispatch = useAppDispatch();
-  const chartList: Products[] = useTypedSelector(
-    (state) => state.chart.chartList
-  );
+  const invoiceNo = useTypedSelector((state) => state.invoice.invoiceNumber);
+  const chartList = useTypedSelector((state) => state.chart.chartList);
+  const returnChange = Math.max(receiveAmount - grandTotal, 0);
+
+  const componentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setPayingAmount(grandTotal);
   }, [grandTotal]);
 
-  const componentRef = useRef<HTMLDivElement>(null);
-  const updateCustomerBalance = async () => {
-    try {
-      const response = await fetch(`/api/customer/edit_prev_balance`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(customerdetail),
-      });
-      if (!response.ok) {
-        console.log("Failed to update customer balance");
-      }
-    } catch (error) {
-      console.error("Error updating balance:", error);
+  useEffect(() => {
+    if (receiveAmount < payingAmount && selectedCustomer) {
+      const remainingBalance = payingAmount - receiveAmount;
+      const updatedCustomer = {
+        ...selectedCustomer,
+        prevBalance: (selectedCustomer.prevBalance || 0) + remainingBalance,
+      };
+      setCustomerDetail(updatedCustomer);
     }
-  };
+  }, [receiveAmount]);
   const handleInvoiceGenerate = async () => {
     const invoiceDetail = {
+      invoiceNo,
+      discount,
       customer: customerdetail,
       productDetail: chartList,
       grandTotal,
       anyMessage: customerNotes,
       ...(dueDate && { dueDate }),
     };
-
+  
     try {
       const response = await fetch("/api/invoice/", {
         method: "POST",
         body: JSON.stringify(invoiceDetail),
       });
+  
       if (response.ok) {
-        // Reset All feild
+        dispatch(setInvoiceNumber(0));
         dispatch(clearChart());
         setDueDate(null);
         setReceiveAmount(0);
         setCustomerNotes("");
         setPayingAmount(0);
+  
+        // Get the stored invoice number from localStorage
+        const storedValue = Number(localStorage.getItem('invoiceNo')) || 0;
+  
+        // Generate new invoice number asynchronously
+        const invoiceNewNumber = await handleGenerateNewInvoiceNumber();
+  
+        // Decide which number to use (storedValue or invoiceNewNumber)
+        const newInvoiceNumber = Math.max(storedValue, invoiceNewNumber);
+  
+        // Update localStorage and dispatch the new invoice number
+        localStorage.setItem('invoiceNo', String(newInvoiceNumber + 1));
+        dispatch(setInvoiceNumber(newInvoiceNumber + 1));
+  
+        console.log("New invoice number:", newInvoiceNumber + 1);
       }
     } catch (error) {
-      console.error("Server Error", error);
+      console.error("Error generating invoice:", error);
     }
   };
+  
 
-  const handleProductQty = async () => {
+  const handleProductQtyUpdate = async () => {
     try {
-      const response = await fetch("/api/product/edit", {
+      await fetch("/api/product/edit", {
         method: "PUT",
         body: JSON.stringify(chartList),
       });
-      if (response.ok) {
-        dispatch(clearChart());
-      }
+      dispatch(clearChart());
     } catch (error) {
-      console.error("Server Error", error);
+      console.error("Error updating product quantity:", error);
     }
   };
-  const handleNoReceipt = () => {
-    handleReset();
-    handleProductQty();
-    handleInvoiceGenerate();
-    if (customerdetail?.prevBalance !== 0) {
-      updateCustomerBalance();
-    } // balance update}
+
+ const handleNoReceipt = async () => {
+    try {
+       handleProductQtyUpdate();
+       handleInvoiceGenerate();
+     
+      handleReset();
+    } catch (error) {
+      console.error("Error in handling no receipt:", error);
+    }
   };
-  //1. Client Side Printing .............
+  
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
     documentTitle: "Receipt",
     pageStyle: `
       @page {
-        size: 80mm auto; /* Set width to 80mm and allow dynamic height */
+        size: 80mm auto;
         margin: 0;
       }
       body {
         margin: 0;
         padding: 0;
         font-family: monospace;
-        width: 80mm; /* Fixed width for the thermal printer */
+        width: 80mm;
       }
       h2, p, table {
         margin: 0;
@@ -153,24 +156,8 @@ const PayNowChart: React.FC<{
         padding: 2px;
       }
     `,
-    onAfterPrint: () => {
-      // perform all functionality
-      handleNoReceipt();
-    },
+    onAfterPrint: handleNoReceipt,
   });
-
-  // Pending Balcne *************************
-
-  useEffect(() => {
-    if (receiveAmount < payingAmount && selectedCustomer) {
-      const remainingBalance = payingAmount - receiveAmount;
-      const updatedCustomer = {
-        ...selectedCustomer,
-        prevBalance: (selectedCustomer.prevBalance || 0) + remainingBalance,
-      };
-      setCustomerDetail(updatedCustomer);
-    }
-  }, [receiveAmount]);
 
   return (
     <Dialog>
@@ -184,11 +171,13 @@ const PayNowChart: React.FC<{
           Pay Now
         </Button>
       </DialogTrigger>
+
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Pay Now</DialogTitle>
           <DialogDescription>Clear payment here</DialogDescription>
         </DialogHeader>
+
         <div className="flex justify-between gap-8">
           <div className="grid w-full max-w-sm items-center gap-4">
             <Label htmlFor="receive-Money">Receive Money</Label>
@@ -197,20 +186,23 @@ const PayNowChart: React.FC<{
               id="receive-Money"
               placeholder="Receive Money"
               value={receiveAmount}
-              onChange={(e) => setReceiveAmount(parseInt(e.target.value, 10))}
+              onChange={(e) => setReceiveAmount(parseInt(e.target.value, 10) || 0)}
             />
+
             <Label htmlFor="paying-amount">Paying Amount</Label>
             <Input
               type="number"
               id="paying-amount"
               value={payingAmount}
-              onChange={(e) => setPayingAmount(parseInt(e.target.value, 10))}
+              onChange={(e) => setPayingAmount(parseInt(e.target.value, 10) || 0)}
               placeholder="Paying Amount"
             />
+
             <Label htmlFor="change-return">Change Return</Label>
             <p id="change-return" className="ml-4 font-semibold">
-              {returnChange > 0 ? returnChange : 0}
+              {returnChange}
             </p>
+
             <Label htmlFor="note">Your Message</Label>
             <Textarea
               placeholder="Type your note here."
@@ -218,6 +210,7 @@ const PayNowChart: React.FC<{
               onChange={(e) => setCustomerNotes(e.target.value)}
             />
           </div>
+
           <div>
             <Card className="shadow-2 w-full">
               <CardContent className="capitalize flex justify-between items-center">
@@ -240,12 +233,10 @@ const PayNowChart: React.FC<{
                 </Table>
               </CardContent>
             </Card>
+
             <div className="m-2 p-2">
               <p className="text-sm">
-                <strong>Remaining Balance :</strong>{" "}
-                {isNaN(payingAmount - receiveAmount)
-                  ? 0
-                  : payingAmount - receiveAmount}
+                <strong>Remaining Balance :</strong> {payingAmount - receiveAmount}
               </p>
             </div>
 
@@ -257,6 +248,7 @@ const PayNowChart: React.FC<{
             )}
           </div>
         </div>
+
         <DialogFooter>
           <div className="flex justify-between items-center w-full">
             <DialogClose>
@@ -272,12 +264,11 @@ const PayNowChart: React.FC<{
       </DialogContent>
 
       {/* Receipt content for printing */}
-
-      <div 
-      style={{ display: "none" }}
-      >
+      <div style={{ display: "none" }}>
         <div ref={componentRef}>
           <ReceiptTemplate
+            invoiceNo={invoiceNo}
+            remainingBalance={payingAmount - receiveAmount}
             disInPercentage={disInPercentage}
             discount={discount}
             grandTotal={grandTotal}

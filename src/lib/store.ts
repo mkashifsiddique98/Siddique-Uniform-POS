@@ -19,15 +19,31 @@ const initialState: ChartState = {
   chartList: [],
 };
 
+interface InvoiceState {
+  invoiceNumber: number;
+  discount: number; // Add discount field
+}
+
+// Initial state for invoice
+const initialInvoiceState: InvoiceState = {
+  invoiceNumber: 0, // Start from 1 or any initial value
+  discount: 0, // Default discount value
+};
+
 // Chart slice
 const chartSlice = createSlice({
   name: "chart",
   initialState,
   reducers: {
+    // for single Product
     addToChart: (state, action: PayloadAction<Products>) => {
       state.chartList = [...state.chartList, action.payload];
     },
-
+    // for multiple product
+    addMultipleToChart: (state, action: PayloadAction<Products[]>) => {
+      state.chartList = [...state.chartList, ...action.payload];
+    },
+    // for update
     updateChart: (
       state,
       action: PayloadAction<{ productName: string; quantity: number; sellPrice?: number }>
@@ -65,6 +81,21 @@ const chartSlice = createSlice({
   },
 });
 
+// Invoice slice
+const invoiceSlice = createSlice({
+  name: "invoice",
+  initialState: initialInvoiceState,
+  reducers: {
+    setInvoiceNumber: (state, action: PayloadAction<number>) => {
+      state.invoiceNumber = action.payload;
+    },
+    setDiscount: (state, action: PayloadAction<number>) => {
+      state.discount = action.payload;
+    },
+    
+  },
+});
+
 // Mode slice (new slice for retail/wholesale mode)
 const modeSlice = createSlice({
   name: "mode",
@@ -79,14 +110,19 @@ const modeSlice = createSlice({
   },
 });
 
-export const { addToChart, updateChart, clearChart, removeItemChart } = chartSlice.actions;
+// Add to chart product
+export const { addToChart, addMultipleToChart, updateChart, clearChart, removeItemChart } = chartSlice.actions;
+// For mode like wholesaler or retailer
 export const { toggleMode, setMode } = modeSlice.actions;
+// For invoice number and discount
+export const { setInvoiceNumber,  setDiscount } = invoiceSlice.actions;
 
 // Configure the store
 export const store = configureStore({
   reducer: {
     chart: chartSlice.reducer,
     mode: modeSlice.reducer, // Add the mode slice here
+    invoice: invoiceSlice.reducer,
   },
 });
 

@@ -1,11 +1,9 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import MasterLayout from "@/components/layout";
 import NextTopLoader from "nextjs-toploader";
+import type { Metadata } from "next";
 
-const inter = Inter({ subsets: ["latin"] });
 // const roboto = Roboto({ subsets: ['cyrillic']})
 export const metadata: Metadata = {
   title: "Siddique Unifrom & Factory",
@@ -18,8 +16,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="scroll-smooth focus:scroll-auto">
-      <body className={inter.className}>
+    <html lang="en" className="scroll-smooth focus:scroll-auto" suppressHydrationWarning={true}>
+      <body>
         <NextTopLoader
           color="#0f172a"
           showSpinner={false}

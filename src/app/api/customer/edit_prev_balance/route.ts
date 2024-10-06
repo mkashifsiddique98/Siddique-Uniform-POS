@@ -6,7 +6,6 @@ export async function PUT(request: Request) {
     try {
       
       const updatedData = await request.json();
-      console.log("updatedData for customer",updatedData)
       const updatedCustomer = await Customer.findByIdAndUpdate(
         updatedData._id,
         { $set: updatedData },

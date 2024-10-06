@@ -117,7 +117,7 @@ const TableDemo: React.FC<TableDemoProps> = ({ invoices }) => {
       <TableBody>
         {sortedInvoices.map((invoice, index) => (
           <TableRow key={index}>
-            <TableCell className="font-medium">{index + 1}</TableCell>
+            <TableCell className="font-medium">{invoice.invoiceNo}</TableCell>
             <TableCell>{invoice.customer?.customerName || "Unknown"}</TableCell>
             <TableCell>{invoice.customer?.type || "Unknown"}</TableCell>
 

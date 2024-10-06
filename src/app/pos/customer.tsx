@@ -158,7 +158,7 @@ export default function Customer({
   setCustomerList?: (customers: customer[]) => void;
 }) {
   return (
-    <div className="flex justify-between w-full">
+    <div className="flex justify-between items-center w-[80%] gap-2">
       <CusomterAutoComplete
         customerList={customerDetailList}
         setCustomerList={setCustomerList}

@@ -10,6 +10,7 @@ export interface ProductDetail {
 }
 
 export interface Invoice {
+  
   invoiceNo: number;          // Use `number`
   customer: customer;         // Ensure 'Customer' is the correct imported type
   productDetail: ProductDetail[];

@@ -39,5 +39,16 @@
   text-align: initial;
   text-align-last: initial;
 }
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/Inter-VariableFont_opsz,wght.ttf') format('truetype');
+}
+/* Optional: Define fallback font family */
+body {
+  font-family: 'Inter', sans-serif;
+}
 
 

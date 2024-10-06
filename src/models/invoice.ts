@@ -1,8 +1,6 @@
 // models/invoice.ts
 import mongoose, { Schema } from "mongoose";
 
-
-
 const ProductSchema: Schema = new Schema({
   productName: { type: String },
   quantity: { type: Number },
@@ -17,7 +15,7 @@ const customerSchema: Schema = new Schema({
   prevBalance: { type: Number, default: 0 },
 });
 const invoiceSchema: Schema = new Schema({
-  invoiceNo: { type: Number },
+  invoiceNo: { type: Number, unique: true, require: true,  },
   customer: customerSchema, // ref to "Customer"
   productDetail: [ProductSchema],
   prevBalance: { type: Number, default: 0 },
@@ -25,7 +23,8 @@ const invoiceSchema: Schema = new Schema({
   anyMessage: { type: String },
   invoiceDate: { type: Date },
   dueDate: { type: Date },
-  status: {type: String, default:"Clear"}
+  discount: {type:Number, default:0},
+  status: { type: String, default: "Clear" },
 });
 
 const Invoice =

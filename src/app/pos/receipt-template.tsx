@@ -7,7 +7,9 @@ interface ReceiptTemplateProps {
   discount: number;
   disInPercentage: number;
   grandTotal: number;
-  dueDate:Date | null
+  dueDate:Date | null;
+  invoiceNo:number;
+  remainingBalance:number
 }
 const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   productList,
@@ -15,7 +17,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   discount,
   disInPercentage,
   grandTotal,
-  dueDate
+  dueDate,invoiceNo,remainingBalance
 }) => {
   return (
     <div
@@ -56,7 +58,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
           borderRadius: "3px",
         }}
       >
-        <p style={{ margin: "0", fontWeight: "bold" }}>Receipt No:</p>
+        <p style={{ margin: "0", fontWeight: "bold" }}>Receipt No: {invoiceNo}</p>
         <p style={{ margin: "0" }}>Date: {new Date().toLocaleDateString()}</p>
       </div>
 
@@ -173,7 +175,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         }}
       >
         <span>remaining balance:</span>
-        <span>Rs {grandTotal}</span>
+        <span>Rs {remainingBalance}</span>
       </div>
       { selectedCustomer?.type === "special-sitching" && <div
         style={{
