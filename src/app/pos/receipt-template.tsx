@@ -119,6 +119,15 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
             >
               Price
             </th>
+            <th
+              style={{
+                textAlign: "right",
+                borderBottom: "1px solid black",
+                paddingBottom: "5px",
+              }}
+            >
+              Line-Total
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -129,7 +138,10 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
                 {product.quantity}
               </td>
               <td style={{ textAlign: "right", padding: "5px 0" }}>
-                Rs {product.sellPrice}
+                Rs{product.sellPrice}
+              </td>
+              <td style={{ textAlign: "right", padding: "5px 0" }}>
+                Rs{product.sellPrice*product.quantity}
               </td>
             </tr>
           ))}

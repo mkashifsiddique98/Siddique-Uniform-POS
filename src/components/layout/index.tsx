@@ -28,10 +28,10 @@ const MasterLayout = ({ children }: { children: React.ReactNode }) => {
           <div>
             <Topnav handleToggleSidebar={handleToggleSidebar} />
 
-            <div className="flex h-screen overflow-hidden">
+            <div className="flex h-[80vh] overflow-hidden">
               {/*----------- Side-bar -----------*/}
               {showSideBar && (
-                <aside>
+                <aside >
                   <SidebarNav items={sidebarItems} />
                 </aside>
               )}

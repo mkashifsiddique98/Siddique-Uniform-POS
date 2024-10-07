@@ -69,13 +69,13 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
       anyMessage: customerNotes,
       ...(dueDate && { dueDate }),
     };
-  
+
     try {
       const response = await fetch("/api/invoice/", {
         method: "POST",
         body: JSON.stringify(invoiceDetail),
       });
-  
+
       if (response.ok) {
         dispatch(setInvoiceNumber(0));
         dispatch(clearChart());
@@ -83,27 +83,35 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
         setReceiveAmount(0);
         setCustomerNotes("");
         setPayingAmount(0);
-  
-        // Get the stored invoice number from localStorage
-        const storedValue = Number(localStorage.getItem('invoiceNo')) || 0;
-  
+
+        const storedValue = Number(localStorage.getItem('invoiceNo'));
+
+        // Check if storedValue is a valid number, otherwise set it to 0
+        const validStoredValue = isNaN(storedValue) ? 0 : storedValue;
+
         // Generate new invoice number asynchronously
         const invoiceNewNumber = await handleGenerateNewInvoiceNumber();
-  
-        // Decide which number to use (storedValue or invoiceNewNumber)
-        const newInvoiceNumber = Math.max(storedValue, invoiceNewNumber);
-  
-        // Update localStorage and dispatch the new invoice number
+
+        // Ensure that invoiceNewNumber is a valid number
+        const validInvoiceNewNumber = isNaN(invoiceNewNumber) ? 0 : invoiceNewNumber;
+
+        // Decide which number to use (stored or generated)
+        const newInvoiceNumber = Math.max(validStoredValue, validInvoiceNewNumber);
+
+        // Update localStorage with the new number
         localStorage.setItem('invoiceNo', String(newInvoiceNumber + 1));
+
+        // Dispatch the new invoice number to the store
         dispatch(setInvoiceNumber(newInvoiceNumber + 1));
-  
+
         console.log("New invoice number:", newInvoiceNumber + 1);
+
       }
     } catch (error) {
       console.error("Error generating invoice:", error);
     }
   };
-  
+
 
   const handleProductQtyUpdate = async () => {
     try {
@@ -117,17 +125,17 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
     }
   };
 
- const handleNoReceipt = async () => {
+  const handleNoReceipt = async () => {
     try {
-       handleProductQtyUpdate();
-       handleInvoiceGenerate();
-     
+      handleProductQtyUpdate();
+      handleInvoiceGenerate();
+
       handleReset();
     } catch (error) {
       console.error("Error in handling no receipt:", error);
     }
   };
-  
+
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
     documentTitle: "Receipt",

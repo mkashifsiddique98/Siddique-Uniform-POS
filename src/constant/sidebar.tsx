@@ -12,6 +12,7 @@ import {
   ScrollText,
   Layers,
   Coins,
+  ListCollapse,
 } from "lucide-react";
 
 export const sidebarItems = [
@@ -52,10 +53,15 @@ export const sidebarItems = [
     href: "/purchase",
     icon: <ShoppingCart />,
     subItems: [
-      {
+     {
         title: "Made Purchase",
         href: "/purchase",
         icon: <ScrollText />,
+      },
+      {
+        title: "List Purchase",
+        href: "/purchase/list",
+        icon: <ListCollapse />,
       },
       {
         title: "Whole Saler",
