@@ -33,9 +33,8 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
   // Combined filter function for search and filter
   const combinedFilter = (item: ProductFormState) => {
     const matchesSearch = query
-      ? item.productName.toLowerCase().trim().includes(query.toLowerCase().trim())
+      ? item.productName.toLowerCase().replace(/\s+/g, "").includes(query.toLowerCase().replace(/\s+/g, ""))
       : true;
-
     const matchesFilter = filterElement.filterValue
       ? item[filterElement.filterBy]?.toLowerCase().trim().includes(filterElement.filterValue.toLowerCase().trim())
       : true;
@@ -154,11 +153,10 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
                   ) : (
                     <button
                       onClick={() => handlePaginationClick(page)}
-                      className={`flex items-center justify-center px-3 h-8 leading-tight font-bold border border-gray-300 dark:border-gray-700 ${
-                        currentPage === page
+                      className={`flex items-center justify-center px-3 h-8 leading-tight font-bold border border-gray-300 dark:border-gray-700 ${currentPage === page
                           ? "bg-gray-950 text-white dark:bg-gray-700 dark:text-white"
                           : "bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                      }`}
+                        }`}
                       aria-current={currentPage === page ? "page" : undefined}
                     >
                       {page}
@@ -171,7 +169,7 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
             {/* Next Button */}
             <li>
               <button
-               
+
                 disabled={currentPage >= Math.ceil(totalFilteredItems / perPage)}
                 onClick={() => handlePaginationClick(currentPage + 1)}
                 className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
