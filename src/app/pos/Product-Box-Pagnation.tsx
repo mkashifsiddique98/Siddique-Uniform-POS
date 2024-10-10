@@ -79,12 +79,13 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
         onChange={(e) => handleChangeQuery(e)}
       />
       {/* Display current items */}
+      <div className="m-2" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 m-2 ">
         {currentItems.map((item, index) => (
           <ProductCard key={item.productName + index} product={item} />
         ))}
       </div>
-
+      </div>
       {currentItems.length === 0 && (
         <div className="flex justify-center items-center h-[50vh] sm:h-[70vh]">
           <p className="text-lg font-extrabold">No Record Found!</p>

@@ -1,9 +1,10 @@
+import AllProductTable from '@/app/product/list/ProductTable';
 import BreadCrum from '@/components/custom-components/bread-crum'
 import React from 'react'
 
 const DOMAIN_NAME = process.env.DOMAIN_NAME;
 
-async function getAllProductData() {
+async function getAllPrchaseData() {
   try {
     const res = await fetch(`${DOMAIN_NAME}/api/product`,
       {cache:"no-store"}
@@ -19,14 +20,13 @@ async function getAllProductData() {
   }
 }
 export default async function purchaseList  ()  {
-    const data = await getAllProductData();
+    const data = await getAllPrchaseData();
   const response = data?.response || []; 
+
   return (
     <div className="container p-6">
       <BreadCrum mainfolder="Purchase" subfolder="List Purchase" />
-      
-        
-     
+       
     </div>
   )
 }

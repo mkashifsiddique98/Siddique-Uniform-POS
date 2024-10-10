@@ -62,7 +62,7 @@ const PointOfSale = async () => {
    const invoiceNo = invoice.response || 0
  
   return (
-    <div className="flex">
+    <div className="flex overflow-hidden">
       <Fullscreen />
       {/* Left Side */}
       <div className="h-screen w-6/12 border-r-2 border-black">
