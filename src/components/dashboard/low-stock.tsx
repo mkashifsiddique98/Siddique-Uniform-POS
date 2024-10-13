@@ -16,6 +16,8 @@ const LOWSTOCK = ({
         product.quantity !== undefined && product.quantity <= product.stockAlert
       );
     }).length;
+
+    console.log("productResponse",productResponse)
     setLowStock(count);
   }, [productResponse]);
 

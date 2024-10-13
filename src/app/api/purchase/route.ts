@@ -56,7 +56,7 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     const listPurchase = await Purchase.find();
-    return NextResponse.json({ listPurchase }, { status: 200 });
+    return NextResponse.json({response: listPurchase }, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
@@ -66,7 +66,7 @@ export async function GET(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const { id } = await request.json(); // Assuming the ID is sent in the request body
-
+    
     if (!id) {
       return NextResponse.json({ error: "ID is required" }, { status: 400 });
     }

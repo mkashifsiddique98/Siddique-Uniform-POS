@@ -174,8 +174,8 @@ export const columns: ColumnDef<Product>[] = [
 
       return (
         <div className="flex space-x-1 cursor-pointer">
-          <Link href={`/product/view/${product._id}`}>
-          <div className="group flex relative hover:bg-gray-100 p-1 rounded-full">
+          <Link href={`/product/list/view/${product._id}`}>
+         <div className="group flex relative hover:bg-gray-100 p-1 rounded-full" >
             <ViewIcon />
             <span
               className="group-hover:opacity-100 transition-opacity bg-gray-800 px-2 text-sm text-gray-100 rounded-md absolute left-1/2 

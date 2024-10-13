@@ -193,16 +193,18 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
               type="number"
               id="receive-Money"
               placeholder="Receive Money"
+              min={0}
               value={receiveAmount}
-              onChange={(e) => setReceiveAmount(parseInt(e.target.value, 10) || 0)}
+              onChange={(e) => setReceiveAmount(parseInt(e.target.value, 10))}
             />
 
             <Label htmlFor="paying-amount">Paying Amount</Label>
             <Input
               type="number"
               id="paying-amount"
+              min={0}
               value={payingAmount}
-              onChange={(e) => setPayingAmount(parseInt(e.target.value, 10) || 0)}
+              onChange={(e) => setPayingAmount(parseInt(e.target.value, 10))}
               placeholder="Paying Amount"
             />
 
@@ -218,7 +220,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
               onChange={(e) => setCustomerNotes(e.target.value)}
             />
           </div>
-
+        
           <div>
             <Card className="shadow-2 w-full">
               <CardContent className="capitalize flex justify-between items-center">

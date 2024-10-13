@@ -3,7 +3,7 @@ import { ProductDetail } from "@/types/invoice";
 import React, { FC } from "react";
 interface ReceiptTemplateProps {
   selectedCustomer: customer | undefined;
-  productList: ProductDetail[];
+  productList: ProductDetail[] | [];
   discount: number;
   disInPercentage: number;
   grandTotal: number;

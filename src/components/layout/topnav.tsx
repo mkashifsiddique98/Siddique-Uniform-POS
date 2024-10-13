@@ -82,9 +82,9 @@ export function Topnav({
                 POS
               </Link>
 
-              <Button onClick={handleUpdate} size={"sm"} disabled={loading}>
+              {/* <Button onClick={handleUpdate} size={"sm"} disabled={loading}>
                 {loading ? "Updating..." : "Update Software"}
-              </Button>
+              </Button> */}
             </div>
           )}
           {pathName === "/pos" &&

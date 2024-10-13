@@ -20,14 +20,13 @@ const MasterLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <Provider store={store}>
       {/* Uncomment if you need the QueryClientProvider */}
-      {/* <QueryClientProvider client={queryClient}> */}
+      <QueryClientProvider client={queryClient}>
       <div className="flex h-screen flex-col">
         {pathname === "/pos" ? (
           <div>{children}</div>
         ) : (
           <div>
             <Topnav handleToggleSidebar={handleToggleSidebar} />
-
             <div className="flex h-[80vh] overflow-hidden">
               {/*----------- Side-bar -----------*/}
               {showSideBar && (
@@ -43,7 +42,7 @@ const MasterLayout = ({ children }: { children: React.ReactNode }) => {
           </div>
         )}
       </div>
-      {/* </QueryClientProvider> */}
+      </QueryClientProvider>
     </Provider>
   );
 };

@@ -7,17 +7,15 @@ import BillBook from "./bill-book";
 import { School } from "@/types/school-name";
 
 const DOMAIN_NAME = process.env.DOMAIN_NAME ;
-
+// export const revalidate = 5 
 async function fetchData(endpoint: string) {
   try {
     const res = await fetch(`${DOMAIN_NAME}${endpoint}`, 
       {
-        next: { revalidate: 60 },
-    
-    }
+        cache:"no-store",
+      }
   );
-
-    if (!res.ok) {
+   if (!res.ok) {
       console.error(`Failed to fetch data from ${endpoint}`);
       return null;
     }
