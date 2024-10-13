@@ -7,7 +7,7 @@ import BillBook from "./bill-book";
 import { School } from "@/types/school-name";
 
 const DOMAIN_NAME = process.env.DOMAIN_NAME ;
-// export const revalidate = 5 
+export const revalidate = 5 
 async function fetchData(endpoint: string) {
   try {
     const res = await fetch(`${DOMAIN_NAME}${endpoint}`, 
