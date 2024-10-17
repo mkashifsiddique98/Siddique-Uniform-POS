@@ -61,7 +61,7 @@ const Bill: FC<BillProps> = ({ wholesaler, products, onQuantityChange, onPriceCh
           <TableRow>
             <TableHead>No.</TableHead>
             <TableHead>Product Name</TableHead>
-            <TableHead>Wholesale Price</TableHead>
+            <TableHead>Product Cost</TableHead>
             <TableHead>Quantity</TableHead>
             <TableHead className="text-right">Total</TableHead>
           </TableRow>

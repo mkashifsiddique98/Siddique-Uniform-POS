@@ -1,24 +1,33 @@
 import { customer } from "@/types/customer";
 import { ProductDetail } from "@/types/invoice";
 import React, { FC } from "react";
+
 interface ReceiptTemplateProps {
   selectedCustomer: customer | undefined;
-  productList: ProductDetail[] | [];
+  productList: ProductDetail[];
   discount: number;
   disInPercentage: number;
   grandTotal: number;
-  dueDate:Date | null;
-  invoiceNo:number;
-  remainingBalance:number
+  dueDate: Date | null;
+  invoiceNo: number;
+  remainingBalance: number;
 }
+
 const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   productList,
   selectedCustomer,
   discount,
   disInPercentage,
   grandTotal,
-  dueDate,invoiceNo,remainingBalance
+  dueDate,
+  invoiceNo,
+  remainingBalance,
 }) => {
+  const totalAmount = productList.reduce(
+    (total, product) => total + product.sellPrice * product.quantity,
+    0
+  );
+
   return (
     <div
       style={{
@@ -63,23 +72,11 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
       </div>
 
       {/* Customer Info */}
-      <p
-        style={{
-          textAlign: "left",
-          textTransform: "capitalize",
-          margin: "5px 0",
-        }}
-      >
-        <strong>Customer Name:</strong> {selectedCustomer?.customerName}
+      <p style={{ margin: "5px 0", fontWeight: "bold" }}>
+        Customer Name: {selectedCustomer?.customerName || "N/A"}
       </p>
-      <p
-        style={{
-          textAlign: "left",
-          textTransform: "capitalize",
-          margin: "5px 0",
-        }}
-      >
-        <strong>Customer Type:</strong> {selectedCustomer?.type}
+      <p style={{ margin: "5px 0", fontWeight: "bold" }}>
+        Customer Type: {selectedCustomer?.type || "N/A"}
       </p>
 
       {/* Product Table */}
@@ -92,41 +89,17 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
       >
         <thead>
           <tr>
-            <th
-              style={{
-                textAlign: "left",
-                borderBottom: "1px solid black",
-                paddingBottom: "5px",
-              }}
-            >
+            <th style={{ textAlign: "left", borderBottom: "1px solid black" }}>
               Product
             </th>
-            <th
-              style={{
-                textAlign: "center",
-                borderBottom: "1px solid black",
-                paddingBottom: "5px",
-              }}
-            >
+            <th style={{ textAlign: "center", borderBottom: "1px solid black" }}>
               Qty
             </th>
-            <th
-              style={{
-                textAlign: "right",
-                borderBottom: "1px solid black",
-                paddingBottom: "5px",
-              }}
-            >
+            <th style={{ textAlign: "right", borderBottom: "1px solid black" }}>
               Price
             </th>
-            <th
-              style={{
-                textAlign: "right",
-                borderBottom: "1px solid black",
-                paddingBottom: "5px",
-              }}
-            >
-              Line-Total
+            <th style={{ textAlign: "right", borderBottom: "1px solid black" }}>
+              Line Total
             </th>
           </tr>
         </thead>
@@ -138,10 +111,10 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
                 {product.quantity}
               </td>
               <td style={{ textAlign: "right", padding: "5px 0" }}>
-                Rs{product.sellPrice}
+                Rs {product.sellPrice}
               </td>
               <td style={{ textAlign: "right", padding: "5px 0" }}>
-                Rs{product.sellPrice*product.quantity}
+                Rs {product.sellPrice * product.quantity}
               </td>
             </tr>
           ))}
@@ -154,12 +127,20 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
           display: "flex",
           justifyContent: "space-between",
           padding: "5px 0",
-          borderTop: "1px solid black",
         }}
       >
-        <span>
-          <strong>Discount:</strong>
-        </span>
+        <span>Total</span>
+        <span>Rs {totalAmount}</span>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          padding: "5px 0",
+          borderTop: "1px dotted black",
+        }}
+      >
+        <span>Discount</span>
         <span>
           Rs {discount} ({disInPercentage}%)
         </span>
@@ -168,45 +149,52 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         style={{
           display: "flex",
           justifyContent: "space-between",
-          padding: "10px 0",
-          borderTop: "1px solid black",
+          padding: "5px 0",
+          borderTop: "1px dotted black",
           fontWeight: "bold",
         }}
       >
-        <span>Grand Total:</span>
+        <span>Grand Total</span>
         <span>Rs {grandTotal}</span>
       </div>
-      
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          padding: "10px 0",
-          borderTop: "1px solid black",
-          fontWeight: "bold",
-        }}
-      >
-        <span>remaining balance:</span>
-        <span>Rs {remainingBalance}</span>
-      </div>
-      { selectedCustomer?.type === "special-sitching" && <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          padding: "10px 0",
-          borderTop: "1px solid black",
-          fontWeight: "bold",
-        }}
-      >
-        <span>Due Date for Stitching</span>
-        <span>{new Date(dueDate).toLocaleDateString()}</span>
-      </div>}
-      
+
+      {/* Remaining Balance */}
+      {remainingBalance !== 0 && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "5px 0",
+            borderTop: "1px dotted black",
+            fontWeight: "bold",
+          }}
+        >
+          <span>Remaining Balance</span>
+          <span>Rs {remainingBalance}</span>
+        </div>
+      )}
+
+      {/* Due Date for Special Stitching */}
+      {selectedCustomer?.type === "special-stitching" && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "5px 0",
+            borderTop: "1px dotted black",
+            fontWeight: "bold",
+          }}
+        >
+          <span>Due Date for Stitching</span>
+          <span>{dueDate ? new Date(dueDate).toLocaleDateString() : "N/A"}</span>
+        </div>
+      )}
+
       {/* Footer */}
       <p
         style={{
           textAlign: "center",
-          margin: "10px 0 0",
+          margin: "10px 0",
           fontSize: "14px",
           fontWeight: "bold",
         }}

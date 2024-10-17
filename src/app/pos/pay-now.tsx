@@ -274,7 +274,9 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
       </DialogContent>
 
       {/* Receipt content for printing */}
-      <div style={{ display: "none" }}>
+      <div 
+      style={{ display: "none" }}
+      >
         <div ref={componentRef}>
           <ReceiptTemplate
             invoiceNo={invoiceNo}
