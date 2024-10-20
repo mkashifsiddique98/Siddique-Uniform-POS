@@ -1,14 +1,16 @@
 import React, { FC } from 'react';
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableFooter,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { Input } from '@/components/ui/input';
+import { BadgeX } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface ProductFormState {
   _id: string;
@@ -28,10 +30,11 @@ interface BillProps {
   products: ProductFormState[];
   onQuantityChange: (id: string, newQuantity: number) => void;
   onPriceChange: (id: string, newPrice: number) => void;
+  handleDeletePurchaseId:(id:string)=>void;
 }
 
-const Bill: FC<BillProps> = ({ wholesaler, products, onQuantityChange, onPriceChange }) => {
-  
+const Bill: FC<BillProps> = ({ wholesaler, products, onQuantityChange, onPriceChange,handleDeletePurchaseId }) => {
+
   const handleQuantityChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuantity = parseInt(e.target.value, 10) || 0;
     onQuantityChange(id, newQuantity);
@@ -41,7 +44,7 @@ const Bill: FC<BillProps> = ({ wholesaler, products, onQuantityChange, onPriceCh
     const newPrice = parseFloat(e.target.value) || 0;
     onPriceChange(id, newPrice);
   };
-
+ 
   const totalAmount = products.reduce((sum, product) => sum + (product.sellPrice * (product.quantity || 0)), 0);
 
   return (
@@ -82,7 +85,7 @@ const Bill: FC<BillProps> = ({ wholesaler, products, onQuantityChange, onPriceCh
               </TableCell>
               <TableCell>
                 <Input
-                  
+
                   type="number"
                   min="0"
                   value={product.quantity || 1}
@@ -91,6 +94,12 @@ const Bill: FC<BillProps> = ({ wholesaler, products, onQuantityChange, onPriceCh
                 />
               </TableCell>
               <TableCell className="text-right">Rs {(product.sellPrice * (product.quantity || 0)).toFixed(2)}</TableCell>
+              <TableCell className="text-right">
+                <Button onClick={()=>handleDeletePurchaseId(product._id)}>
+                  <BadgeX />
+                </Button>
+
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

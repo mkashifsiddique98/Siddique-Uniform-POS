@@ -145,7 +145,12 @@ const PurchasePage = () => {
       setError("Error confirming purchase.");
     }
   };
-
+  const handleDeletePurchaseId = (id:string)=>{
+    const updatedProductList = selectedProducts.filter(
+      (product) => product._id !== undefined && product._id !== id
+    );  
+  setSelectedProducts(updatedProductList)
+  }
   return (
     <div className="container p-6">
       <BreadCrum mainfolder="Purchase" subfolder="Made Sale" />
@@ -168,6 +173,7 @@ const PurchasePage = () => {
             products={selectedProducts}
             onQuantityChange={handleQuantityChange}
             onPriceChange={handlePriceChange}
+            handleDeletePurchaseId={handleDeletePurchaseId}
           />
           <div className="flex justify-end">
             <div className="flex flex-col p-4">
