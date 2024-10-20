@@ -11,8 +11,6 @@ export async function POST(request: Request) {
     // Search by invoice number
     const invoice = await Invoice.findOne({ invoiceNo: Number(invoiceNo) });
    
-    console.log("invoice :====>",invoice)
-
       if (!invoice) {
         return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
       }
