@@ -101,9 +101,10 @@ export function TableSpecialOrder({ invoiceList }: { invoiceList: Invoice[] }) {
               <TableCell className="font-medium">
                 {new Date(invoice.invoiceDate).toLocaleDateString()}
               </TableCell>
-              <TableCell className="font-medium">
-                {invoice.customer.customerName}
-              </TableCell>
+              {invoice?.customer?.customerName && <TableCell className="font-medium">
+                {invoice?.customer?.customerName}
+              </TableCell>}
+              
               <TableCell className="font-medium">
                 {invoice.customer.prevBalance}
               </TableCell>

@@ -216,7 +216,7 @@ export default async function DashboardPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {/* Map through sales data here */}
+                   <RecentSales InvoiceData={InvoiceData}/>
                 </CardContent>
               </Card>
             </div>
