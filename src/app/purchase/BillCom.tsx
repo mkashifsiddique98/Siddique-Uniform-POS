@@ -48,13 +48,13 @@ const Bill: FC<BillProps> = ({ wholesaler, products, onQuantityChange, onPriceCh
   const totalAmount = products.reduce((sum, product) => sum + (product.sellPrice * (product.quantity || 0)), 0);
 
   return (
-    <div className="p-4">
-      <div className="mb-4">
+    <div className="my-4 p-4">
+      <div className="border-b pb-1 mb-1 text-gray-800">
         <h2 className="text-xl font-semibold">Wholesaler Detail</h2>
-        <div>
-          <p><strong>Name:</strong> {wholesaler.name}</p>
-          <p><strong>Location:</strong> {wholesaler.location}</p>
-          <p><strong>Phone:</strong> {wholesaler.phone}</p>
+        <div className='my-2'>
+          <p><strong>Name: </strong> {wholesaler.name}</p>
+          <p><strong>Location: </strong> {wholesaler.location}</p>
+          <p><strong>Phone: </strong> {wholesaler.phone}</p>
           <p><strong>Payment Status:</strong> {wholesaler.paymentStatus}</p>
           <p><strong>Pending Balance:</strong> Rs {wholesaler.pendingBalance.toFixed(2)}</p>
         </div>
@@ -67,6 +67,7 @@ const Bill: FC<BillProps> = ({ wholesaler, products, onQuantityChange, onPriceCh
             <TableHead>Product Cost</TableHead>
             <TableHead>Quantity</TableHead>
             <TableHead className="text-right">Total</TableHead>
+            <TableHead className="text-right">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -103,12 +104,12 @@ const Bill: FC<BillProps> = ({ wholesaler, products, onQuantityChange, onPriceCh
             </TableRow>
           ))}
         </TableBody>
-        <TableFooter>
+        {/* <TableFooter>
           <TableRow>
             <TableCell colSpan={4} className="text-right font-semibold">Total Amount</TableCell>
             <TableCell className="text-right font-semibold">Rs {totalAmount.toFixed(2)}</TableCell>
           </TableRow>
-        </TableFooter>
+        </TableFooter> */}
       </Table>
     </div>
   );

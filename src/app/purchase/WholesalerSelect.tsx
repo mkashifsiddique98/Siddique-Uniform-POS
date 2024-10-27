@@ -5,6 +5,7 @@ import { IWholesaler } from '@/models/wholesaler';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AddWholesalerForm } from './wholesaler/page';
+import { customStyles } from './ProductSelect';
 
 interface WholesalerSelectProps {
   onSelect: (wholesaler: IWholesaler) => void;
@@ -12,7 +13,7 @@ interface WholesalerSelectProps {
 
 const WholesalerSelect: React.FC<WholesalerSelectProps> = ({ onSelect }) => {
   const [wholesalers, setWholesalers] = useState<IWholesaler[]>([]);
-  const [search, setSearch] = useState<string>("");
+ 
 
   useEffect(() => {
     const fetchWholesalers = async () => {
@@ -52,10 +53,11 @@ const WholesalerSelect: React.FC<WholesalerSelectProps> = ({ onSelect }) => {
     fetchWholesalers();
   }, []);
   return (
-    <div className='mb-4'>
+    
         <div className='flex justify-between items-center'>
         <Select
-        className='p-4 flex-1'
+        styles={customStyles}
+        className='py-4 flex-1 mr-2'
         options={options}
         onChange={handleChange}
         placeholder="Select or search wholesaler..."
@@ -65,7 +67,7 @@ const WholesalerSelect: React.FC<WholesalerSelectProps> = ({ onSelect }) => {
       />
       <Dialog>
       <DialogTrigger asChild>
-        <Button variant="default">Add New WholeSaler</Button>
+        <Button variant="outline" className='p-6'>Add New WholeSaler</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
       <DialogTitle>Create WholeSaler</DialogTitle>
@@ -77,8 +79,7 @@ const WholesalerSelect: React.FC<WholesalerSelectProps> = ({ onSelect }) => {
       </Dialog>
     
     </div>
-     
-    </div>
+    
   );
 }
 

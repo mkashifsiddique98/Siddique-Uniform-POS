@@ -106,15 +106,15 @@ export function TableSpecialOrder({ invoiceList }: { invoiceList: Invoice[] }) {
               </TableCell>}
               
               <TableCell className="font-medium">
-                {invoice.customer.prevBalance}
+                {invoice?.customer?.prevBalance}
               </TableCell>
               <TableCell className="font-medium">
                 {new Date(
-                  invoice.invoiceDate ?? new Date()
+                  invoice?.invoiceDate ?? new Date()
                 ).toLocaleDateString()}
               </TableCell>
 
-              <TableCell className="text-center">{invoice.status}</TableCell>
+              <TableCell className="text-center">{invoice?.status}</TableCell>
               <TableCell className="text-center flex gap-1">
                 <div
                   title="View"

@@ -12,23 +12,20 @@ import { Toaster } from "@/components/ui/toaster";
 import { toast } from "@/components/ui/use-toast";
 
 const PurchasePage = () => {
-  const [selectedWholesaler, setSelectedWholesaler] =
-    useState<IWholesaler | null>(null);
+  const [selectedWholesaler, setSelectedWholesaler] = useState<IWholesaler | null>(null);
   const [products, setProducts] = useState<ProductFormState[]>([]);
-  const [selectedProducts, setSelectedProducts] = useState<ProductFormState[]>(
-    []
-  );
+  const [selectedProducts, setSelectedProducts] = useState<ProductFormState[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [isPaid, setIsPaid] = useState<boolean>(false); // State to track if bill is paid
+  const [isPaid, setIsPaid] = useState<boolean>(false);
+  const [paidAmount, setPaidAmount] = useState<number | null>(null);
+  const [grandTotal, setGrandTotal] = useState<number>(0);
 
   const fetchProducts = async () => {
     try {
       const response = await axios.get("/api/product");
       if (response?.data?.response) {
-        console.log("Fetched Products:", response.data.response);
         setProducts(response.data.response);
       } else {
-        console.error("Invalid response structure", response);
         setProducts([]);
       }
     } catch (error) {
@@ -40,6 +37,15 @@ const PurchasePage = () => {
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  // Calculate grand total whenever selected products change
+  useEffect(() => {
+    const total = selectedProducts.reduce(
+      (sum, product) => sum + product.sellPrice * (product.quantity || 0),
+      0
+    );
+    setGrandTotal(total);
+  }, [selectedProducts]);
 
   const handleSelectProduct = (selectedOption: any) => {
     const selectedProduct = products.find(
@@ -55,9 +61,7 @@ const PurchasePage = () => {
             product.productName === selectedProduct.productName
         );
         if (existingProduct) {
-          setError(
-            `Product "${selectedProduct.productName}" is already in the list.`
-          );
+          setError(`Product "${selectedProduct.productName}" is already in the list.`);
           return prevSelectedProducts;
         } else {
           setError(null);
@@ -71,8 +75,6 @@ const PurchasePage = () => {
           ];
         }
       });
-    } else {
-      console.error("Product not found:", selectedOption.value);
     }
   };
 
@@ -94,6 +96,12 @@ const PurchasePage = () => {
 
   const handleBillPaidChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setIsPaid(event.target.checked);
+    if (event.target.checked) setPaidAmount(0); // Reset paid amount if fully paid
+  };
+
+  const handlePaidAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const amount = parseFloat(event.target.value);
+    setPaidAmount(isNaN(amount) ? 0 : amount);
   };
 
   const handleSubmit = async () => {
@@ -106,37 +114,33 @@ const PurchasePage = () => {
       setError("Please select at least one product.");
       return;
     }
-    // Calculating 
+
+    const totalDue = selectedWholesaler.pendingBalance + grandTotal;
+    const pendingBalance = isPaid ? 0 : totalDue - (paidAmount || 0);
+    const paymentStatus = pendingBalance <= 0 ? "Clear" : "Pending";
+    
     const purchaseDetails = {
       wholesaler: {
         _id: selectedWholesaler._id,
         name: selectedWholesaler.name,
         location: selectedWholesaler.location,
         phone: selectedWholesaler.phone,
-        paymentStatus: isPaid ? "Clear" : "Pending",
-        pendingBalance:
-          selectedWholesaler.pendingBalance +
-          (isPaid
-            ? 0
-            : products.reduce(
-                (sum, product) =>
-                  sum + product.sellPrice * (product.quantity || 0),
-                0
-              )),
+        paymentStatus,
+        pendingBalance: pendingBalance > 0 ? pendingBalance : 0,
       },
       products: selectedProducts,
       isPaid,
+      paidAmount: isPaid ? totalDue : paidAmount,
     };
-   
+    
     try {
       const response = await axios.post("/api/purchase", purchaseDetails);
-     
       if (response) {
         toast({ title: "Purchase Confirmed" });
-        // Clear the form or redirect if needed
         setSelectedWholesaler(null);
         setSelectedProducts([]);
         setIsPaid(false);
+        setPaidAmount(0);
       } else {
         setError("Failed to confirm purchase.");
       }
@@ -145,29 +149,24 @@ const PurchasePage = () => {
       setError("Error confirming purchase.");
     }
   };
-  const handleDeletePurchaseId = (id:string)=>{
+
+  const handleDeletePurchaseId = (id: string) => {
     const updatedProductList = selectedProducts.filter(
-      (product) => product._id !== undefined && product._id !== id
-    );  
-  setSelectedProducts(updatedProductList)
-  }
+      (product) => product._id !== undefined && product?._id !== id
+    );
+    setSelectedProducts(updatedProductList);
+  };
+
   return (
     <div className="container p-6">
       <BreadCrum mainfolder="Purchase" subfolder="Made Sale" />
       <WholeSalerSelect onSelect={setSelectedWholesaler} />
-
-      <ProductSelect
-        products={products}
-        handleSelectProduct={handleSelectProduct}
-      />
-
-      {error && (
-        <div className="flex justify-end text-red-500 animate-bounce">
-          {error}
-        </div>
+      {error && <div className="flex justify-end text-red-500 animate-bounce">{error}</div>}
+      {selectedWholesaler && (
+        <ProductSelect products={products} handleSelectProduct={handleSelectProduct} />
       )}
       {selectedWholesaler && (
-        <div>
+        <div className="rounded-lg shadow-md">
           <Bill
             wholesaler={selectedWholesaler}
             products={selectedProducts}
@@ -175,9 +174,16 @@ const PurchasePage = () => {
             onPriceChange={handlePriceChange}
             handleDeletePurchaseId={handleDeletePurchaseId}
           />
-          <div className="flex justify-end">
-            <div className="flex flex-col p-4">
-              <div className="flex items-center mt-4">
+          <div className="flex justify-end mt-4 p-4 border-t flex-col">
+            <p className=" font-semibold">Total: Rs {grandTotal.toFixed(2)}</p>
+            <p className=" font-semibold mt-2">
+             Pending Balance: Rs {(selectedWholesaler.pendingBalance).toFixed(2)}
+            </p>
+            <p className=" font-semibold mt-2">
+              Grand Total: Rs {(selectedWholesaler.pendingBalance + grandTotal).toFixed(2)}
+            </p>
+            <div className="flex flex-col mt-4">
+              <div className="flex items-center">
                 <input
                   type="checkbox"
                   id="billPaid"
@@ -185,9 +191,26 @@ const PurchasePage = () => {
                   onChange={handleBillPaidChange}
                   className="mr-2"
                 />
-                <label htmlFor="billPaid">Bill Paid</label>
+                <label htmlFor="billPaid">Full Bill Paid</label>
               </div>
-              <Button onClick={handleSubmit}>Confirm purchase</Button>
+              {!isPaid && (
+                <div className="mt-2">
+                  <label htmlFor="paidAmount" className="block text-sm">
+                    Amount Paid:
+                  </label>
+                  <input
+                    type="number"
+                    id="paidAmount"
+                    value={paidAmount}
+                    onChange={handlePaidAmountChange}
+                    className="p-2 border rounded"
+                    placeholder="Enter amount paid"
+                  />
+                </div>
+              )}
+              <Button onClick={handleSubmit} className="mt-4">
+                Confirm Purchase
+              </Button>
             </div>
           </div>
         </div>

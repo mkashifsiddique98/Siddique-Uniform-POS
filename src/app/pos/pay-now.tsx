@@ -60,12 +60,15 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
     }
   }, [receiveAmount]);
   const handleInvoiceGenerate = async () => {
-    const invoiceDetail = {
+    const remainingBalance = payingAmount - receiveAmount;
+    
+  const invoiceDetail = {
       invoiceNo,
       discount,
       customer: customerdetail,
       productDetail: chartList,
       grandTotal,
+      prevBalance: remainingBalance,
       anyMessage: customerNotes,
       ...(dueDate && { dueDate }),
     };
