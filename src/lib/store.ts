@@ -121,7 +121,7 @@ export const { setInvoiceNumber,  setDiscount } = invoiceSlice.actions;
 export const store = configureStore({
   reducer: {
     chart: chartSlice.reducer,
-    mode: modeSlice.reducer, // Add the mode slice here
+    mode: modeSlice.reducer, 
     invoice: invoiceSlice.reducer,
   },
 });

@@ -6,17 +6,17 @@ import Link from "next/link";
 import { Button } from "../ui/button";
 
 export function RecentSales({ InvoiceData }: { InvoiceData: Invoice[] }) {
-  const [visibleCount, setVisibleCount] = useState(5);
+  const [visibleCount, setVisibleCount] = useState(7);
 
   const loadMore = () => {
-    setVisibleCount((prevCount) => prevCount + 5);
+    setVisibleCount((prevCount) => prevCount + 7);
   };
 
   return (
     <div>
       {InvoiceData.slice(-visibleCount).map((invoice) => (
         <Link href={`/invoice/view/${invoice?._id}`} key={invoice?._id}>
-          <div className="space-y-8 border-b mb-1 pb-1">
+          <div className="space-y-8 hover:border-b border-black mb-1 pb-1">
             <div className="flex items-center">
               <Avatar className="h-9 w-9">
                 <AvatarImage src={`image/customer/${invoice?.customer?.type}.png`} alt="Avatar" />

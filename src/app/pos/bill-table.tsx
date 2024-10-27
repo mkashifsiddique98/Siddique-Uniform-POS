@@ -315,7 +315,7 @@ const BillTable: FC<BillTableProps> = ({
               />
             ) : (
               <Button
-                size={"lg"}
+                size={"sm"}
                 variant="destructive"
                 className="animate-bounce"
               >
