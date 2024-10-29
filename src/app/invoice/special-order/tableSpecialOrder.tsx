@@ -104,7 +104,7 @@ export function TableSpecialOrder({ invoiceList }: { invoiceList: Invoice[] }) {
               {invoice?.customer?.customerName && <TableCell className="font-medium">
                 {invoice?.customer?.customerName}
               </TableCell>}
-              
+
               <TableCell className="font-medium">
                 {invoice?.customer?.prevBalance}
               </TableCell>
@@ -141,10 +141,11 @@ export function TableSpecialOrder({ invoiceList }: { invoiceList: Invoice[] }) {
         <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-50">
           <div className="bg-white p-8 rounded-lg w-[400px]">
             <h2 className="text-lg font-semibold mb-4">Confirm Delivery</h2>
-            <p>
-              Are you sure you want to mark this product as stitched and
-              delivered to the customer?
-            </p>
+            <ul className="list-disc pl-5 space-y-2">
+              <li>Are you sure you want to mark this product as stitched and delivered to the customer?</li>
+              <li>Are you sure all balance is clear?</li>
+            </ul>
+
             <div className="flex justify-end mt-4">
               <Button
                 className="font-bold py-2 px-4 rounded mr-2"

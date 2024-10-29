@@ -68,8 +68,15 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         }}
       >
         <p style={{ margin: "0", fontWeight: "bold" }}>Receipt No: {invoiceNo}</p>
-        <p style={{ margin: "0" }}>Date: {new Date().toLocaleDateString()}</p>
+        <p style={{ margin: "0" }}>
+          Date: {new Date().toLocaleDateString("en-PK")} <br />
+          Time: {new Date().toLocaleTimeString("en-PK", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </p>
       </div>
+
 
       {/* Customer Info */}
       <p style={{ margin: "5px 0", fontWeight: "bold" }}>
@@ -99,7 +106,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
               Price
             </th>
             <th style={{ textAlign: "right", borderBottom: "1px solid black" }}>
-              Line Total
+              Line-Total
             </th>
           </tr>
         </thead>
