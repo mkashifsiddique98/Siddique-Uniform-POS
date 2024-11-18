@@ -48,18 +48,21 @@ const PurchasePage = () => {
   }, [selectedProducts]);
 
   const handleSelectProduct = (selectedOption: any) => {
-    const selectedProduct = products.find(
-      (product) =>
-        product._id === selectedOption.value ||
-        product.productName === selectedOption.label
+    const normalizeString = (str: string) => str.trim().toLowerCase();
+  
+    const selectedProduct = products.find((product) =>
+      product._id === selectedOption.value ||
+      normalizeString(product.productName) === normalizeString(selectedOption.label)
     );
+  
     if (selectedProduct) {
       setSelectedProducts((prevSelectedProducts) => {
         const existingProduct = prevSelectedProducts.find(
           (product) =>
             product._id === selectedProduct._id ||
-            product.productName === selectedProduct.productName
+            normalizeString(product.productName) === normalizeString(selectedProduct.productName)
         );
+  
         if (existingProduct) {
           setError(`Product "${selectedProduct.productName}" is already in the list.`);
           return prevSelectedProducts;
@@ -75,8 +78,11 @@ const PurchasePage = () => {
           ];
         }
       });
+    } else {
+      setError(`No matching product found.`);
     }
   };
+  
 
   const handleQuantityChange = (id: string, newQuantity: number) => {
     setSelectedProducts((prevSelectedProducts) =>
@@ -162,18 +168,22 @@ const PurchasePage = () => {
       <BreadCrum mainfolder="Purchase" subfolder="Made Sale" />
       <WholeSalerSelect onSelect={setSelectedWholesaler} />
       {error && <div className="flex justify-end text-red-500 animate-bounce">{error}</div>}
-      {selectedWholesaler && (
+      {/* {selectedWholesaler && (
         <ProductSelect products={products} handleSelectProduct={handleSelectProduct} />
-      )}
+      )} */}
       {selectedWholesaler && (
         <div className="rounded-lg shadow-md">
+          
           <Bill
             wholesaler={selectedWholesaler}
             products={selectedProducts}
+            dataProducts={products}
+            handleSelectProduct={handleSelectProduct}
             onQuantityChange={handleQuantityChange}
             onPriceChange={handlePriceChange}
             handleDeletePurchaseId={handleDeletePurchaseId}
           />
+           
           <div className="flex justify-end mt-4 p-4 border-t flex-col">
             <p className=" font-semibold">Total: Rs {grandTotal.toFixed(2)}</p>
             <p className=" font-semibold mt-2">

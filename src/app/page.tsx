@@ -160,19 +160,19 @@ export default async function DashboardPage() {
           </TabsList>
           <TabsContent value="overview" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
+              <Card className="cursor-pointer hover:border-black">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">Rs {totalCurrentMonthRevenue}</div>
                   <p className="text-xs text-muted-foreground">
-                    {percentageChangeRevenue}% from last month
+                    {percentageChangeRevenue.toFixed(2)}% from last month
                   </p>
                 </CardContent>
               </Card>
               <Link href="/purchase/list">
-                <Card>
+                <Card className="cursor-pointer hover:border-black">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Purchase</CardTitle>
                   </CardHeader>
@@ -185,7 +185,7 @@ export default async function DashboardPage() {
                 </Card>
               </Link>
               <Link href="/invoice">
-                <Card className="cursor-pointer">
+                <Card className="cursor-pointer hover:border-black">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Sales</CardTitle>
                   </CardHeader>

@@ -5,6 +5,7 @@ interface IProduct extends ProductFormState {}
 
 const productSchema: Schema = new Schema({
   productName: { type: String, required: true },
+  productCode:{ type: Number, default: 0},
   schoolName: { type: String },
   supplier: { type: String },
   category: { type: String, required: true },

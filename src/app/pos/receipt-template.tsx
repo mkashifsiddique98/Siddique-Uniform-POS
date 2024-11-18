@@ -1,7 +1,10 @@
 import { customer } from "@/types/customer";
 import { ProductDetail } from "@/types/invoice";
+import { Facebook } from "lucide-react";
+import QRCode from "react-qr-code";
 import React, { FC } from "react";
-
+import Barcode from "react-barcode"
+import Image from "next/image";
 interface ReceiptTemplateProps {
   selectedCustomer: customer | undefined;
   productList: ProductDetail[];
@@ -35,191 +38,234 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         fontFamily: "monospace",
         padding: "10px",
         margin: "2px",
+
       }}
     >
       {/* Header */}
-      <h2
-        style={{
-          textAlign: "center",
-          margin: "5px 0",
-          fontSize: "22px",
-          fontFamily: "fantasy",
-          fontWeight: "bold",
-          borderBottom: "2px solid black",
-          paddingBottom: "5px",
-        }}
-      >
-        Siddique Uniform Centre
-      </h2>
-      <p style={{ textAlign: "center", margin: "2px 0" }}>
-        Saran Market Karianwala
-      </p>
-      <p style={{ textAlign: "center", margin: "2px 0" }}>Phone: 03086139401</p>
+      
+        <div className="flex justify-center items-center relative">
+          <h2
+            style={{
+              margin: "5px 0",
+              fontSize: "18px",
+              fontFamily: "fantasy",
+              fontWeight: "bold",
+              borderBottom: "2px solid black",
+              paddingBottom: "5px",
+            }}
+          >
+            Siddique Uniform Centre
+          </h2>
+          <div className="absolute top-1 right-0 rotate-45">
+            <Image
+              src="/icon/siddique-uniform-center.png"
+              alt="siddique"
+              height={30}
+              width={30}
+            />
+          </div>
+        </div>
 
-      {/* Receipt Information */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          border: "1px solid black",
-          padding: "5px",
-          margin: "10px 0",
-          borderRadius: "3px",
-        }}
-      >
-        <p style={{ margin: "0", fontWeight: "bold" }}>Receipt No: {invoiceNo}</p>
-        <p style={{ margin: "0" }}>
-          Date: {new Date().toLocaleDateString("en-PK")} <br />
-          Time: {new Date().toLocaleTimeString("en-PK", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
+        <p style={{ textAlign: "center", margin: "2px 0" }}>
+          Saran Market Karianwala
+        </p>
+        <p style={{ textAlign: "center", margin: "2px 0" }}>Phone: 03086139401</p>
+
+        {/* Receipt Information */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            border: "1px solid black",
+            padding: "5px",
+            margin: "10px 0",
+            borderRadius: "3px",
+            alignItems: "center",
+          }}
+        >
+          <p style={{ margin: "0", fontWeight: "bold" }}>Receipt No: <span style={{ margin: "0", fontWeight: "normal" }}>{invoiceNo}</span></p>
+          <p style={{ margin: "0" }}>
+           <span style={{ fontWeight: "bold" }}> Date:</span> {new Date().toLocaleDateString("en-PK")} <br />
+           <span style={{ fontWeight: "bold" }}>Time:</span>  {new Date().toLocaleTimeString("en-PK", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
+        </div>
+
+
+        {/* Customer Info */}
+        {selectedCustomer?.type === "wake-in-customer" ? (
+          <div className="flex justify-center items-center">
+            <p style={{ margin: "5px 0", fontWeight: "bold" }}>
+              Name: Regular Customer
+            </p>
+          </div>
+        ) : (
+          <>
+            <p style={{ margin: "5px 0", fontWeight: "bold" }}>
+              Customer Name: {selectedCustomer?.customerName || "N/A"}
+            </p>
+            <p style={{ margin: "5px 0", fontWeight: "bold" }}>
+              Customer Type: {selectedCustomer?.type || "N/A"}
+            </p>
+          </>
+        )}
+
+
+
+        {/* Product Table */}
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            marginBottom: "10px",
+          }}
+        >
+          <thead>
+            <tr>
+              <th style={{ textAlign: "center", border: "1px solid black",fontWeight:"bold" }}>
+                Product
+              </th>
+              <th style={{ textAlign: "center", border: "1px solid black",fontWeight:"bold" }}>
+                Qty
+              </th>
+              <th style={{ textAlign: "center", border: "1px solid black",fontWeight:"bold" }}>
+                Price
+              </th>
+              <th style={{ textAlign: "center", border: "1px solid black",fontWeight:"bold" }}>
+                Total
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {productList.map((product) => (
+              <tr key={product.productName}>
+                <td style={{ padding: "5px 0 5px 3px", border: "1px solid black" }}>{product.productName}</td>
+                <td style={{ textAlign: "center", padding: "5px 0", border: "1px solid black" }}>
+                  {product.quantity}
+                </td>
+                <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
+                  {product.sellPrice}
+                </td>
+                <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
+                  {product.sellPrice * product.quantity}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Discounts and Totals */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "5px 0",
+          }}
+        >
+          <span>Sub-Total</span>
+          <span>Rs {totalAmount}</span>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "5px 0",
+            borderTop: "1px dotted black",
+          }}
+        >
+          <span>Discount</span>
+          <span>
+            Rs {discount} ({disInPercentage}%)
+          </span>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "5px 0",
+            borderTop: "1px dotted black",
+            fontWeight: "bold",
+          }}
+        >
+          <span>Grand Total</span>
+          <span>Rs {grandTotal}</span>
+        </div>
+
+        {/* Remaining Balance */}
+        {remainingBalance !== 0 && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "5px 0",
+              borderTop: "1px dotted black",
+              fontWeight: "bold",
+            }}
+          >
+            <span>Remaining Balance</span>
+            <span>Rs {remainingBalance}</span>
+          </div>
+        )}
+
+        {/* Due Date for Special Stitching */}
+        {selectedCustomer?.type === "special-stitching" && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "5px 0",
+              borderTop: "1px dotted black",
+              fontWeight: "bold",
+            }}
+          >
+            <span>Due Date for Stitching</span>
+            <span>{dueDate ? new Date(dueDate).toLocaleDateString() : "N/A"}</span>
+          </div>
+        )}
+        <div className="flex justify-center items-center py-2" style={{ borderTop: "1px dotted black", borderBottom: "1px dotted black" }}>
+          <Barcode
+            margin={0}
+            height={25}
+            displayValue={false}
+            value={invoiceNo.toString()}
+          />
+        </div>
+        <div className="flex justify-center items-center gap-0 my-2">
+          <Image src={"/icon/tiktok.png"} width={15} height={15} alt="tiktok" />
+          <Facebook size={15} />
+          <span className="lowercase text-base">/Siddiqueuniformcentre</span>
+        </div>
+        <div className="flex justify-center items-center" style={{ textAlign: "center", marginBottom: "10px" }}>
+          <QRCode
+            value={"https://www.facebook.com/Siddiqueuniformcentre/"}
+            size={80}
+          />
+        </div>
+        {/* Footer */}
+        <p
+          style={{
+            textAlign: "center",
+            margin: "10px 0",
+            fontSize: "14px",
+            fontWeight: "bold",
+          }}
+        >
+          Thank you for shopping with us!
+        </p>
+        <p
+          style={{
+            textAlign: "center",
+            margin: "0",
+            fontSize: "12px",
+            fontStyle: "italic",
+          }}
+        >
+          Visit again!
         </p>
       </div>
-
-
-      {/* Customer Info */}
-      <p style={{ margin: "5px 0", fontWeight: "bold" }}>
-        Customer Name: {selectedCustomer?.customerName || "N/A"}
-      </p>
-      <p style={{ margin: "5px 0", fontWeight: "bold" }}>
-        Customer Type: {selectedCustomer?.type || "N/A"}
-      </p>
-
-      {/* Product Table */}
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          marginBottom: "10px",
-        }}
-      >
-        <thead>
-          <tr>
-            <th style={{ textAlign: "left", borderBottom: "1px solid black" }}>
-              Product
-            </th>
-            <th style={{ textAlign: "center", borderBottom: "1px solid black" }}>
-              Qty
-            </th>
-            <th style={{ textAlign: "right", borderBottom: "1px solid black" }}>
-              Price
-            </th>
-            <th style={{ textAlign: "right", borderBottom: "1px solid black" }}>
-              Line-Total
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {productList.map((product) => (
-            <tr key={product.productName}>
-              <td style={{ padding: "5px 0" }}>{product.productName}</td>
-              <td style={{ textAlign: "center", padding: "5px 0" }}>
-                {product.quantity}
-              </td>
-              <td style={{ textAlign: "right", padding: "5px 0" }}>
-                Rs {product.sellPrice}
-              </td>
-              <td style={{ textAlign: "right", padding: "5px 0" }}>
-                Rs {product.sellPrice * product.quantity}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* Discounts and Totals */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          padding: "5px 0",
-        }}
-      >
-        <span>Total</span>
-        <span>Rs {totalAmount}</span>
-      </div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          padding: "5px 0",
-          borderTop: "1px dotted black",
-        }}
-      >
-        <span>Discount</span>
-        <span>
-          Rs {discount} ({disInPercentage}%)
-        </span>
-      </div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          padding: "5px 0",
-          borderTop: "1px dotted black",
-          fontWeight: "bold",
-        }}
-      >
-        <span>Grand Total</span>
-        <span>Rs {grandTotal}</span>
-      </div>
-
-      {/* Remaining Balance */}
-      {remainingBalance !== 0 && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            padding: "5px 0",
-            borderTop: "1px dotted black",
-            fontWeight: "bold",
-          }}
-        >
-          <span>Remaining Balance</span>
-          <span>Rs {remainingBalance}</span>
-        </div>
-      )}
-
-      {/* Due Date for Special Stitching */}
-      {selectedCustomer?.type === "special-stitching" && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            padding: "5px 0",
-            borderTop: "1px dotted black",
-            fontWeight: "bold",
-          }}
-        >
-          <span>Due Date for Stitching</span>
-          <span>{dueDate ? new Date(dueDate).toLocaleDateString() : "N/A"}</span>
-        </div>
-      )}
-
-      {/* Footer */}
-      <p
-        style={{
-          textAlign: "center",
-          margin: "10px 0",
-          fontSize: "14px",
-          fontWeight: "bold",
-        }}
-      >
-        Thank you for shopping with us!
-      </p>
-      <p
-        style={{
-          textAlign: "center",
-          margin: "0",
-          fontSize: "12px",
-          fontStyle: "italic",
-        }}
-      >
-        Visit again!
-      </p>
-    </div>
-  );
+      );
 };
 
-export default ReceiptTemplate;
+      export default ReceiptTemplate;
