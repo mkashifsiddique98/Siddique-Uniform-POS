@@ -42,7 +42,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
   const invoiceNo = useTypedSelector((state) => state.invoice.invoiceNumber);
   const chartList = useTypedSelector((state) => state.chart.chartList);
   const returnChange = Math.max(receiveAmount - grandTotal, 0);
-
+   const [partialMoneyPay,setPartialMoneyPay] = useState<boolean>(false)
   const componentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -60,7 +60,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
     }
   }, [receiveAmount]);
   const handleInvoiceGenerate = async () => {
-    const remainingBalance = payingAmount - receiveAmount;
+    const remainingBalance =partialMoneyPay? (payingAmount - receiveAmount): 0;
     
   const invoiceDetail = {
       invoiceNo,
@@ -166,6 +166,13 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
 
         <div className="flex justify-between gap-8">
           <div className="grid w-full max-w-sm items-center gap-4">
+          <Label htmlFor="partial-Money">Partial Money paying</Label>
+            <Input
+              type="checkbox"
+              id="partial-Money"
+              className="cursor-pointer"
+              onChange={(e) => setPartialMoneyPay(!partialMoneyPay)}
+            />
             <Label htmlFor="receive-Money">Receive Money</Label>
             <Input
               type="number"
@@ -221,12 +228,12 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
                 </Table>
               </CardContent>
             </Card>
-
-            <div className="m-2 p-2">
+            {partialMoneyPay && <div className="m-2 p-2">
               <p className="text-sm">
                 <strong>Remaining Balance :</strong> {payingAmount - receiveAmount}
               </p>
-            </div>
+            </div>}
+            
 
             {selectedCustomer?.type === "special-sitching" && (
               <div>
@@ -257,12 +264,12 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
 
       {/* Receipt content for printing */}
       <div 
-      style={{ display: "none" }}
+      // style={{ display: "none" }}
       >
         <div ref={componentRef}>
           <ReceiptTemplate
             invoiceNo={invoiceNo}
-            remainingBalance={payingAmount - receiveAmount}
+            remainingBalance={partialMoneyPay?(payingAmount - receiveAmount):0}
             disInPercentage={disInPercentage}
             discount={discount}
             grandTotal={grandTotal}

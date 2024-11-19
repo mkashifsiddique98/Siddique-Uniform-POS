@@ -1,10 +1,11 @@
 import { customer } from "@/types/customer";
 import { ProductDetail } from "@/types/invoice";
-import { Facebook } from "lucide-react";
+import { Facebook, MapPinIcon, Phone, Smartphone, Store } from "lucide-react";
 import QRCode from "react-qr-code";
 import React, { FC } from "react";
 import Barcode from "react-barcode"
 import Image from "next/image";
+import { Separator } from "@/components/ui/separator";
 interface ReceiptTemplateProps {
   selectedCustomer: customer | undefined;
   productList: ProductDetail[];
@@ -46,12 +47,12 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         <div className="flex justify-center items-center relative">
           <h2
             style={{
-              margin: "5px 0",
+              margin: "5px 0 3px 0",
               fontSize: "18px",
               fontFamily: "fantasy",
               fontWeight: "bold",
               borderBottom: "2px solid black",
-              paddingBottom: "5px",
+              paddingBottom: "1px",
             }}
           >
             Siddique Uniform Centre
@@ -65,11 +66,11 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
             />
           </div>
         </div>
-
-        <p style={{ textAlign: "center", margin: "2px 0" }}>
-          Saran Market Karianwala
+        <p className="capitalize text-center italic text-xs mb-2">high Quality and low price</p>
+        <p className="flex justify-center items-center text-xs gap-1">
+        <MapPinIcon size={10} /><Store size={10} />Address: Saran Market Karianwala
         </p>
-        <p style={{ textAlign: "center", margin: "2px 0" }}>Phone: 03086139401</p>
+        <p className="flex justify-center items-center gap-1"><Phone size={10} /><Smartphone size={10} /><span>Phone: 03086139401</span> </p>
 
         {/* Receipt Information */}
         <div
@@ -233,11 +234,22 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
           />
         </div>
         <div className="flex justify-center items-center gap-0 my-2">
-          <Image src={"/icon/tiktok.png"} width={15} height={15} alt="tiktok" />
-          <Facebook size={15} />
-          <span className="lowercase text-base">/Siddiqueuniformcentre</span>
+          <span className="capitalize text-base">Follow us Social Media</span>
         </div>
-        <div className="flex justify-center items-center" style={{ textAlign: "center", marginBottom: "10px" }}>
+        <div className="flex justify-between items-center" style={{ textAlign: "center", marginBottom: "10px" }}>
+        <Facebook size={15} />
+          <QRCode
+            value={"https://www.facebook.com/Siddiqueuniformcentre/"}
+            size={80}
+          />
+          <div>
+          <p>|</p>
+          <p>|</p>
+          <p>|</p>
+          <p>|</p>
+          </div>
+          
+          <Image src={"/icon/tiktok.png"} width={15} height={15} alt="tiktok" />
           <QRCode
             value={"https://www.facebook.com/Siddiqueuniformcentre/"}
             size={80}
