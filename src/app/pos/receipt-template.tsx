@@ -251,7 +251,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
           
           <Image src={"/icon/tiktok.png"} width={15} height={15} alt="tiktok" />
           <QRCode
-            value={"https://www.facebook.com/Siddiqueuniformcentre/"}
+            value={"https://www.tiktok.com/@siddique.uniform"}
             size={80}
           />
         </div>
