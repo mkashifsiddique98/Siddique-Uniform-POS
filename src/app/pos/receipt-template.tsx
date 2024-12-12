@@ -47,8 +47,8 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         <div className="flex justify-center items-center relative">
           <h2
             style={{
-              margin: "5px 0 3px 0",
-              fontSize: "18px",
+              margin: "0px 0 3px 0",
+              fontSize: "22px",
               fontFamily: "fantasy",
               fontWeight: "bold",
               borderBottom: "2px solid black",
@@ -57,14 +57,6 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
           >
             Siddique Uniform Centre
           </h2>
-          <div className="absolute top-1 right-0 rotate-45">
-            <Image
-              src="/icon/siddique-uniform-center.png"
-              alt="siddique"
-              height={30}
-              width={30}
-            />
-          </div>
         </div>
         <p className="capitalize text-center italic text-xs mb-2">high Quality and low price</p>
         <p className="flex justify-start items-center text-xs gap-1">
@@ -77,11 +69,13 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
           style={{
             display: "flex",
             justifyContent: "space-between",
+            width:"100%",
             border: "1px solid black",
-            padding: "5px",
-            margin: "10px 0",
+            padding: "2px",
+            margin: "8px 0",
             borderRadius: "3px",
             alignItems: "center",
+            
           }}
         >
           <p style={{ margin: "0", fontWeight: "bold" }}>Receipt No: <span style={{ margin: "0", fontWeight: "normal" }}>{invoiceNo}</span></p>
@@ -97,8 +91,8 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
 
         {/* Customer Info */}
         {selectedCustomer?.type === "wake-in-customer" ? (
-          <div className="flex justify-center items-center">
-            <p style={{ margin: "5px 0", fontWeight: "bold" }}>
+          <div className="flex items-center my-2">
+            <p className="font-bold">
               Name: Regular Customer
             </p>
           </div>
@@ -225,7 +219,8 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
             <span>{dueDate ? new Date(dueDate).toLocaleDateString() : "N/A"}</span>
           </div>
         )}
-        <div className="flex justify-center items-center py-2" style={{ borderTop: "1px dotted black", borderBottom: "1px dotted black" }}>
+        {/* Bar code */}
+        {/* <div className="flex justify-center items-center py-2" style={{ borderTop: "1px dotted black", borderBottom: "1px dotted black" }}>
           <Barcode
             margin={0}
             height={25}
@@ -254,19 +249,19 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
             value={"https://www.tiktok.com/@siddique.uniform"}
             size={60}
           />
-        </div>
+        </div> */}
         {/* Footer */}
+        <div>
         <p
           style={{
             textAlign: "center",
             margin: "12px 0 10px 0",
             fontSize: "14px",
-            fontWeight: "bold",
-            borderTop:"1px dotted black"
+            fontFamily:"Noto Nastaliq Urdu",
           }}
         >
-          .نوٹ :خریدا ہوا سامان بل کے بغیر واپس یا تبدیل نہیں ہوگا
-         </p>
+        نوٹ: خریدا ہوا سامان بل کے بغیر واپس یا تبدیل نہیں ہوگا۔ گرم سامان 31 دسمبر کے بعد واپس یا تبدیل نہیں کیا جائے گا۔ </p>
+        </div>
       </div>
       );
 };

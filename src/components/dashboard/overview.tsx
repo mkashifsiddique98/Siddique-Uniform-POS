@@ -1,51 +1,58 @@
-"use client"
+"use client";
 
 import { Invoice } from "@/types/invoice";
 import { useEffect, useState } from "react";
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Label } from "recharts";
 
+// Helper function to format numbers as K (e.g., 1500 -> 1.5K)
+const formatNumber = (value: number) => {
+  if (value >= 1000) {
+    return (value / 1000).toFixed(1) + "K";
+  }
+  return value.toString();
+};
 
 interface InvoiceListProps {
-  name : string;
-  total:  number
-
+  name: string;
+  total: number;
 }
 
-export function Overview({InvoiceData}:{InvoiceData:Invoice[]}) {
-  const [invoiceList, setInvoiceList] = useState<InvoiceListProps[]>([])
-  const processInvoiceData = (invoices: Invoice[]) => {
-    // Object to hold totals by month
+export function Overview({ InvoiceData }: { InvoiceData: Invoice[] }) {
+  const [invoiceList, setInvoiceList] = useState<InvoiceListProps[]>([]);
+
+  // Function to process invoice data
+  const processInvoiceData = (invoices: Invoice[]): InvoiceListProps[] => {
     const monthTotals: Record<string, number> = {};
-  
+
+    // Calculate total for each month
     invoices.forEach((invoice) => {
       const date = new Date(invoice.invoiceDate);
-      const monthName = date.toLocaleString("default", { month: "short" }); // "Jan", "Feb", etc.
-  
-      // Initialize month total if it doesn't exist
+      const monthName = date.toLocaleString("default", { month: "short" });
+
       if (!monthTotals[monthName]) {
         monthTotals[monthName] = 0;
       }
-  
-      // Add the grandTotal to the respective month
       monthTotals[monthName] += invoice.grandTotal;
     });
-  
-    // Convert the object into an array of { name, total } format
-    const result = Object.keys(monthTotals).map((month) => ({
+
+    // Convert month totals into an array of { name, total }
+    return Object.keys(monthTotals).map((month) => ({
       name: month,
       total: monthTotals[month],
     }));
-  
-    return result;
   };
- 
+
   useEffect(() => {
-   const formattedData = processInvoiceData(InvoiceData);
-    setInvoiceList(formattedData)
+    const formattedData = processInvoiceData(InvoiceData);
+    setInvoiceList(formattedData);
   }, [InvoiceData]);
+
   return (
     <ResponsiveContainer width="100%" height={350}>
       <BarChart data={invoiceList}>
+        {/* Add CartesianGrid for background grid */}
+        <CartesianGrid strokeDasharray="3 3" stroke="#ddd" />
+
         <XAxis
           dataKey="name"
           stroke="#888888"
@@ -53,15 +60,21 @@ export function Overview({InvoiceData}:{InvoiceData:Invoice[]}) {
           tickLine={false}
           axisLine={false}
         />
+        
         <YAxis
           stroke="#888888"
           fontSize={12}
           tickLine={false}
           axisLine={false}
-          tickFormatter={(value) => `Rs${value}`}
-        />
+          tickFormatter={(value) => formatNumber(value)} // Format Y-axis values
+          tickCount={6}
+        >
+          {/* Custom label for the Y-axis */}
+          <Label value="PKR" angle={90} position="bottom" offset={0} fontSize={14} fill="#888888"  fontWeight={600}/>
+        </YAxis>
+
         <Bar dataKey="total" fill="#adfa1d" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
-  )
+  );
 }

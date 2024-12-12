@@ -27,7 +27,8 @@ const MasterLayout = ({ children }: { children: React.ReactNode }) => {
         ) : (
           <div>
             <Topnav handleToggleSidebar={handleToggleSidebar} />
-            <div className="flex h-[80vh] overflow-hidden">
+          
+            <div className="flex h-[85vh] overflow-hidden">
               {/*----------- Side-bar -----------*/}
               {showSideBar && (
                 <aside >
@@ -35,7 +36,7 @@ const MasterLayout = ({ children }: { children: React.ReactNode }) => {
                 </aside>
               )}
               {/*------------------- Main Content -------------*/}
-              <div className="flex-1 overflow-x-hidden overflow-y-auto">
+              <div className="flex-1 overflow-x-auto overflow-y-auto">
                 {children}
               </div>
             </div>

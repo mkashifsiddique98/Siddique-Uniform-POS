@@ -7,7 +7,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, UserRoundCog, UserSearch } from "lucide-react";
 import {
   Command,
   CommandEmpty,
@@ -18,6 +18,8 @@ import {
 import { cn } from "@/lib/utils";
 import { customer } from "@/types/customer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import CustomerList from "../customer/viewCustomer";
 
 const defaultCustomerName = "wake-in-customer";
 
@@ -148,7 +150,24 @@ const CusomterAutoComplete: React.FC<AutoCompleteProps> = ({
     </Popover>
   );
 };
+// View Customer Dialog or mOdel
+function DialogVeiwCustomer() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline"><UserRoundCog /></Button>
+      </DialogTrigger>
+      
+      <DialogContent className="sm:max-w-[70%] sm:max-h-[90%] overflow-auto">
+      <DialogTitle>View Customer</DialogTitle>
+       <CustomerList/>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
+
+// Main Customer Com
 export default function Customer({
   customerDetailList,
   handleChangeValue,
@@ -161,7 +180,7 @@ export default function Customer({
   setCustomerList?: (customers: customer[]) => void;
 }) {
   return (
-    <div className="flex justify-between items-center w-[80%] gap-2">
+    <div className="flex justify-space items-center w-[80%] gap-2">
       <CusomterAutoComplete
         customerList={customerDetailList}
         setCustomerList={setCustomerList}
@@ -169,6 +188,7 @@ export default function Customer({
         selectvalueFn={handleChangeValue}
       />
       <CreateCustomerModel handleGetAllCustomer={handleGetAllCustomer} />
+      <DialogVeiwCustomer/>
     </div>
   );
 }

@@ -39,7 +39,7 @@ const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
     number | string
   >(invoiceNo);
   const [errorMessage,setErrorMessage] =useState<string>("")
-
+  const [loading,setLoading] = useState(false)
   // Helper function to fetch customer data
   const handleGetAllCustomer = useCallback(async () => {
     try {
@@ -61,25 +61,41 @@ const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
     
     
     try {
+      setLoading(true); // Start the loading indicator
       const response = await fetch("/api/invoice/GET_BY_ID", {
         method: "POST",
+        headers: { "Content-Type": "application/json" }, // Added headers for clarity
         body: JSON.stringify({ invoiceNo: invoiceNumberChange }),
       });
-
-      if (response.ok) {
-        const res = await response.json();
-        if (res.response) {
-          setCustomerName(res.response.customer.customerName);
-          dispatch(addMultipleToChart(res.response.productDetail));
-          dispatch(setInvoiceNumber(res.response.invoiceNo));
-          dispatch(setDiscount(res.response.discount));
-        }else {
-         setErrorMessage(`Invoice No. ${invoiceNumberChange} not found `)
-        }
+    
+      if (!response.ok) {
+        // Handle non-successful responses
+        setLoading(false);
+        setErrorMessage(`Invoice No. ${invoiceNumberChange} not found`);
+        return;
+      }
+    
+      const data = await response.json();
+    
+      if (data.response) {
+        // Process successful response
+        const { customer, productDetail, invoiceNo, discount } = data.response;
+        setCustomerName(customer.customerName);
+        dispatch(addMultipleToChart(productDetail));
+        dispatch(setInvoiceNumber(invoiceNo));
+        dispatch(setDiscount(discount));
+      } else {
+        // Handle missing or invalid response structure
+        setErrorMessage(`Invalid response for Invoice No. ${invoiceNumberChange}`);
       }
     } catch (error) {
+      // Handle fetch or JSON parsing errors
       console.error("Error fetching invoice:", error);
+      setErrorMessage("An error occurred while fetching the invoice.");
+    } finally {
+      setLoading(false); // Ensure loading is stopped in all cases
     }
+    
   }, [dispatch, invoiceNumberChange]);
 
   // Effect to update selected customer based on customerName
@@ -97,13 +113,14 @@ const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
     const newInvoiceNumber = Math.max(storedValue, invoiceNo);
       dispatch(setInvoiceNumber(newInvoiceNumber));
       localStorage.setItem('invoiceNo', String(newInvoiceNumber));
-      console.log("Invoice Number In Bill Book ,",newInvoiceNumber)
   }, [invoiceNo]);
 
   // Handlers for editing invoice number
   const handleEditInvoice = () => {
     setEditInvoice((prev) => !prev)
     dispatch(clearChart())
+    setLoading(false)
+    setErrorMessage("")
   };
 
   const handleChangeInvoiceNumber = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,12 +161,14 @@ const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
 
       </div>
       <div className="mt-4">
-        <BillTable
+      <BillTable
           editInvoice={editInvoice}
           handleEditInvoice={handleEditInvoice}
           selectedCustomer={selectedCustomer}
           errorMessage={errorMessage}
+          loading={loading}
         />
+        
       </div>
     </div>
   );

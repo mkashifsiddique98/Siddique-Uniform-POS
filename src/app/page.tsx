@@ -17,6 +17,7 @@ import LOWSTOCK from "@/components/dashboard/low-stock";
 import Link from "next/link";
 import { Purchase } from "@/types/purchase";
 import { Invoice } from "@/types/invoice";
+import HorizontalBarChart, { ProductSalesCharts } from "@/components/dashboard/horizontal-bar-chart";
 
 const DOMAIN_NAME = process.env.DOMAIN_NAME || "http://localhost:3000";
 
@@ -151,7 +152,7 @@ export default async function DashboardPage() {
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics" disabled>
+            <TabsTrigger value="analytics">
               Analytics
             </TabsTrigger>
             <TabsTrigger value="reports" disabled>
@@ -202,7 +203,7 @@ export default async function DashboardPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
               <Card className="col-span-4">
                 <CardHeader>
-                  <CardTitle>Overview</CardTitle>
+                  <CardTitle>Overview Sales</CardTitle>
                 </CardHeader>
                 <CardContent className="pl-2">
                   <Overview InvoiceData={InvoiceData} />
@@ -220,6 +221,9 @@ export default async function DashboardPage() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+          <TabsContent value="analytics" className="space-y-4">
+          <HorizontalBarChart invoices={InvoiceData}/>
           </TabsContent>
         </Tabs>
       </div>

@@ -16,7 +16,7 @@ interface PurchaseTableProps {
 
 const PurchaseTable: FC<PurchaseTableProps> = ({ purchases, setPurchases }) => {
   // Sort purchases by createdAt in descending order
-  let sortedPurchases = [...purchases].sort(
+  const sortedPurchases = purchases.sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
@@ -24,7 +24,7 @@ const PurchaseTable: FC<PurchaseTableProps> = ({ purchases, setPurchases }) => {
     try {
       const res = await fetch(`/api/purchase`, {
         method: "DELETE",
-        body: JSON.stringify({id})
+        body: JSON.stringify({ id }),
       });
 
       if (!res.ok) {
@@ -35,10 +35,15 @@ const PurchaseTable: FC<PurchaseTableProps> = ({ purchases, setPurchases }) => {
       const updatedPurchases = sortedPurchases.filter((item) => item._id !== id);
       setPurchases(updatedPurchases);
       toast({
-        title:"Successfully Delete Purchase details!",
-      })
+        title: "Successfully deleted purchase details!",
+      });
     } catch (error) {
       console.error("Error deleting purchase:", error);
+      toast({
+        title: "Error",
+        description: "There was an issue deleting the purchase.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -56,21 +61,21 @@ const PurchaseTable: FC<PurchaseTableProps> = ({ purchases, setPurchases }) => {
       </TableHeader>
       <TableBody>
         {sortedPurchases.map((purchase, index) => (
-          <TableRow key={index}>
+          <TableRow key={purchase._id || index}>
             <TableCell>{index + 1}</TableCell>
             <TableCell>{purchase.wholesaler?.name || "Unknown"}</TableCell>
             <TableCell className="whitespace-nowrap">
-              {new Date(purchase?.createdAt).toLocaleDateString()}
+              {new Date(purchase.createdAt).toLocaleDateString()}
               <br />
-              {new Date(purchase?.createdAt).toLocaleTimeString()}
+              {new Date(purchase.createdAt).toLocaleTimeString()}
             </TableCell>
             <TableCell>{purchase.isPaid ? "Yes" : "No"}</TableCell>
             <TableCell>
               Rs{" "}
               {purchase.products.reduce(
-                (total, product) => total + product.productCost,
-                0
-              )}
+              (total, product) => total + product.productCost * (product.quantity ?? 0),
+              0
+            )}
             </TableCell>
             <TableCell className="text-center">
               <Link href={`/purchase/list/view/${purchase._id}`}>
@@ -96,6 +101,8 @@ const PurchaseList: FC = () => {
 
   useEffect(() => {
     const fetchPurchases = async () => {
+      setLoading(true); // Set loading to true before fetching
+      setError(null); // Clear previous error state
       try {
         const res = await fetch("/api/purchase");
         if (!res.ok) {
@@ -106,7 +113,7 @@ const PurchaseList: FC = () => {
       } catch (error: any) {
         setError(error.message);
       } finally {
-        setLoading(false);
+        setLoading(false); // Set loading to false after fetching
       }
     };
 
@@ -131,10 +138,10 @@ const PurchaseList: FC = () => {
           <TableBody>
             {Array.from({ length: 5 }).map((_, index) => (
               <TableRow key={index}>
-                <TableCell><Skeleton className="h-4"/></TableCell>
                 <TableCell><Skeleton className="h-4" /></TableCell>
                 <TableCell><Skeleton className="h-4" /></TableCell>
-                <TableCell><Skeleton className="h-4"/></TableCell>
+                <TableCell><Skeleton className="h-4" /></TableCell>
+                <TableCell><Skeleton className="h-4" /></TableCell>
                 <TableCell><Skeleton className="h-4" /></TableCell>
                 <TableCell><Skeleton className="h-4" /></TableCell>
               </TableRow>
@@ -146,7 +153,12 @@ const PurchaseList: FC = () => {
   }
 
   if (error) {
-    return <p>Error: {error}</p>;
+    return (
+      <div className="container p-6">
+        <BreadCrum mainfolder="Purchase" subfolder="List Purchase" />
+        <p className="text-red-600">Error: {error}</p>
+      </div>
+    );
   }
 
   return (

@@ -65,7 +65,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
   const invoiceDetail = {
       invoiceNo,
       discount,
-      customer: customerdetail,
+      customer: customerdetail?customerdetail:selectedCustomer,
       productDetail: chartList,
       grandTotal,
       prevBalance: remainingBalance,

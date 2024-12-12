@@ -167,7 +167,7 @@ const PurchasePage = () => {
     <div className="container p-6">
       <BreadCrum mainfolder="Purchase" subfolder="Made Sale" />
       <WholeSalerSelect onSelect={setSelectedWholesaler} />
-      {error && <div className="flex justify-end text-red-500 animate-bounce">{error}</div>}
+      {error && <div className="absolute top-5   flex justify-end text-red-500 animate-bounce">{error}</div>}
       {/* {selectedWholesaler && (
         <ProductSelect products={products} handleSelectProduct={handleSelectProduct} />
       )} */}
