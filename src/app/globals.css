@@ -46,6 +46,22 @@
   font-display: swap;
   src: url('/fonts/Inter-VariableFont_opsz,wght.ttf') format('truetype');
 }
+
+/* styles/fonts.css */
+@font-face {
+  font-family: 'Noto Nastaliq Urdu';
+  src: url('/fonts/NotoNastaliqUrdu-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Noto Nastaliq Urdu';
+  src: url('/fonts/static/NotoNastaliqUrdu-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
 /* Optional: Define fallback font family */
 body {
   font-family: 'Inter', sans-serif;

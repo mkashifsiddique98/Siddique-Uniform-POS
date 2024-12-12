@@ -13,6 +13,8 @@ import {
   Layers,
   Coins,
   ListCollapse,
+  Barcode,
+  ScanBarcode,
 } from "lucide-react";
 
 export const sidebarItems = [
@@ -45,6 +47,11 @@ export const sidebarItems = [
         title: "Category & Size",
         href: "/product/category-size",
         icon: <SquareStack />,
+      },
+      {
+        title: "Generate Code",
+        href: "/product/generate-code",
+        icon: <ScanBarcode />,
       },
     ],
   },

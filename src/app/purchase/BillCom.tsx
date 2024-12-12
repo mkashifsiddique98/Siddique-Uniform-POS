@@ -11,6 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { BadgeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import ProductSelect from './ProductSelect';
 
 interface ProductFormState {
   _id: string;
@@ -31,9 +32,11 @@ interface BillProps {
   onQuantityChange: (id: string, newQuantity: number) => void;
   onPriceChange: (id: string, newPrice: number) => void;
   handleDeletePurchaseId:(id:string)=>void;
+  dataProducts: ProductFormState[];
+  handleSelectProduct: ()=>void;
 }
 
-const Bill: FC<BillProps> = ({ wholesaler, products, onQuantityChange, onPriceChange,handleDeletePurchaseId }) => {
+const Bill: FC<BillProps> = ({ wholesaler, products, onQuantityChange, onPriceChange,handleDeletePurchaseId,dataProducts,handleSelectProduct }) => {
 
   const handleQuantityChange = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuantity = parseInt(e.target.value, 10) || 0;
@@ -103,7 +106,9 @@ const Bill: FC<BillProps> = ({ wholesaler, products, onQuantityChange, onPriceCh
               </TableCell>
             </TableRow>
           ))}
+          
         </TableBody>
+        
         {/* <TableFooter>
           <TableRow>
             <TableCell colSpan={4} className="text-right font-semibold">Total Amount</TableCell>
@@ -111,6 +116,7 @@ const Bill: FC<BillProps> = ({ wholesaler, products, onQuantityChange, onPriceCh
           </TableRow>
         </TableFooter> */}
       </Table>
+      <ProductSelect products={dataProducts} handleSelectProduct={handleSelectProduct} />
     </div>
   );
 };

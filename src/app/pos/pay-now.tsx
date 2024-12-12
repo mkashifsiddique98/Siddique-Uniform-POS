@@ -32,6 +32,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
   selectedCustomer,
   handleReset,
 }) => {
+  
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [payingAmount, setPayingAmount] = useState<number>(grandTotal);
   const [receiveAmount, setReceiveAmount] = useState<number>(0);
@@ -42,7 +43,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
   const invoiceNo = useTypedSelector((state) => state.invoice.invoiceNumber);
   const chartList = useTypedSelector((state) => state.chart.chartList);
   const returnChange = Math.max(receiveAmount - grandTotal, 0);
-
+   const [partialMoneyPay,setPartialMoneyPay] = useState<boolean>(false)
   const componentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -60,19 +61,19 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
     }
   }, [receiveAmount]);
   const handleInvoiceGenerate = async () => {
-    const remainingBalance = payingAmount - receiveAmount;
-    
+    const remainingBalance =partialMoneyPay? (payingAmount - receiveAmount): 0;
+       
   const invoiceDetail = {
       invoiceNo,
       discount,
-      customer: customerdetail,
+      customer: customerdetail?customerdetail:selectedCustomer,
       productDetail: chartList,
       grandTotal,
       prevBalance: remainingBalance,
       anyMessage: customerNotes,
       ...(dueDate && { dueDate }),
     };
-
+  
     try {
       const response = await fetch("/api/invoice/", {
         method: "POST",
@@ -142,31 +143,6 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
     documentTitle: "Receipt",
-    pageStyle: `
-      @page {
-        size: 80mm auto;
-        margin: 0;
-      }
-      body {
-        margin: 0;
-        padding: 0;
-        font-family: monospace;
-        width: 80mm;
-      }
-      h2, p, table {
-        margin: 0;
-        padding: 0;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 10px;
-      }
-      table th, table td {
-        border-bottom: 1px solid black;
-        padding: 2px;
-      }
-    `,
     onAfterPrint: handleNoReceipt,
   });
 
@@ -191,6 +167,13 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
 
         <div className="flex justify-between gap-8">
           <div className="grid w-full max-w-sm items-center gap-4">
+          <Label htmlFor="partial-Money">Partial Money paying</Label>
+            <Input
+              type="checkbox"
+              id="partial-Money"
+              className="cursor-pointer"
+              onChange={(e) => setPartialMoneyPay(!partialMoneyPay)}
+            />
             <Label htmlFor="receive-Money">Receive Money</Label>
             <Input
               type="number"
@@ -225,12 +208,12 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
           </div>
         
           <div>
-            <Card className="shadow-2 w-full">
+            <Card className="shadow-xl w-full hover:border-black border-2 cursor-pointer">
               <CardContent className="capitalize flex justify-between items-center">
                 <Table>
                   <TableRow>
                     <p className="p-4 font-bold text-md whitespace-nowrap">
-                      Total Products: {productList.length}
+                      Total Products: {productList.length} pcs
                     </p>
                   </TableRow>
                   <TableRow>
@@ -246,17 +229,21 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
                 </Table>
               </CardContent>
             </Card>
-
-            <div className="m-2 p-2">
+            {partialMoneyPay && <div className="m-2 p-2">
               <p className="text-sm">
                 <strong>Remaining Balance :</strong> {payingAmount - receiveAmount}
               </p>
-            </div>
+            </div>}
+            
 
             {selectedCustomer?.type === "special-sitching" && (
               <div>
-                <Label htmlFor="calendar">Due Date for Special Stitching</Label>
-                <Calendar date={dueDate} handleDateChange={setDueDate} />
+                <Label htmlFor="calendar" className="py-2">Due Date for Special Stitching</Label>
+                <Calendar
+                 date={dueDate} handleDateChange={setDueDate}
+                 />
+                
+                
               </div>
             )}
           </div>
@@ -283,7 +270,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
         <div ref={componentRef}>
           <ReceiptTemplate
             invoiceNo={invoiceNo}
-            remainingBalance={payingAmount - receiveAmount}
+            remainingBalance={partialMoneyPay?(payingAmount - receiveAmount):0}
             disInPercentage={disInPercentage}
             discount={discount}
             grandTotal={grandTotal}
