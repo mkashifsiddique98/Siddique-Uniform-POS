@@ -50,11 +50,11 @@ export default function CreateCustomerModel({
       valid = false;
     }
 
-    const phoneRegex = /^[0-9]{10,11}$/;
-    if (!phoneRegex.test(String(customerDetail.phone))) {
-      newErrors.phone = "Phone number must be 10-11 digits.";
-      valid = false;
-    }
+    // const phoneRegex = /^[0-9]{10,11}$/;
+    // if (!phoneRegex.test(String(customerDetail.phone))) {
+    //   newErrors.phone = "Phone number must be 10-11 digits.";
+    //   valid = false;
+    // }
 
     if (!customerDetail.type) {
       newErrors.type = "Customer type is required.";

@@ -136,7 +136,10 @@ const CusomterAutoComplete: React.FC<AutoCompleteProps> = ({
                       : "opacity-0"
                   )}
                 />
+                
                 {customer.customerName}&nbsp;&nbsp;&nbsp;({customer.type})
+                
+                
               </CommandItem>
             ))}
           </CommandGroup>

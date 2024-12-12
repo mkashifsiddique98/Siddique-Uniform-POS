@@ -58,7 +58,7 @@ const PointOfSale = async () => {
   const SchoolList: School[] = SchoolArray.response || []
   const invoice = await createInvoiceNo()
   const invoiceNo = invoice.response || 0
-
+  
   return (
     <div className="flex overflow-hidden">
       <Fullscreen />

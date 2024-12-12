@@ -21,7 +21,7 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
     filterBy: "",
     filterValue: "",
   });
-
+  
   const calculateIndexRange = () => {
     const indexOfLastItem = currentPage * perPage;
     const indexOfFirstItem = indexOfLastItem - perPage;
@@ -64,7 +64,9 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
   useEffect(() => {
     setCurrentPage(1); // Reset page when filter changes
   }, [filterElement]);
-
+  // ***************************   Bar-Code *******************************
+  
+// ************************************************************************
   return (
     <div className="my-4">
       <FilterBtnProduct
