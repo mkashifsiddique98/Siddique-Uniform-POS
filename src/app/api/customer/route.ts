@@ -24,3 +24,23 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+export async function DELETE(request: Request) {
+  try {
+    const { id } = await request.json();
+    if (!id) {
+      return NextResponse.json({ message: "Customer ID is required" }, { status: 400 });
+    }
+
+   // Delete the customer by ID
+    const result = await Customer.deleteOne({_id:id});
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json({ message: "Customer not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: "Customer deleted successfully!" }, { status: 200 });
+  } catch (error) {
+    console.error("Error deleting customer:", error);
+    return NextResponse.json({ message: "Error deleting customer", error: error.message }, { status: 500 });
+  }
+}

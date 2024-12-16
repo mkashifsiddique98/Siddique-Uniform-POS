@@ -32,19 +32,22 @@ import {
 import { calculatePercentage } from "@/utils";
 import { customer } from "@/types/customer";
 import { handleGenerateNewInvoiceNumber } from "./usePos";
+import LoadingSpinner from "@/components/custom-components/loadingSpinner";
 
 interface BillTableProps {
   selectedCustomer?: customer;
   handleEditInvoice: () => void;
   editInvoice: boolean;
   errorMessage: string;
+  loading:boolean;
 }
 
 const BillTable: FC<BillTableProps> = ({
   selectedCustomer,
   handleEditInvoice,
   editInvoice,
-  errorMessage
+  errorMessage,
+  loading
 }) => {
   // Local State
   const [specialProductName, setSpecialProductName] = useState("");
@@ -65,8 +68,8 @@ const BillTable: FC<BillTableProps> = ({
   }, 0);
   let disInPrecentage = calculatePercentage(discount, grandTotal);
   grandTotal = grandTotal - (discount ? discount : 0);
-  
-// Effect for Invoice Number 
+
+  // Effect for Invoice Number 
   // Helping Function or Clear Button 
   const handleReset = () => {
     if (editInvoice) handleEditInvoice();
@@ -240,26 +243,27 @@ const BillTable: FC<BillTableProps> = ({
           )}
         </TableBody>
       </Table>
-
-      {chartList.length === 0 && (
-        <div className="relative  mt-1 text-center text-white capitalize bg-gray-400 text-lg w-full p-2 animate-pulse">
-          Empty Product List
+      {loading?<LoadingSpinner/>:<> 
+        {chartList.length === 0 && (
+        <div className="relative mt-1 text-center text-white capitalize bg-gray-400 text-lg w-full p-2 animate-pulse">
+          {errorMessage || "Empty Product List"}
         </div>
       )}
-
+      </>}
+     
       <div>
         <div className="w-full bg-black p-2 text-center text-white">
           <p className="font-semibold">
             Grand Total : Rs {grandTotal ? grandTotal : "0.00"}
           </p>
         </div>
-       
+
         <div className="flex justify-end mr-16 mt-2 -mb-2">
           <Label htmlFor="discount">Discount</Label>
         </div>
-         
+
         <div className="flex justify-end mt-3 relative">
-          
+
           <Input
             id="discount"
             placeholder="discount"

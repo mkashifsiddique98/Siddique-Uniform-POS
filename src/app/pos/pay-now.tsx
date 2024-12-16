@@ -32,7 +32,6 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
   selectedCustomer,
   handleReset,
 }) => {
-  
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [payingAmount, setPayingAmount] = useState<number>(grandTotal);
   const [receiveAmount, setReceiveAmount] = useState<number>(0);
@@ -62,7 +61,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
   }, [receiveAmount]);
   const handleInvoiceGenerate = async () => {
     const remainingBalance =partialMoneyPay? (payingAmount - receiveAmount): 0;
-       
+    
   const invoiceDetail = {
       invoiceNo,
       discount,
@@ -73,7 +72,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
       anyMessage: customerNotes,
       ...(dueDate && { dueDate }),
     };
-  
+
     try {
       const response = await fetch("/api/invoice/", {
         method: "POST",

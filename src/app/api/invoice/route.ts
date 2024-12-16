@@ -19,8 +19,7 @@ export async function POST(request: Request) {
       dueDate, // for Special Customer
       discount,
     } = req;
-    //  check 
-    
+
     // Determine status based on dueDate
     const status = dueDate == null ? "Clear" : "Pending";
    

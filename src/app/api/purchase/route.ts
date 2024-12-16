@@ -29,12 +29,13 @@ export async function POST(request: Request) {
       }
     );
 
-    // Function to update product quantities
+    // Function to update product quantities and cost
     const updateProductQuantities = async (products: ProductFormState[]) => {
       for (const product of products) {
         const existingProduct = await Product.findById(product._id);
         if (existingProduct) {
-          existingProduct.quantity += product.quantity;
+          existingProduct.quantity += product?.quantity;
+          existingProduct.productCost = product.productCost
           await existingProduct.save();
         } else {
           return NextResponse.json({ error: `Product with ID ${product._id} not found` }, { status: 404 });

@@ -73,7 +73,7 @@ const PurchasePage = () => {
             {
               ...selectedProduct,
               quantity: 1,
-              sellPrice: selectedProduct.sellPrice || 0,
+              productCost: selectedProduct.productCost || 0,
             },
           ];
         }
@@ -95,7 +95,7 @@ const PurchasePage = () => {
   const handlePriceChange = (id: string, newPrice: number) => {
     setSelectedProducts((prevSelectedProducts) =>
       prevSelectedProducts.map((product: any) =>
-        product._id === id ? { ...product, sellPrice: newPrice } : product
+        product._id === id ? { ...product, productCost: newPrice } : product
       )
     );
   };
@@ -167,7 +167,7 @@ const PurchasePage = () => {
     <div className="container p-6">
       <BreadCrum mainfolder="Purchase" subfolder="Made Sale" />
       <WholeSalerSelect onSelect={setSelectedWholesaler} />
-      {error && <div className="flex justify-end text-red-500 animate-bounce">{error}</div>}
+      {error && <div className="absolute top-5   flex justify-end text-red-500 animate-bounce">{error}</div>}
       {/* {selectedWholesaler && (
         <ProductSelect products={products} handleSelectProduct={handleSelectProduct} />
       )} */}
