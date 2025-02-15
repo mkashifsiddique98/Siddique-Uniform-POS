@@ -138,7 +138,7 @@ const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => 
             <TableCell colSpan={3} className="text-right font-bold">
               Grand Total
             </TableCell>
-            <TableCell className="font-bold">Rs {invoice.grandTotal}</TableCell>
+            <TableCell className="font-bold">Rs {invoice.grandTotal-returnedProductsTotalAmount}</TableCell>
             <TableCell />
           </TableRow>
         </TableBody>

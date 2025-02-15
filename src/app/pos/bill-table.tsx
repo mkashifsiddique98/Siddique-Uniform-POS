@@ -198,6 +198,16 @@ const BillTable: FC<BillTableProps> = ({
       console.error("Server Error", error);
     }
   };
+  const BuyTotalAmount = chartList.filter((product) => !product.return)
+  .reduce(
+    (total, product) => total + product.sellPrice * product.quantity,
+    0
+  );
+  const returnTotalAmount = chartList.filter((product) => product.return)
+  .reduce(
+    (total, product) => total + product.sellPrice * product.quantity,
+    0
+  );
   return (
     <div className="flex flex-col justify-between h-[75vh]">
       <Table>
@@ -367,12 +377,16 @@ const BillTable: FC<BillTableProps> = ({
       <div>
         <div className={`w-full bg-black p-2 ${editInvoice ? "flex justify-between items-center" : "text-center"}  text-white`}>
           <p className="font-semibold">
-            Grand Total : Rs {grandTotal ? grandTotal : "0.00"}
+            Grand Total : Rs {grandTotal ? grandTotal-returnTotalAmount : "0.00"}
           </p>
-          {/* {grandTotalReturnToCustomer > 0 && editInvoice && <p className="font-semibold">
-            Return Money to Customer : Rs {grandTotalReturnToCustomer ? grandTotalReturnToCustomer : "0.00"}
-          </p> */}
-         
+          {returnTotalAmount > 0 && editInvoice && <p className="font-semibold">
+            Return Item : Rs {returnTotalAmount ? returnTotalAmount : "0.00"}
+          </p>
+        }
+        {BuyTotalAmount > 0 && editInvoice && <p className="font-semibold">
+            Buy Item : Rs {BuyTotalAmount ? BuyTotalAmount : "0.00"}
+          </p>
+        }
         </div>
 
         <div className="flex justify-end mr-16 mt-2 -mb-2">
