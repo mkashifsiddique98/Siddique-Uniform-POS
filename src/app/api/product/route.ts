@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     const res = await request.json();
     const newProduct = new Product(res);
     const savedProduct = await newProduct.save();
-    console.log("saved in database :", savedProduct);
+    
     return Response.json({ response: savedProduct }, { status: 201 });
   } catch (error) {
     console.error(error);

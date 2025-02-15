@@ -15,6 +15,7 @@ interface ReceiptTemplateProps {
   dueDate: Date | null;
   invoiceNo: number;
   remainingBalance: number;
+  return:boolean
 }
 
 const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
@@ -26,12 +27,18 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   dueDate,
   invoiceNo,
   remainingBalance,
+
 }) => {
   const totalAmount = productList.reduce(
     (total, product) => total + product.sellPrice * product.quantity,
     0
   );
-
+  const returnTotalAmount = productList
+  .filter((product) => product.return)
+  .reduce(
+    (total, product) => total + product.sellPrice * product.quantity,
+    0
+  );
   return (
     <div
       style={{
@@ -106,10 +113,67 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
             </p>
           </>
         )}
-
-
-
-        {/* Product Table */}
+     {/* Whole Product List */}
+    {productList.filter((product) => product.return).length >= 1 && <>
+   
+      {/* Return Product Table */}
+       <p className="leading-2 font-bold">Return Items</p> 
+      <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            marginBottom: "10px",
+          }}
+        >
+          <thead>
+            <tr>
+              <th style={{ textAlign: "center", border: "1px solid black",fontWeight:"bold" }}>
+                Product
+              </th>
+              <th style={{ textAlign: "center", border: "1px solid black",fontWeight:"bold" }}>
+                Qty
+              </th>
+              <th style={{ textAlign: "center", border: "1px solid black",fontWeight:"bold" }}>
+                Price
+              </th>
+              <th style={{ textAlign: "center", border: "1px solid black",fontWeight:"bold" }}>
+                Total
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {productList
+            .filter((product) => product.return)
+            .map((product) => (
+              <tr key={product.productName}>
+                <td style={{ padding: "5px 0 5px 3px", border: "1px solid black" }}>{product.productName}</td>
+                <td style={{ textAlign: "center", padding: "5px 0", border: "1px solid black" }}>
+                  {product.quantity}
+                </td>
+                <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
+                  {product.sellPrice}
+                </td>
+                <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
+                  {product.sellPrice * product.quantity}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "5px 0",
+          }}
+        >
+          <span>Sub-Total</span>
+          <span>-Rs {returnTotalAmount}</span>
+        </div>
+        {/*New Product Table */}
+        <p className="leading-2 font-bold">New Items</p>
+        </>
+}
         <table
           style={{
             width: "100%",
@@ -152,6 +216,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         </table>
 
         {/* Discounts and Totals */}
+        
         <div
           style={{
             display: "flex",
@@ -260,7 +325,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
             fontFamily:"Noto Nastaliq Urdu",
           }}
         >
-        نوٹ: خریدا ہوا سامان بل کے بغیر واپس یا تبدیل نہیں ہوگا۔ گرم سامان 31 دسمبر کے بعد واپس یا تبدیل نہیں کیا جائے گا۔ </p>
+        نوٹ: خریدا ہوا سامان بل کے بغیر واپس یا تبدیل نہیں ہوگا۔  </p>
         </div>
       </div>
       );

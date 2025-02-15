@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,12 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalendarDateRangePicker } from "@/components/dashboard/date-range-picker";
 import { Overview } from "@/components/dashboard/overview";
 import { RecentSales } from "@/components/dashboard/recent-sales";
-import { ProductFormState } from "@/types/product";
 import LOWSTOCK from "@/components/dashboard/low-stock";
 import Link from "next/link";
 import { Purchase } from "@/types/purchase";
 import { Invoice } from "@/types/invoice";
-import HorizontalBarChart, { ProductSalesCharts } from "@/components/dashboard/horizontal-bar-chart";
+import HorizontalBarChart from "@/components/dashboard/horizontal-bar-chart";
 
 const DOMAIN_NAME = process.env.DOMAIN_NAME || "http://localhost:3000";
 

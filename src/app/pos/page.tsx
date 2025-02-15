@@ -5,7 +5,11 @@ import ProductBox from "./Product-Box-Pagnation";
 import Fullscreen from "@/utils/fullScreen";
 import BillBook from "./bill-book";
 import { School } from "@/types/school-name";
-
+import { Metadata } from "next";
+export const metadata: Metadata = {
+  title: "POS",
+  description: "Point of Sale ",
+};
 const DOMAIN_NAME = process.env.DOMAIN_NAME;
 export const revalidate = 5
 async function fetchData(endpoint: string) {

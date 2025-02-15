@@ -1,10 +1,13 @@
 // models/invoice.ts
+
 import mongoose, { Schema } from "mongoose";
 
 const ProductSchema: Schema = new Schema({
   productName: { type: String },
   quantity: { type: Number },
   sellPrice: { type: Number },
+  return: { type: Boolean, default: false },
+  sold: { type: Boolean, default: false }
 });
 // use this method becuase populate is not working
 const customerSchema: Schema = new Schema({
@@ -15,7 +18,7 @@ const customerSchema: Schema = new Schema({
   prevBalance: { type: Number, default: 0 },
 });
 const invoiceSchema: Schema = new Schema({
-  invoiceNo: { type: Number, unique: true, require: true,  },
+  invoiceNo: { type: Number, unique: true, require: true, },
   customer: customerSchema, // ref to "Customer"
   productDetail: [ProductSchema],
   prevBalance: { type: Number, default: 0 },
@@ -23,7 +26,7 @@ const invoiceSchema: Schema = new Schema({
   anyMessage: { type: String },
   invoiceDate: { type: Date },
   dueDate: { type: Date },
-  discount: {type:Number, default:0},
+  discount: { type: Number, default: 0 },
   status: { type: String, default: "Clear" },
 });
 

@@ -9,6 +9,8 @@ export interface Products extends ProductFormState {
   productName: string;
   quantity: number;
   sellPrice: number;
+  return?:Boolean;
+  sold?:Boolean;
 }
 
 interface ChartState {
@@ -74,6 +76,14 @@ const chartSlice = createSlice({
       const { productName } = action.payload;
       state.chartList = state.chartList.filter((product) => product.productName !== productName);
     },
+    handleReturnItemChart :(state, action: PayloadAction<{ productName: string,return:boolean }>) => {
+      const { productName,return:isReturn } = action.payload;
+      state.chartList = state.chartList.map((product) =>
+        product.productName === productName
+          ? { ...product, return: isReturn } 
+          : product
+      );
+    },
 
     clearChart: (state) => {
       state.chartList = [];
@@ -111,7 +121,7 @@ const modeSlice = createSlice({
 });
 
 // Add to chart product
-export const { addToChart, addMultipleToChart, updateChart, clearChart, removeItemChart } = chartSlice.actions;
+export const { addToChart, addMultipleToChart, updateChart, clearChart, removeItemChart,handleReturnItemChart } = chartSlice.actions;
 // For mode like wholesaler or retailer
 export const { toggleMode, setMode } = modeSlice.actions;
 // For invoice number and discount

@@ -42,9 +42,8 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
   const invoiceNo = useTypedSelector((state) => state.invoice.invoiceNumber);
   const chartList = useTypedSelector((state) => state.chart.chartList);
   const returnChange = Math.max(receiveAmount - grandTotal, 0);
-   const [partialMoneyPay,setPartialMoneyPay] = useState<boolean>(false)
+  const [partialMoneyPay, setPartialMoneyPay] = useState<boolean>(false)
   const componentRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     setPayingAmount(grandTotal);
   }, [grandTotal]);
@@ -60,19 +59,22 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
     }
   }, [receiveAmount]);
   const handleInvoiceGenerate = async () => {
-    const remainingBalance =partialMoneyPay? (payingAmount - receiveAmount): 0;
-    
-  const invoiceDetail = {
+    const remainingBalance = partialMoneyPay ? (payingAmount - receiveAmount) : 0;
+    // Mark product as Sold
+    const updateCharList = chartList.map((item: any) => ({
+      ...item,
+      sold: true,
+    }));
+    const invoiceDetail = {
       invoiceNo,
       discount,
-      customer: customerdetail?customerdetail:selectedCustomer,
-      productDetail: chartList,
+      customer: customerdetail ? customerdetail : selectedCustomer,
+      productDetail: updateCharList,
       grandTotal,
       prevBalance: remainingBalance,
       anyMessage: customerNotes,
       ...(dueDate && { dueDate }),
     };
-
     try {
       const response = await fetch("/api/invoice/", {
         method: "POST",
@@ -115,7 +117,9 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
     }
   };
 
-
+  // Problem : if someone just return and 
+  // second time you return it only show run to minus the
+  // product qty , how can deal in this situtation
   const handleProductQtyUpdate = async () => {
     try {
       await fetch("/api/product/edit", {
@@ -166,7 +170,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
 
         <div className="flex justify-between gap-8">
           <div className="grid w-full max-w-sm items-center gap-4">
-          <Label htmlFor="partial-Money">Partial Money paying</Label>
+            <Label htmlFor="partial-Money">Partial Money paying</Label>
             <Input
               type="checkbox"
               id="partial-Money"
@@ -205,7 +209,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
               onChange={(e) => setCustomerNotes(e.target.value)}
             />
           </div>
-        
+
           <div>
             <Card className="shadow-xl w-full hover:border-black border-2 cursor-pointer">
               <CardContent className="capitalize flex justify-between items-center">
@@ -233,16 +237,16 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
                 <strong>Remaining Balance :</strong> {payingAmount - receiveAmount}
               </p>
             </div>}
-            
+
 
             {selectedCustomer?.type === "special-sitching" && (
               <div>
                 <Label htmlFor="calendar" className="py-2">Due Date for Special Stitching</Label>
                 <Calendar
-                 date={dueDate} handleDateChange={setDueDate}
-                 />
-                
-                
+                  date={dueDate} handleDateChange={setDueDate}
+                />
+
+
               </div>
             )}
           </div>
@@ -263,13 +267,15 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
       </DialogContent>
 
       {/* Receipt content for printing */}
-      <div 
-      style={{ display: "none" }}
+      <div
+        style={{ display: "none"
+          // , position: "absolute", top: 1 ,right:1, backgroundColor: "red" 
+        }}
       >
         <div ref={componentRef}>
           <ReceiptTemplate
             invoiceNo={invoiceNo}
-            remainingBalance={partialMoneyPay?(payingAmount - receiveAmount):0}
+            remainingBalance={partialMoneyPay ? (payingAmount - receiveAmount) : 0}
             disInPercentage={disInPercentage}
             discount={discount}
             grandTotal={grandTotal}

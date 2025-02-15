@@ -10,10 +10,15 @@ import {
 } from "@/components/ui/table";
 import {
   BadgePlus,
+  Eye,
+  EyeOff,
   FilePenLine,
   MinusSquare,
   PlusSquare,
+  Redo2Icon,
   RotateCcw,
+  Undo2,
+  View,
   XCircle,
 } from "lucide-react";
 import React, { FC, useEffect, useState } from "react";
@@ -22,6 +27,7 @@ import { Label } from "@/components/ui/label";
 import {
   Products,
   clearChart,
+  handleReturnItemChart,
   removeItemChart,
   setDiscount,
   setInvoiceNumber,
@@ -33,13 +39,14 @@ import { calculatePercentage } from "@/utils";
 import { customer } from "@/types/customer";
 import { handleGenerateNewInvoiceNumber } from "./usePos";
 import LoadingSpinner from "@/components/custom-components/loadingSpinner";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface BillTableProps {
   selectedCustomer?: customer;
   handleEditInvoice: () => void;
   editInvoice: boolean;
   errorMessage: string;
-  loading:boolean;
+  loading: boolean;
 }
 
 const BillTable: FC<BillTableProps> = ({
@@ -53,7 +60,7 @@ const BillTable: FC<BillTableProps> = ({
   const [specialProductName, setSpecialProductName] = useState("");
   const [specialProductPrice, setSpecialProductPrice] = useState<number | "">("");
   const [specialProductQty, setSpecialProductQty] = useState<number | "">("");
-
+  const [showReturnList, setShowReturnList] = useState<boolean>(false)
   // Redux State
   const dispatch = useAppDispatch();
   const chartList: Products[] = useTypedSelector((state) => state.chart.chartList);
@@ -61,16 +68,42 @@ const BillTable: FC<BillTableProps> = ({
   const invoiceNo: number = useTypedSelector(
     (state) => state.invoice.invoiceNumber
   );
+  // Modifty for return 
   const mode = useTypedSelector((state) => state.mode); // mode
-  let grandTotal = chartList.reduce((total, product) => {
-    let lineTotal = product.quantity * product.sellPrice;
-    return total + lineTotal;
-  }, 0);
+  // Normal Logic
+  // let grandTotal = chartList.reduce((total, product) => {
+  //   let lineTotal = product.quantity * product.sellPrice;
+  //   return total + lineTotal;
+  // }, 0);
+  // grand with Return Logic 
+
+  let { total: grandTotal, returnTotal: grandTotalReturnToCustomer } = chartList.reduce(
+    (acc, product) => {
+      const lineTotal = product.quantity * product.sellPrice;
+      if (product.return) {
+        if (product.sold) acc.returnTotal += lineTotal;
+      } else {
+        acc.total += lineTotal;
+      }
+      return acc;
+    },
+    { total: 0, returnTotal: 0 }
+  );
+
+  // oscount
   let disInPrecentage = calculatePercentage(discount, grandTotal);
   grandTotal = grandTotal - (discount ? discount : 0);
-
   // Effect for Invoice Number 
   // Helping Function or Clear Button 
+
+
+  const calculateDiscount = (value: string) => {
+    const discountPercentage = parseInt(value,0)
+    const discountAmount = (grandTotal * discountPercentage) / 100;
+    // grandTotal = discountAmount
+
+    dispatch(setDiscount(Math.max(0, parseInt(discountAmount))))
+  }
   const handleReset = () => {
     if (editInvoice) handleEditInvoice();
     dispatch(clearChart());
@@ -81,6 +114,9 @@ const BillTable: FC<BillTableProps> = ({
     const newInvoiceNumber = Math.max(storedValue, invoiceNo);
     dispatch(setInvoiceNumber(newInvoiceNumber));
   };
+
+
+
   // Function Update chart
   const handleUpdate = (productName: string, quantity: number) => {
     if (!isNaN(quantity)) {
@@ -100,6 +136,16 @@ const BillTable: FC<BillTableProps> = ({
   const handleRemoveItem = (productName: string) => {
     dispatch(removeItemChart({ productName }));
   };
+  // Function to Return Item from chart
+  const handleReturnItem = (productName: string) => {
+    dispatch(handleReturnItemChart({ productName, return: true }));
+  };
+  const handleReturnItemUndo = (productName: string) => {
+    dispatch(handleReturnItemChart({ productName, return: false }));
+  };
+  const handleReturnDisplay = () => {
+    setShowReturnList(!showReturnList)
+  }
   // *************************************for Special stiching Customer ***********
   const handleAddSpecialProduct = () => {
     if (specialProductName && specialProductPrice && specialProductQty) {
@@ -172,35 +218,102 @@ const BillTable: FC<BillTableProps> = ({
         </TableHeader>
 
         <TableBody>
-          {chartList.map((product, index) => (
-            <TableRow key={index + product.productName}>
-              <TableCell>{product.productName}</TableCell>
-              <TableCell className="text-right">{product.sellPrice}</TableCell>
-              <TableCell className="text-center">
-                <div className="flex justify-evenly items-center">
-                  <button onClick={() => handleUpdate(product.productName, -1)}>
-                    <MinusSquare />
-                  </button>
-                  <input className="w-6" value={product.quantity} />
-                  <button onClick={() => handleUpdate(product.productName, 1)}>
-                    <PlusSquare />
-                  </button>
-                </div>
-              </TableCell>
-              <TableCell className="text-right">
-                {product.quantity * product.sellPrice}
-              </TableCell>
-              <TableCell className="text-center">
-                <span
-                  className="cursor-pointer text-center"
-                  onClick={() => handleRemoveItem(product.productName)}
-                >
-                  <XCircle className="text-red-500" />
-                </span>
-              </TableCell>
-            </TableRow>
-          ))}
+          {/* Regular Item */}
+          {chartList
+            .filter((product) => !product.return)
+            .map((product, index) => (
+              <TableRow key={index + product.productName}>
+                <TableCell>{product.productName}</TableCell>
+                <TableCell className="text-right">{product.sellPrice}</TableCell>
+                <TableCell className="text-center">
+                  <div className="flex justify-evenly items-center">
+                    <button onClick={() => handleUpdate(product.productName, -1)}>
+                      <MinusSquare />
+                    </button>
+                    <input className="w-6" value={product.quantity} />
+                    <button onClick={() => handleUpdate(product.productName, 1)}>
+                      <PlusSquare />
+                    </button>
+                  </div>
+                </TableCell>
+                <TableCell className="text-right">
+                  {product.quantity * product.sellPrice}
+                </TableCell>
+                <TableCell className="text-right">
+                  {product.sold ?
+                    <span
+                      title="return item"
+                      className="cursor-pointer text-center"
+                      onClick={() => handleReturnItem(product.productName)}
+                    >
+                      <Undo2 className="text-red-700" />
+                    </span> : <span
+                      title="remove from list"
+                      className="cursor-pointer text-center"
+                      onClick={() => handleRemoveItem(product.productName)}
+                    >
+                      <XCircle className="text-red-500" />
 
+                    </span>
+                  }
+
+                </TableCell>
+              </TableRow>
+            ))}
+            {/* Show Button return */}
+            {chartList.filter((product) => product.return).length >=1 && <>
+          {/* Show Title for Return Item */}
+          <TableRow>
+            {editInvoice && chartList.length > 0 &&
+              <p
+                title="Show List of Return Item "
+                className="text-lg underline font-bold m-2 flex justify-start items-center gap-2 hover:border-green-500 border hover:text-green-500 p-2 cursor-pointer w-[100%]" onClick={handleReturnDisplay}>Return Item
+                <span className="inline-block text-green-500">{showReturnList ? <EyeOff /> : <Eye />}</span></p>}
+
+          </TableRow> {/* Return Item in Table*/}
+          {showReturnList &&
+            chartList
+              .filter((product) => product.return)
+              .map((product, index) => (
+                <TableRow key={index + product.productName}>
+                  <TableCell>{product.productName}</TableCell>
+                  <TableCell className="text-right">{product.sellPrice}</TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex justify-evenly items-center">
+                      <button onClick={() => handleUpdate(product.productName, -1)}>
+                        <MinusSquare />
+                      </button>
+                      <input className="w-6" value={product.quantity} />
+                      <button onClick={() => handleUpdate(product.productName, 1)}>
+                        <PlusSquare />
+                      </button>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {product.quantity * product.sellPrice}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {product.sold ?
+                      <span
+                        title="undo-return item"
+                        className="cursor-pointer text-center"
+                        onClick={() => handleReturnItemUndo(product.productName)}
+                      >
+                        <Redo2Icon className="text-green-500" />
+                      </span> : <span
+                        title="remove from list"
+                        className="cursor-pointer text-center"
+                        onClick={() => handleRemoveItem(product.productName)}
+                      >
+                        <XCircle className="text-red-500" />
+
+                      </span>
+                    }
+
+                  </TableCell>
+                </TableRow>
+              ))}
+      </>}
           {/* Special Stitching Product Input */}
           {selectedCustomer?.type === "special-sitching" && (
             <TableRow>
@@ -243,19 +356,23 @@ const BillTable: FC<BillTableProps> = ({
           )}
         </TableBody>
       </Table>
-      {loading?<LoadingSpinner/>:<> 
+      {loading ? <LoadingSpinner /> : <>
         {chartList.length === 0 && (
-        <div className="relative mt-1 text-center text-white capitalize bg-gray-400 text-lg w-full p-2 animate-pulse">
-          {errorMessage || "Empty Product List"}
-        </div>
-      )}
+          <div className="relative mt-1 text-center text-white capitalize bg-gray-400 text-lg w-full p-2 animate-pulse">
+            {errorMessage || "Empty Product List"}
+          </div>
+        )}
       </>}
-     
+
       <div>
-        <div className="w-full bg-black p-2 text-center text-white">
+        <div className={`w-full bg-black p-2 ${editInvoice ? "flex justify-between items-center" : "text-center"}  text-white`}>
           <p className="font-semibold">
             Grand Total : Rs {grandTotal ? grandTotal : "0.00"}
           </p>
+          {/* {grandTotalReturnToCustomer > 0 && editInvoice && <p className="font-semibold">
+            Return Money to Customer : Rs {grandTotalReturnToCustomer ? grandTotalReturnToCustomer : "0.00"}
+          </p> */}
+         
         </div>
 
         <div className="flex justify-end mr-16 mt-2 -mb-2">
@@ -263,7 +380,36 @@ const BillTable: FC<BillTableProps> = ({
         </div>
 
         <div className="flex justify-end mt-3 relative">
+          <>
+            {/* <Input
+              id="discount"
+              placeholder="discount %"
+              type="number"
+              min={0}
+              disabled={chartList.length <= 0}
+              value={discount}
+              onChange={(e) =>
+                dispatch(setDiscount(Math.max(0, parseInt(e.target.value, 10))))
+              }
+              className="w-32 rounded-none focus-visible:ring-0 border-black"
+            /> */}
+            <Select onValueChange={calculateDiscount} disabled={chartList.length <= 0}>
+              <SelectTrigger className="w-52 rounded-none focus-visible:ring-0 border-black">
+                <SelectValue placeholder="Select a discount" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Discount Value</SelectLabel>
+                  <SelectItem value="0">0%</SelectItem>
+                  <SelectItem value="5">5%</SelectItem>
+                  <SelectItem value="10">10%</SelectItem>
+                  <SelectItem value="15">15%</SelectItem>
+                  <SelectItem value="20">20%</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
 
+          </>
           <Input
             id="discount"
             placeholder="discount"
@@ -276,9 +422,9 @@ const BillTable: FC<BillTableProps> = ({
             }
             className="w-32 rounded-none focus-visible:ring-0 border-black"
           />
-
           <div className="absolute bg-black text-white p-2 text-center">Rs</div>
         </div>
+
         <div className="flex justify-between mt-1">
           <Button size={"lg"} variant="destructive" onClick={handleReset}>
             <RotateCcw className="w-4 h-4 mr-4" /> Clear
@@ -296,14 +442,17 @@ const BillTable: FC<BillTableProps> = ({
           )}
           {editInvoice && (
             <Button
+              disabled={loading}
               size={"lg"}
               variant="outline"
               onClick={saveChangeInvoice}
-              className="border-black"
+              className={`btn border-black ${loading ? "btn-disabled" : "btn-primary"}`}
             >
               <FilePenLine className="w-4 h-4 mr-4" />
-              <span className=" text-black font-bold">Save Invoice</span>
+              <span className=" text-black font-bold">{loading ? <LoadingSpinner /> : "Save Invoice"}</span>
             </Button>
+
+
           )}
 
           {/* Only show the PayNow button if customer type is wholesale and mode is wholesale */}
@@ -323,7 +472,7 @@ const BillTable: FC<BillTableProps> = ({
                 variant="destructive"
                 className="animate-bounce"
               >
-                <span className="text-white">
+                <span className="text-white text-sm">
                   Customer must be Wholesaler for Wholesale Mode
                 </span>
               </Button>

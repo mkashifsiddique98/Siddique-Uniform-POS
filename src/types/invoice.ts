@@ -6,7 +6,8 @@ export interface ProductDetail {
   productName: string;  // Use `string` instead of `{ type: String }`
   quantity: number;     // Use `number` instead of `{ type: Number }`
   sellPrice: number;    // Use `number`
-  _id: string;          // Use `string`
+  _id: string;
+  return?: boolean          // Use `string`
 }
 
 export interface Invoice {

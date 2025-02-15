@@ -33,6 +33,8 @@ import { useRouter } from "next/navigation";
 import BreadCrum from "@/components/custom-components/bread-crum";
 import { Invoice } from "@/types/invoice";
 import { Input } from "@/components/ui/input";
+import { Metadata } from "next";
+
 // ***************************************Serach ***********************
 interface SearchProps {
   searchTerm: string;
