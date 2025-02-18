@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  AlertTriangleIcon,
   BadgePlus,
   Eye,
   EyeOff,
@@ -98,7 +99,7 @@ const BillTable: FC<BillTableProps> = ({
 
 
   const calculateDiscount = (value: string) => {
-    const discountPercentage = parseInt(value,0)
+    const discountPercentage = parseInt(value, 0)
     const discountAmount = (grandTotal * discountPercentage) / 100;
     // grandTotal = discountAmount
 
@@ -199,15 +200,15 @@ const BillTable: FC<BillTableProps> = ({
     }
   };
   const BuyTotalAmount = chartList.filter((product) => !product.return)
-  .reduce(
-    (total, product) => total + product.sellPrice * product.quantity,
-    0
-  );
+    .reduce(
+      (total, product) => total + product.sellPrice * product.quantity,
+      0
+    );
   const returnTotalAmount = chartList.filter((product) => product.return)
-  .reduce(
-    (total, product) => total + product.sellPrice * product.quantity,
-    0
-  );
+    .reduce(
+      (total, product) => total + product.sellPrice * product.quantity,
+      0
+    );
   return (
     <div className="flex flex-col justify-between h-[75vh]">
       <Table>
@@ -270,60 +271,60 @@ const BillTable: FC<BillTableProps> = ({
                 </TableCell>
               </TableRow>
             ))}
-            {/* Show Button return */}
-            {chartList.filter((product) => product.return).length >=1 && <>
-          {/* Show Title for Return Item */}
-          <TableRow>
-            {editInvoice && chartList.length > 0 &&
-              <p
-                title="Show List of Return Item "
-                className="text-lg underline font-bold m-2 flex justify-start items-center gap-2 hover:border-green-500 border hover:text-green-500 p-2 cursor-pointer w-[100%]" onClick={handleReturnDisplay}>Return Item
-                <span className="inline-block text-green-500">{showReturnList ? <EyeOff /> : <Eye />}</span></p>}
+          {/* Show Button return */}
+          {chartList.filter((product) => product.return).length >= 1 && <>
+            {/* Show Title for Return Item */}
+            <TableRow>
+              {editInvoice && chartList.length > 0 &&
+                <p
+                  title="Show List of Return Item "
+                  className="text-lg underline font-bold m-2 flex justify-start items-center gap-2 hover:border-green-500 border hover:text-green-500 p-2 cursor-pointer w-[100%]" onClick={handleReturnDisplay}>Return Item
+                  <span className="inline-block text-green-500">{showReturnList ? <EyeOff /> : <Eye />}</span></p>}
 
-          </TableRow> {/* Return Item in Table*/}
-          {showReturnList &&
-            chartList
-              .filter((product) => product.return)
-              .map((product, index) => (
-                <TableRow key={index + product.productName}>
-                  <TableCell>{product.productName}</TableCell>
-                  <TableCell className="text-right">{product.sellPrice}</TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex justify-evenly items-center">
-                      <button onClick={() => handleUpdate(product.productName, -1)}>
-                        <MinusSquare />
-                      </button>
-                      <input className="w-6" value={product.quantity} />
-                      <button onClick={() => handleUpdate(product.productName, 1)}>
-                        <PlusSquare />
-                      </button>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {product.quantity * product.sellPrice}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {product.sold ?
-                      <span
-                        title="undo-return item"
-                        className="cursor-pointer text-center"
-                        onClick={() => handleReturnItemUndo(product.productName)}
-                      >
-                        <Redo2Icon className="text-green-500" />
-                      </span> : <span
-                        title="remove from list"
-                        className="cursor-pointer text-center"
-                        onClick={() => handleRemoveItem(product.productName)}
-                      >
-                        <XCircle className="text-red-500" />
+            </TableRow> {/* Return Item in Table*/}
+            {showReturnList &&
+              chartList
+                .filter((product) => product.return)
+                .map((product, index) => (
+                  <TableRow key={index + product.productName}>
+                    <TableCell>{product.productName}</TableCell>
+                    <TableCell className="text-right">{product.sellPrice}</TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex justify-evenly items-center">
+                        <button onClick={() => handleUpdate(product.productName, -1)}>
+                          <MinusSquare />
+                        </button>
+                        <input className="w-6" value={product.quantity} />
+                        <button onClick={() => handleUpdate(product.productName, 1)}>
+                          <PlusSquare />
+                        </button>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {product.quantity * product.sellPrice}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {product.sold ?
+                        <span
+                          title="undo-return item"
+                          className="cursor-pointer text-center"
+                          onClick={() => handleReturnItemUndo(product.productName)}
+                        >
+                          <Redo2Icon className="text-green-500" />
+                        </span> : <span
+                          title="remove from list"
+                          className="cursor-pointer text-center"
+                          onClick={() => handleRemoveItem(product.productName)}
+                        >
+                          <XCircle className="text-red-500" />
 
-                      </span>
-                    }
+                        </span>
+                      }
 
-                  </TableCell>
-                </TableRow>
-              ))}
-      </>}
+                    </TableCell>
+                  </TableRow>
+                ))}
+          </>}
           {/* Special Stitching Product Input */}
           {selectedCustomer?.type === "special-sitching" && (
             <TableRow>
@@ -377,16 +378,16 @@ const BillTable: FC<BillTableProps> = ({
       <div>
         <div className={`w-full bg-black p-2 ${editInvoice ? "flex justify-between items-center" : "text-center"}  text-white`}>
           <p className="font-semibold">
-            Grand Total : Rs {grandTotal ? grandTotal-returnTotalAmount : "0.00"}
+            Grand Total : Rs {grandTotal ? grandTotal - returnTotalAmount : "0.00"}
           </p>
           {returnTotalAmount > 0 && editInvoice && <p className="font-semibold">
             Return Item : Rs {returnTotalAmount ? returnTotalAmount : "0.00"}
           </p>
-        }
-        {BuyTotalAmount > 0 && editInvoice && <p className="font-semibold">
+          }
+          {BuyTotalAmount > 0 && editInvoice && <p className="font-semibold">
             Buy Item : Rs {BuyTotalAmount ? BuyTotalAmount : "0.00"}
           </p>
-        }
+          }
         </div>
 
         <div className="flex justify-end mr-16 mt-2 -mb-2">
@@ -415,6 +416,7 @@ const BillTable: FC<BillTableProps> = ({
                 <SelectGroup>
                   <SelectLabel>Discount Value</SelectLabel>
                   <SelectItem value="0">0%</SelectItem>
+                  <SelectItem value="7">7%</SelectItem>
                   <SelectItem value="5">5%</SelectItem>
                   <SelectItem value="10">10%</SelectItem>
                   <SelectItem value="15">15%</SelectItem>
@@ -481,14 +483,11 @@ const BillTable: FC<BillTableProps> = ({
                 handleReset={handleReset}
               />
             ) : (
-              <Button
-                size={"sm"}
-                variant="destructive"
-                className="animate-bounce"
-              >
-                <span className="text-white text-sm">
-                  Customer must be Wholesaler for Wholesale Mode
-                </span>
+              <Button size="lg" variant="destructive" className="px-4 py-2 flex items-center gap-2 animate-bounce bg-yellow-400 cursor-not-allowed">
+                <AlertTriangleIcon className="w-4 h-4 text-white" />
+                <p className="text-white text-sm font-medium">
+                  Customer is not wholesaler
+                </p>
               </Button>
             ))}
 

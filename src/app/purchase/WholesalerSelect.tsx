@@ -9,21 +9,12 @@ import { customStyles } from './ProductSelect';
 
 interface WholesalerSelectProps {
   onSelect: (wholesaler: IWholesaler) => void;
+  wholesalers: IWholesaler[];
+  fetchWholesalers:()=>void;
 }
 
-const WholesalerSelect: React.FC<WholesalerSelectProps> = ({ onSelect }) => {
-  const [wholesalers, setWholesalers] = useState<IWholesaler[]>([]);
+const WholesalerSelect: React.FC<WholesalerSelectProps> = ({ onSelect,wholesalers,fetchWholesalers }) => {
  
-
-  useEffect(() => {
-    const fetchWholesalers = async () => {
-      const response = await axios.get("/api/purchase/wholesale");
-      setWholesalers(response.data.listWholeSaler);
-    };
-
-    fetchWholesalers();
-  }, []);
-
   const handleChange = (selectedOption: any) => {
     const selectedWholesaler = wholesalers.find((w) => w._id === selectedOption?.value);
     if (selectedWholesaler) {
@@ -32,26 +23,9 @@ const WholesalerSelect: React.FC<WholesalerSelectProps> = ({ onSelect }) => {
   };
 
   const options = wholesalers.map((wholesaler) => ({
-    value: wholesaler._id,
-    label: wholesaler.name
+    value: wholesaler?._id,
+    label: wholesaler?.name
   }));
-  const fetchWholesalers = async () => {
-    try {
-      const response = await axios.get("/api/purchase/wholesale");
-      if (response) {
-        setWholesalers(response.data.listWholeSaler);
-        
-      } else {
-        setWholesalers([]);
-      }
-    } catch (error) {
-      console.log("Message Error", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchWholesalers();
-  }, []);
   return (
     
         <div className='flex justify-between items-center'>

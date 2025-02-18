@@ -246,8 +246,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
                   date={dueDate} handleDateChange={setDueDate}
                 />
 
-
-              </div>
+          </div>
             )}
           </div>
         </div>
@@ -269,7 +268,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
       {/* Receipt content for printing */}
       <div
         style={{ display: "none"
-          // , position: "absolute", top: 1 ,right:1, backgroundColor: "red" 
+          // , position: "absolute", top: 1 ,right:1, backgroundColor: "white" 
         }}
       >
         <div ref={componentRef}>

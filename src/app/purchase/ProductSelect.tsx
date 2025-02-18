@@ -59,7 +59,8 @@ const ProductSelect: FC<ProductSelectProps> = ({ handleSelectProduct, products }
   const handleChange = (option: any) => {
     setSelectedOption(option);
     handleSelectProduct(option);
-    setSelectedOption(null); // Clear selection after adding product
+    // setSelectedOption(null); 
+    // Clear selection after adding product
   };
 
 

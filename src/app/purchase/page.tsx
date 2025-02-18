@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { toast } from "@/components/ui/use-toast";
 
 const PurchasePage = () => {
+   const [wholesalers, setWholesalers] = useState<IWholesaler[]>([]);
   const [selectedWholesaler, setSelectedWholesaler] = useState<IWholesaler | null>(null);
   const [products, setProducts] = useState<ProductFormState[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<ProductFormState[]>([]);
@@ -33,15 +34,29 @@ const PurchasePage = () => {
       setProducts([]);
     }
   };
-
+  const fetchWholesalers = async () => {
+    try {
+      const response = await axios.get("/api/purchase/wholesale");
+      if (response) {
+        setWholesalers(response.data.listWholeSaler);
+      } else {
+        setWholesalers([]);
+      }
+    } catch (error) {
+      console.log("Message Error", error);
+    }
+  };
   useEffect(() => {
+    // Fetch all Whole Seller
+    fetchWholesalers()
+    // Fetch all Product 
     fetchProducts();
-  }, []);
+ }, []);
 
   // Calculate grand total whenever selected products change
   useEffect(() => {
     const total = selectedProducts.reduce(
-      (sum, product) => sum + product.sellPrice * (product.quantity || 0),
+      (sum, product) => sum + product.productCost * (product.quantity || 0),
       0
     );
     setGrandTotal(total);
@@ -73,7 +88,7 @@ const PurchasePage = () => {
             {
               ...selectedProduct,
               quantity: 1,
-              sellPrice: selectedProduct.sellPrice || 0,
+              sellPrice: selectedProduct.productCost || 0,
             },
           ];
         }
@@ -95,7 +110,7 @@ const PurchasePage = () => {
   const handlePriceChange = (id: string, newPrice: number) => {
     setSelectedProducts((prevSelectedProducts) =>
       prevSelectedProducts.map((product: any) =>
-        product._id === id ? { ...product, sellPrice: newPrice } : product
+        product._id === id ? { ...product, productCost : newPrice } : product
       )
     );
   };
@@ -120,7 +135,7 @@ const PurchasePage = () => {
       setError("Please select at least one product.");
       return;
     }
-
+    // For Payment Detail in Database for Clear or Not
     const totalDue = selectedWholesaler.pendingBalance + grandTotal;
     const pendingBalance = isPaid ? 0 : totalDue - (paidAmount || 0);
     const paymentStatus = pendingBalance <= 0 ? "Clear" : "Pending";
@@ -147,6 +162,8 @@ const PurchasePage = () => {
         setSelectedProducts([]);
         setIsPaid(false);
         setPaidAmount(0);
+        // Refresh WholeSeller Detail for Next Time or Same Time Editing Bill 
+        fetchWholesalers();
       } else {
         setError("Failed to confirm purchase.");
       }
@@ -166,7 +183,10 @@ const PurchasePage = () => {
   return (
     <div className="container p-6">
       <BreadCrum mainfolder="Purchase" subfolder="Made Sale" />
-      <WholeSalerSelect onSelect={setSelectedWholesaler} />
+      <WholeSalerSelect 
+      wholesalers={wholesalers}
+      fetchWholesalers={fetchWholesalers}
+      onSelect={setSelectedWholesaler} />
       {error && <div className="absolute top-5   flex justify-end text-red-500 animate-bounce">{error}</div>}
       {/* {selectedWholesaler && (
         <ProductSelect products={products} handleSelectProduct={handleSelectProduct} />

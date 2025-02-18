@@ -15,7 +15,7 @@ interface ReceiptTemplateProps {
   dueDate: Date | null;
   invoiceNo: number;
   remainingBalance: number;
-  return:boolean
+  return: boolean
 }
 
 const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
@@ -34,11 +34,11 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
     0
   );
   const returnTotalAmount = productList
-  .filter((product) => product.return)
-  .reduce(
-    (total, product) => total + product.sellPrice * product.quantity,
-    0
-  );
+    .filter((product) => product.return)
+    .reduce(
+      (total, product) => total + product.sellPrice * product.quantity,
+      0
+    );
   return (
     <div
       style={{
@@ -50,75 +50,83 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
       }}
     >
       {/* Header */}
-      
-        <div className="flex justify-center items-center relative">
-          <h2
-            style={{
-              margin: "0px 0 3px 0",
-              fontSize: "22px",
-              fontFamily: "fantasy",
-              fontWeight: "bold",
-              borderBottom: "2px solid black",
-              paddingBottom: "1px",
-            }}
-          >
-            Siddique Uniform Centre
-          </h2>
-        </div>
-        <p className="capitalize text-center italic text-xs mb-2">high Quality and low price</p>
-        <p className="flex justify-start items-center text-xs gap-1">
-        <MapPinIcon size={10} /><Store size={10} />Address: Saran Market Karianwala
-        </p>
-        <p className="flex justify-start items-center gap-1"><Phone size={10} /><Smartphone size={10} /><span>Phone: 03086139401</span> </p>
 
-        {/* Receipt Information */}
-        <div
+      <div className="flex justify-center items-center relative">
+        <h2
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            width:"100%",
-            border: "1px solid black",
-            padding: "2px",
-            margin: "8px 0",
-            borderRadius: "3px",
-            alignItems: "center",
-            
+            margin: "0px 0 3px 0",
+            fontSize: "22px",
+            fontFamily: "Noto Nastaliq Urdu",
+            fontWeight: "bold",
+            borderBottom: "2px solid black",
+            paddingBottom: "10px",
           }}
         >
-          <p style={{ margin: "0", fontWeight: "bold" }}>Receipt No: <span style={{ margin: "0", fontWeight: "normal" }}>{invoiceNo}</span></p>
-          <p style={{ margin: "0" }}>
-           <span style={{ fontWeight: "bold" }}> Date:</span> {new Date().toLocaleDateString("en-PK")} <br />
-           <span style={{ fontWeight: "bold" }}>Time:</span>  {new Date().toLocaleTimeString("en-PK", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+          صدیق یونیفارم سنٹر
+        </h2>
+      </div>
+      <p className="capitalize text-center italic text-xs mb-2" style={{ fontFamily: "Noto Nastaliq Urdu" }}>
+        بہترین معیار، مناسب قیمت
+      </p>
+      <p className="flex justify-center items-center text-xs gap-1" style={{ fontFamily: "Noto Nastaliq Urdu" }}>
+        پتہ:سراں مارکیٹ کریانوالہ
+        <MapPinIcon size={14} className="inline-block" />
+        <Store size={14} className="inline-block" />
+      </p>
+      <p className="flex justify-center items-center gap-1" style={{ fontFamily: "Noto Nastaliq Urdu" }}>
+        <span>فون نمبر: 03086139401</span>
+        <Phone size={14} className="inline-block" />
+        <Smartphone size={14} className="inline-block" />
+      </p>
+
+      {/* Receipt Information */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          width: "100%",
+          border: "1px solid black",
+          padding: "2px",
+          margin: "8px 0",
+          borderRadius: "3px",
+          alignItems: "center",
+
+        }}
+      >
+        <p style={{ margin: "0", fontWeight: "bold" }}>Receipt No: <span style={{ margin: "0", fontWeight: "normal" }}>{invoiceNo}</span></p>
+        <p style={{ margin: "0" }}>
+          <span style={{ fontWeight: "bold" }}> Date:</span> {new Date().toLocaleDateString("en-PK")} <br />
+          <span style={{ fontWeight: "bold" }}>Time:</span>  {new Date().toLocaleTimeString("en-PK", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </p>
+      </div>
+
+
+      {/* Customer Info */}
+      {selectedCustomer?.type === "wake-in-customer" ? (
+        <div className="flex items-center my-2">
+          <p className="font-bold">
+            Name: Regular Customer
           </p>
         </div>
+      ) : (
+        <>
+          <p style={{ margin: "5px 0", fontWeight: "bold" }}>
+            Customer Name: {selectedCustomer?.customerName || "N/A"}
+          </p>
+          <p style={{ margin: "5px 0", fontWeight: "bold" }}>
+            Customer Type: {selectedCustomer?.type || "N/A"}
+          </p>
+        </>
+      )}
+      {/* Whole Product List */}
+      {productList.filter((product) => product.return).length >= 1 && <>
 
-
-        {/* Customer Info */}
-        {selectedCustomer?.type === "wake-in-customer" ? (
-          <div className="flex items-center my-2">
-            <p className="font-bold">
-              Name: Regular Customer
-            </p>
-          </div>
-        ) : (
-          <>
-            <p style={{ margin: "5px 0", fontWeight: "bold" }}>
-              Customer Name: {selectedCustomer?.customerName || "N/A"}
-            </p>
-            <p style={{ margin: "5px 0", fontWeight: "bold" }}>
-              Customer Type: {selectedCustomer?.type || "N/A"}
-            </p>
-          </>
-        )}
-     {/* Whole Product List */}
-    {productList.filter((product) => product.return).length >= 1 && <>
-   
-      {/* Return Product Table */}
-       <p className="leading-2 font-bold">Return Items</p> 
-      <table
+        {/* Return Product Table */}
+        <p className="leading-2 font-bold">Return Items</p>
+        <table
           style={{
             width: "100%",
             borderCollapse: "collapse",
@@ -127,37 +135,37 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         >
           <thead>
             <tr>
-              <th style={{ textAlign: "center", border: "1px solid black",fontWeight:"bold" }}>
+              <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>
                 Product
               </th>
-              <th style={{ textAlign: "center", border: "1px solid black",fontWeight:"bold" }}>
+              <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>
                 Qty
               </th>
-              <th style={{ textAlign: "center", border: "1px solid black",fontWeight:"bold" }}>
+              <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>
                 Price
               </th>
-              <th style={{ textAlign: "center", border: "1px solid black",fontWeight:"bold" }}>
+              <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>
                 Total
               </th>
             </tr>
           </thead>
           <tbody>
             {productList
-            .filter((product) => product.return)
-            .map((product) => (
-              <tr key={product.productName}>
-                <td style={{ padding: "5px 0 5px 3px", border: "1px solid black" }}>{product.productName}</td>
-                <td style={{ textAlign: "center", padding: "5px 0", border: "1px solid black" }}>
-                  {product.quantity}
-                </td>
-                <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
-                  {product.sellPrice}
-                </td>
-                <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
-                  {product.sellPrice * product.quantity}
-                </td>
-              </tr>
-            ))}
+              .filter((product) => product.return)
+              .map((product) => (
+                <tr key={product.productName}>
+                  <td style={{ padding: "5px 0 5px 3px", border: "1px solid black" }}>{product.productName}</td>
+                  <td style={{ textAlign: "center", padding: "5px 0", border: "1px solid black" }}>
+                    {product.quantity}
+                  </td>
+                  <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
+                    {product.sellPrice}
+                  </td>
+                  <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
+                    {product.sellPrice * product.quantity}
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
         <div
@@ -172,74 +180,89 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         </div>
         {/*New Product Table */}
         <p className="leading-2 font-bold">New Items</p>
-        </>
-}
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            marginBottom: "10px",
-          }}
-        >
-          <thead>
-            <tr>
-              <th style={{ textAlign: "center", border: "1px solid black",fontWeight:"bold" }}>
-                Product
-              </th>
-              <th style={{ textAlign: "center", border: "1px solid black",fontWeight:"bold" }}>
-                Qty
-              </th>
-              <th style={{ textAlign: "center", border: "1px solid black",fontWeight:"bold" }}>
-                Price
-              </th>
-              <th style={{ textAlign: "center", border: "1px solid black",fontWeight:"bold" }}>
-                Total
-              </th>
+      </>
+      }
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          marginBottom: "10px",
+        }}
+      >
+        <thead>
+          <tr>
+            <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>
+              Product
+            </th>
+            <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>
+              Qty
+            </th>
+            <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>
+              Price
+            </th>
+            <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>
+              Total
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {productList.map((product) => (
+            <tr key={product.productName}>
+              <td style={{ padding: "5px 0 5px 3px", border: "1px solid black" }}>{product.productName}</td>
+              <td style={{ textAlign: "center", padding: "5px 0", border: "1px solid black" }}>
+                {product.quantity}
+              </td>
+              <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
+                {product.sellPrice}
+              </td>
+              <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
+                {product.sellPrice * product.quantity}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {productList.map((product) => (
-              <tr key={product.productName}>
-                <td style={{ padding: "5px 0 5px 3px", border: "1px solid black" }}>{product.productName}</td>
-                <td style={{ textAlign: "center", padding: "5px 0", border: "1px solid black" }}>
-                  {product.quantity}
-                </td>
-                <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
-                  {product.sellPrice}
-                </td>
-                <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
-                  {product.sellPrice * product.quantity}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          ))}
+        </tbody>
+      </table>
 
-        {/* Discounts and Totals */}
-        
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            padding: "5px 0",
-          }}
-        >
-          <span>Sub-Total</span>
-          <span>Rs {totalAmount}</span>
-        </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            padding: "5px 0",
-            borderTop: "1px dotted black",
-          }}
-        >
-          <span>Discount</span>
-          <span>
-            Rs {discount} ({disInPercentage}%)
-          </span>
-        </div>
+      {/* Discounts and Totals */}
+
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          padding: "5px 0",
+        }}
+      >
+        <span>Sub-Total</span>
+        <span>Rs {totalAmount}</span>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          padding: "5px 0",
+          borderTop: "1px dotted black",
+        }}
+      >
+        <span>Discount</span>
+        <span>
+          Rs {discount} ({disInPercentage}%)
+        </span>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          padding: "5px 0",
+          borderTop: "1px dotted black",
+          fontWeight: "bold",
+        }}
+      >
+        <span>Grand Total</span>
+        <span>Rs {grandTotal}</span>
+      </div>
+
+      {/* Remaining Balance */}
+      {remainingBalance !== 0 && (
         <div
           style={{
             display: "flex",
@@ -249,43 +272,28 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
             fontWeight: "bold",
           }}
         >
-          <span>Grand Total</span>
-          <span>Rs {grandTotal}</span>
+          <span>Remaining Balance</span>
+          <span>Rs {remainingBalance}</span>
         </div>
+      )}
 
-        {/* Remaining Balance */}
-        {remainingBalance !== 0 && (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              padding: "5px 0",
-              borderTop: "1px dotted black",
-              fontWeight: "bold",
-            }}
-          >
-            <span>Remaining Balance</span>
-            <span>Rs {remainingBalance}</span>
-          </div>
-        )}
-
-        {/* Due Date for Special Stitching */}
-        {selectedCustomer?.type === "special-stitching" && (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              padding: "5px 0",
-              borderTop: "1px dotted black",
-              fontWeight: "bold",
-            }}
-          >
-            <span>Due Date for Stitching</span>
-            <span>{dueDate ? new Date(dueDate).toLocaleDateString() : "N/A"}</span>
-          </div>
-        )}
-        {/* Bar code */}
-        {/* <div className="flex justify-center items-center py-2" style={{ borderTop: "1px dotted black", borderBottom: "1px dotted black" }}>
+      {/* Due Date for Special Stitching */}
+      {selectedCustomer?.type === "special-stitching" && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "5px 0",
+            borderTop: "1px dotted black",
+            fontWeight: "bold",
+          }}
+        >
+          <span>Due Date for Stitching</span>
+          <span>{dueDate ? new Date(dueDate).toLocaleDateString() : "N/A"}</span>
+        </div>
+      )}
+      {/* Bar code */}
+      {/* <div className="flex justify-center items-center py-2" style={{ borderTop: "1px dotted black", borderBottom: "1px dotted black" }}>
           <Barcode
             margin={0}
             height={25}
@@ -315,20 +323,20 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
             size={60}
           />
         </div> */}
-        {/* Footer */}
-        <div>
+      {/* Footer */}
+      <div>
         <p
           style={{
             textAlign: "center",
             margin: "12px 0 10px 0",
             fontSize: "14px",
-            fontFamily:"Noto Nastaliq Urdu",
+            fontFamily: "Noto Nastaliq Urdu",
           }}
         >
-        نوٹ: خریدا ہوا سامان بل کے بغیر واپس یا تبدیل نہیں ہوگا۔  </p>
-        </div>
+          نوٹ: خریدا ہوا سامان بل کے بغیر واپس یا تبدیل نہیں ہوگا۔  </p>
       </div>
-      );
+    </div>
+  );
 };
 
-      export default ReceiptTemplate;
+export default ReceiptTemplate;

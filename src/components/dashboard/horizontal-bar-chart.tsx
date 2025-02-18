@@ -3,182 +3,101 @@
 import React, { useEffect, useState } from "react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 
-// Product data type
+// Types
 interface ProductDetail {
   productName: string;
   quantity: number;
 }
 
-// Invoice data type
 interface Invoice {
-  invoiceDate: string; // Ensure date format is ISO 8601 or similar
+  invoiceDate: string;
   productDetail: ProductDetail[];
 }
 
-// Props for the component
 interface HorizontalBarChartProps {
-  invoices?: Invoice[]; // Allow undefined for safety
+  invoices?: Invoice[];
 }
 
 const HorizontalBarChart = ({ invoices = [] }: HorizontalBarChartProps) => {
-  const [todayData, setTodayData] = useState<ProductDetail[]>([]);
-  const [weekData, setWeekData] = useState<ProductDetail[]>([]);
-  const [monthData, setMonthData] = useState<ProductDetail[]>([]);
-  const [threeMonthsData, setThreeMonthsData] = useState<ProductDetail[]>([]);
-  const [sixMonthsData, setSixMonthsData] = useState<ProductDetail[]>([]);
-  const [yearData, setYearData] = useState<ProductDetail[]>([]);
+  const [data, setData] = useState<{ [key: string]: ProductDetail[] }>({});
 
-  // Helper function to group product quantities
+  const timeRanges = [
+    { key: "today", label: "Today" },
+    { key: "week", label: "Last Week" },
+    { key: "month", label: "Last Month" },
+    { key: "threeMonths", label: "Last 3 Months" },
+    { key: "sixMonths", label: "Last 6 Months" },
+    { key: "year", label: "Last Year" },
+  ];
+
   const groupProducts = (filteredInvoices: Invoice[]) => {
     const productMap: Record<string, number> = {};
-
     filteredInvoices.forEach((invoice) => {
-      invoice.productDetail.forEach((product) => {
-        if (productMap[product.productName]) {
-          productMap[product.productName] += product.quantity;
-        } else {
-          productMap[product.productName] = product.quantity;
-        }
+      invoice.productDetail.forEach(({ productName, quantity }) => {
+        productMap[productName] = (productMap[productName] || 0) + quantity;
       });
     });
-
     return Object.entries(productMap)
       .map(([name, quantity]) => ({ name, quantity }))
       .sort((a, b) => b.quantity - a.quantity);
   };
 
-  // Function to filter invoices by date range
-  const filterInvoices = (range: "today" | "week" | "month" | "threeMonths" | "sixMonths" | "year") => {
+  const filterInvoices = (range: string) => {
     const now = new Date();
-    return invoices.filter((invoice) => {
-      const invoiceDate = new Date(invoice.invoiceDate);
-      if (range === "today") {
-        return (
-          invoiceDate.getDate() === now.getDate() &&
-          invoiceDate.getMonth() === now.getMonth() &&
-          invoiceDate.getFullYear() === now.getFullYear()
-        );
-      } else if (range === "week") {
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(now.getDate() - 7);
-        return invoiceDate >= oneWeekAgo && invoiceDate <= now;
-      } else if (range === "month") {
-        return (
-          invoiceDate.getMonth() === now.getMonth() &&
-          invoiceDate.getFullYear() === now.getFullYear()
-        );
-      } else if (range === "threeMonths") {
-        const threeMonthsAgo = new Date();
-        threeMonthsAgo.setMonth(now.getMonth() - 3);
-        return invoiceDate >= threeMonthsAgo && invoiceDate <= now;
-      } else if (range === "sixMonths") {
-        const sixMonthsAgo = new Date();
-        sixMonthsAgo.setMonth(now.getMonth() - 6);
-        return invoiceDate >= sixMonthsAgo && invoiceDate <= now;
-      } else if (range === "year") {
-        return invoiceDate.getFullYear() === now.getFullYear();
+    return invoices.filter(({ invoiceDate }) => {
+      const date = new Date(invoiceDate);
+      switch (range) {
+        case "today":
+          return date.toDateString() === now.toDateString();
+        case "week":
+          return date >= new Date(now.setDate(now.getDate() - 7));
+        case "month":
+          return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+        case "threeMonths":
+          return date >= new Date(now.setMonth(now.getMonth() - 3));
+        case "sixMonths":
+          return date >= new Date(now.setMonth(now.getMonth() - 6));
+        case "year":
+          return date.getFullYear() === now.getFullYear();
+        default:
+          return false;
       }
-      return false;
     });
   };
 
-  // Process data when invoices change
   useEffect(() => {
-    setTodayData(groupProducts(filterInvoices("today")));
-    setWeekData(groupProducts(filterInvoices("week")));
-    setMonthData(groupProducts(filterInvoices("month")));
-    setThreeMonthsData(groupProducts(filterInvoices("threeMonths")));
-    setSixMonthsData(groupProducts(filterInvoices("sixMonths")));
-    setYearData(groupProducts(filterInvoices("year")));
+    const processedData: { [key: string]: ProductDetail[] } = {};
+    timeRanges.forEach(({ key }) => {
+      processedData[key] = groupProducts(filterInvoices(key));
+    });
+    setData(processedData);
   }, [invoices]);
 
   return (
-    <div className="space-y-8">
-      {/* Chart for today's sales */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Top-Selling Products (Today)</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={todayData} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis dataKey="name" type="category" width={150} />
-            <Tooltip />
-            <Bar dataKey="quantity" fill="#8884d8" barSize={20} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Chart for last week's sales */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Top-Selling Products (Last Week)</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={weekData} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis dataKey="name" type="category" width={150} />
-            <Tooltip />
-            <Bar dataKey="quantity" fill="#82ca9d" barSize={20} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Chart for last month's sales */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Top-Selling Products (Last Month)</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={monthData} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis dataKey="name" type="category" width={150} />
-            <Tooltip />
-            <Bar dataKey="quantity" fill="#ffc658" barSize={20} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Chart for last three months' sales */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Top-Selling Products (Last 3 Months)</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={threeMonthsData} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis dataKey="name" type="category" width={150} />
-            <Tooltip />
-            <Bar dataKey="quantity" fill="#ff7300" barSize={20} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Chart for last six months' sales */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Top-Selling Products (Last 6 Months)</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={sixMonthsData} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis dataKey="name" type="category" width={150} />
-            <Tooltip />
-            <Bar dataKey="quantity" fill="#82caff" barSize={20} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Chart for last year's sales */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Top-Selling Products (Last Year)</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={yearData} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis dataKey="name" type="category" width={150} />
-            <Tooltip />
-            <Bar dataKey="quantity" fill="#d88484" barSize={20} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+    <div className="space-y-8 p-4">
+      {timeRanges.map(({ key, label }, index) => (
+        <SalesChart key={key} title={`Top-Selling Products (${label})`} data={data[key]} color={chartColors[index]} />
+      ))}
     </div>
   );
 };
+
+// Reusable Chart Component
+const SalesChart = ({ title, data, color }: { title: string; data: ProductDetail[]; color: string }) => (
+  <div className="bg-white shadow-md rounded-lg p-4">
+    <h2 className="text-xl font-semibold mb-4">{title}</h2>
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={data} layout="vertical">
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis type="number" />
+        <YAxis dataKey="name" type="category" width={150} />
+        <Tooltip />
+        <Bar dataKey="quantity" fill={color} barSize={24} radius={[8, 8, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  </div>
+);
+
+const chartColors = ["#8884d8", "#82ca9d", "#ffc658", "#ff7300", "#82caff", "#d88484"];
 
 export default HorizontalBarChart;

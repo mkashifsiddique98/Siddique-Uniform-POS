@@ -100,12 +100,14 @@ const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
 
   // Effect to update selected customer based on customerName
   useEffect(() => {
-    const filteredCustomers = customerDetailList.find(
+    const normalizedInput = customerName?.toLowerCase().replace(/\s+/g, "");
+    const filteredCustomer = customerDetailList.find(
       (customer) =>
-        customer.customerName.toLowerCase() === customerName?.toLowerCase()
+        customer.customerName.toLowerCase().replace(/\s+/g, "") === normalizedInput
     );
-    setSelectedCustomer(filteredCustomers);
-  }, [customerName]);
+    setSelectedCustomer(filteredCustomer);
+  }, [customerName, customerDetailList]);
+  
 
   // Effect to set invoice number when invoiceNo prop changes
   useEffect(() => {
@@ -168,7 +170,6 @@ const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
           errorMessage={errorMessage}
           loading={loading}
         />
-        
       </div>
     </div>
   );
