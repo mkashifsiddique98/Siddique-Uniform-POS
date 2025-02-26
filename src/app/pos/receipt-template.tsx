@@ -1,11 +1,11 @@
+/* eslint-disable @next/next/no-img-element */
+"use client"
 import { customer } from "@/types/customer";
 import { ProductDetail } from "@/types/invoice";
 import { Facebook, MapPinIcon, Phone, Smartphone, Store } from "lucide-react";
 import QRCode from "react-qr-code";
-import React, { FC } from "react";
-import Barcode from "react-barcode"
-import Image from "next/image";
-import { Separator } from "@/components/ui/separator";
+import React, { FC, useEffect } from "react";
+import Barcode from "react-barcode";
 interface ReceiptTemplateProps {
   selectedCustomer: customer | undefined;
   productList: ProductDetail[];
@@ -39,6 +39,11 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
       (total, product) => total + product.sellPrice * product.quantity,
       0
     );
+
+  const SPECIAL_STITCHING = "special-stitching";
+  const isSpecialStitching =
+    selectedCustomer?.type?.trim().toLowerCase() === SPECIAL_STITCHING;
+
   return (
     <div
       style={{
@@ -55,7 +60,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         <h2
           style={{
             margin: "0px 0 3px 0",
-            fontSize: "22px",
+            fontSize: "24px",
             fontFamily: "Noto Nastaliq Urdu",
             fontWeight: "bold",
             borderBottom: "2px solid black",
@@ -65,15 +70,16 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
           صدیق یونیفارم سنٹر
         </h2>
       </div>
-      <p className="capitalize text-center italic text-xs mb-2" style={{ fontFamily: "Noto Nastaliq Urdu" }}>
+      <p className="capitalize text-center italic text-xs mb-6 urdu-font" >
         بہترین معیار، مناسب قیمت
       </p>
-      <p className="flex justify-center items-center text-xs gap-1" style={{ fontFamily: "Noto Nastaliq Urdu" }}>
+
+      <p className="flex justify-center items-center text-xs gap-1 urdu-font" >
         پتہ:سراں مارکیٹ کریانوالہ
         <MapPinIcon size={14} className="inline-block" />
         <Store size={14} className="inline-block" />
       </p>
-      <p className="flex justify-center items-center gap-1" style={{ fontFamily: "Noto Nastaliq Urdu" }}>
+      <p className="flex justify-center items-center gap-1 urdu-font" >
         <span>فون نمبر: 03086139401</span>
         <Phone size={14} className="inline-block" />
         <Smartphone size={14} className="inline-block" />
@@ -206,26 +212,27 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
           </tr>
         </thead>
         <tbody>
-          {productList.map((product) => (
-            <tr key={product.productName}>
-              <td style={{ padding: "5px 0 5px 3px", border: "1px solid black" }}>{product.productName}</td>
-              <td style={{ textAlign: "center", padding: "5px 0", border: "1px solid black" }}>
-                {product.quantity}
-              </td>
-              <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
-                {product.sellPrice}
-              </td>
-              <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
-                {product.sellPrice * product.quantity}
-              </td>
-            </tr>
-          ))}
+          {productList
+            .filter((product) => !product.return)
+            .map((product) => (
+              <tr key={product.productName}>
+                <td style={{ padding: "5px 0 5px 3px", border: "1px solid black" }}>{product.productName}</td>
+                <td style={{ textAlign: "center", padding: "5px 0", border: "1px solid black" }}>
+                  {product.quantity}
+                </td>
+                <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
+                  {product.sellPrice}
+                </td>
+                <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
+                  {product.sellPrice * product.quantity}
+                </td>
+              </tr>
+            ))}
         </tbody>
       </table>
 
       {/* Discounts and Totals */}
-
-      <div
+      {grandTotal !== totalAmount && (<div
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -234,8 +241,9 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
       >
         <span>Sub-Total</span>
         <span>Rs {totalAmount}</span>
-      </div>
-      <div
+      </div>)}
+
+      {discount > 0 && (<div
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -247,7 +255,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         <span>
           Rs {discount} ({disInPercentage}%)
         </span>
-      </div>
+      </div>)}
       <div
         style={{
           display: "flex",
@@ -278,7 +286,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
       )}
 
       {/* Due Date for Special Stitching */}
-      {selectedCustomer?.type === "special-stitching" && (
+      {isSpecialStitching || dueDate && (
         <div
           style={{
             display: "flex",
@@ -293,36 +301,37 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         </div>
       )}
       {/* Bar code */}
-      {/* <div className="flex justify-center items-center py-2" style={{ borderTop: "1px dotted black", borderBottom: "1px dotted black" }}>
-          <Barcode
-            margin={0}
-            height={25}
-            displayValue={false}
-            value={invoiceNo.toString()}
-          />
-        </div>
-        <div className="flex justify-center items-center gap-0 my-2">
-          <span className="capitalize text-base">Follow us Social Media</span>
-        </div>
-        <div className="flex justify-around items-center" style={{ textAlign: "center", marginBottom: "10px" }}>
+      <div className="flex justify-center items-center py-2" style={{ borderTop: "1px dotted black", borderBottom: "1px dotted black" }}>
+        <Barcode
+          margin={0}
+          height={25}
+          displayValue={false}
+          value={invoiceNo.toString()}
+        />
+      </div>
+      <div className="flex justify-center items-center gap-0 my-2">
+        <span className="capitalize text-base">Follow us Social Media</span>
+      </div>
+      <div className="flex justify-around items-center" style={{ textAlign: "center", marginBottom: "10px" }}>
         <Facebook size={15} />
-          <QRCode
-            value={"https://www.facebook.com/Siddiqueuniformcentre/"}
-            size={60}
-          />
-          <div>
+        <QRCode
+          value={"https://www.facebook.com/Siddiqueuniformcentre/"}
+          size={60}
+        />
+        <div>
           <p>|</p>
           <p>|</p>
           <p>|</p>
           <p>|</p>
-          </div>
-          
-          <Image src={"/icon/tiktok.png"} width={12} height={15} alt="tiktok" />
-          <QRCode
-            value={"https://www.tiktok.com/@siddique.uniform"}
-            size={60}
-          />
-        </div> */}
+        </div>
+
+        {/* // eslint-disable-next-line @next/next/no-img-element */}
+        <img src={"/icon/tiktok.png"} width={12} height={15} alt="tiktok" />
+        <QRCode
+          value={"https://www.tiktok.com/@siddique.uniform"}
+          size={60}
+        />
+      </div>
       {/* Footer */}
       <div>
         <p

@@ -8,8 +8,6 @@ connectDB(); // Connect to MongoDB
 export async function POST(request: Request) {
     try {
         const products = await request.json();
-        console.log("Bulk upload", products);
-    
         // Assuming products is an array of products
         const newProducts = products.map((productData:ProductFormState) => new Product(productData));
     

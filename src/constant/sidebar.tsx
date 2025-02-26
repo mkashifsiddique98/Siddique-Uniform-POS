@@ -15,6 +15,8 @@ import {
   ListCollapse,
   Barcode,
   ScanBarcode,
+  Settings2,
+  Slack,
 } from "lucide-react";
 
 export const sidebarItems = [
@@ -75,6 +77,11 @@ export const sidebarItems = [
         href: "/purchase/wholesaler",
         icon: <Layers />,
       },
+      {
+        title: "Product Adjust",
+        href: "/purchase/adjustment",
+        icon: <Settings2 />,
+      },
     ],
   },
 
@@ -96,8 +103,13 @@ export const sidebarItems = [
     ]
   },
   {
+    title: "Utilize",
+    href: "/utilize",
+    icon: <Slack />,
+  },
+  {
     title: "Users",
-    href: "#",
+    href: "/user",
     icon: <User />,
   },
 ];

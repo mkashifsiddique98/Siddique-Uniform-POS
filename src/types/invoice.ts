@@ -3,11 +3,11 @@ import { customer } from "./customer";
 // Assuming 'customer' is imported correctly
 
 export interface ProductDetail {
-  productName: string;  // Use `string` instead of `{ type: String }`
-  quantity: number;     // Use `number` instead of `{ type: Number }`
-  sellPrice: number;    // Use `number`
-  _id: string;
-  return?: boolean          // Use `string`
+  productName: string;  
+  quantity: number;     
+  sellPrice: number;    
+  _id?: string | object;
+  return?: boolean          
 }
 
 export interface Invoice {

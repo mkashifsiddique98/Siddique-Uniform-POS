@@ -56,7 +56,7 @@ function calculateCurrentAndPreviousMonthSales(invoices: Invoice[]) {
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
-  
+
   const currentMonthSales = calculateMonthSales(invoices, currentYear, currentMonth);
 
   let previousYear = currentYear;
@@ -67,7 +67,7 @@ function calculateCurrentAndPreviousMonthSales(invoices: Invoice[]) {
   }
 
   const previousMonthSales = calculateMonthSales(invoices, previousYear, previousMonth);
-  const percentageChange = previousMonthSales > 0 
+  const percentageChange = previousMonthSales > 0
     ? ((currentMonthSales - previousMonthSales) / previousMonthSales) * 100
     : 0;
 
@@ -77,8 +77,8 @@ function calculateCurrentAndPreviousMonthSales(invoices: Invoice[]) {
 function calculateMonthlyPurchases(purchases: Purchase[]) {
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
-  
-  const calculateTotal = (month: number, year: number) => 
+
+  const calculateTotal = (month: number, year: number) =>
     purchases.reduce((total, purchase) => {
       const date = new Date(purchase.createdAt);
       if (date.getMonth() === month && date.getFullYear() === year) {
@@ -91,7 +91,7 @@ function calculateMonthlyPurchases(purchases: Purchase[]) {
   const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
   const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear;
   const totalPreviousMonth = calculateTotal(previousMonth, previousYear);
-  
+
   const percentageChangePurchase = totalPreviousMonth > 0
     ? ((totalCurrentMonth - totalPreviousMonth) / totalPreviousMonth) * 100
     : 0;
@@ -131,7 +131,7 @@ export const metadata: Metadata = {
 
 export default async function DashboardPage() {
   const { response: InvoiceData } = await getAllInvoiceDetail() || { response: [] };
-  const{ response :productResponse } = await getAllProductData() || { response: []};
+  const { response: productResponse } = await getAllProductData() || { response: [] };
   const { currentMonthSales, percentageChange } = calculateCurrentAndPreviousMonthSales(InvoiceData);
   const purchaseData = await getAllPurchaseDetail();
   const { totalCurrentMonth, percentageChangePurchase } = calculateMonthlyPurchases(purchaseData);
@@ -164,7 +164,7 @@ export default async function DashboardPage() {
                   <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">Rs {totalCurrentMonthRevenue}</div>
+                  <div className="text-2xl font-bold">Rs {totalCurrentMonthRevenue.toFixed(0)}</div>
                   <p className="text-xs text-muted-foreground">
                     {percentageChangeRevenue.toFixed(2)}% from last month
                   </p>
@@ -176,7 +176,7 @@ export default async function DashboardPage() {
                     <CardTitle className="text-sm font-medium">Purchase</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">Rs {totalCurrentMonth}</div>
+                    <div className="text-2xl font-bold">Rs {totalCurrentMonth.toFixed(0)}</div>
                     <p className="text-xs text-muted-foreground">
                       {percentageChangePurchase.toFixed(2)}% from last month
                     </p>
@@ -189,7 +189,7 @@ export default async function DashboardPage() {
                     <CardTitle className="text-sm font-medium">Sales</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">Rs {currentMonthSales}</div>
+                    <div className="text-2xl font-bold">Rs {currentMonthSales.toFixed(0)}</div>
                     <p className="text-xs text-muted-foreground">
                       {percentageChange.toFixed(2)}% from last month
                     </p>
@@ -215,13 +215,13 @@ export default async function DashboardPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                   <RecentSales InvoiceData={InvoiceData}/>
+                  <RecentSales InvoiceData={InvoiceData} />
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
           <TabsContent value="analytics" className="space-y-4">
-          <HorizontalBarChart invoices={InvoiceData}/>
+            <HorizontalBarChart invoices={InvoiceData} />
           </TabsContent>
         </Tabs>
       </div>

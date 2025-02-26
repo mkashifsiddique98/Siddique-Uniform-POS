@@ -52,9 +52,19 @@
   font-weight: 100 900; /* Define the weight range for variable font */
   font-style: normal;
 }
+.urdu-font {
+  font-family: 'Noto Nastaliq Urdu';
+  font-weight: 500;
+  font-style: normal;
+}
 /* Optional: Define fallback font family */
 body {
   font-family: 'Inter', sans-serif;
+}
+@media print {
+  body {
+    font-family: 'Noto Nastaliq Urdu', serif;
+  }
 }
 
 

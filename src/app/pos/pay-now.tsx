@@ -136,7 +136,6 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
     try {
       handleProductQtyUpdate();
       handleInvoiceGenerate();
-
       handleReset();
     } catch (error) {
       console.error("Error in handling no receipt:", error);
@@ -267,8 +266,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
 
       {/* Receipt content for printing */}
       <div
-        style={{ display: "none"
-          // , position: "absolute", top: 1 ,right:1, backgroundColor: "white" 
+        style={{ display: "none" , position: "absolute", top: 1 ,right:1, backgroundColor: "white" 
         }}
       >
         <div ref={componentRef}>
