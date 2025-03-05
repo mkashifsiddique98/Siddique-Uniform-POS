@@ -214,11 +214,6 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
               <CardContent className="capitalize flex justify-between items-center">
                 <Table>
                   <TableRow>
-                    <p className="p-4 font-bold text-md whitespace-nowrap">
-                      Total Products: {productList.length} pcs
-                    </p>
-                  </TableRow>
-                  <TableRow>
                     <p className="p-4 font-semibold">
                       Discount: Rs {discount} ({disInPercentage}%)
                     </p>

@@ -2,7 +2,7 @@
 module.exports = (phase, { defaultConfig }) => {
     return {
       ...defaultConfig,
-      swcMinify: true, // Enable SWC for faster minification
+      // swcMinify: true, // Enable SWC for faster minification
       compiler: {
       removeConsole: process.env.NODE_ENV === "production",
       },

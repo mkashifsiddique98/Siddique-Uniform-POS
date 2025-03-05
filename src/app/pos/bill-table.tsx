@@ -41,6 +41,7 @@ import { customer } from "@/types/customer";
 import { handleGenerateNewInvoiceNumber } from "./usePos";
 import LoadingSpinner from "@/components/custom-components/loadingSpinner";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ProductDetail } from "@/types/invoice";
 
 interface BillTableProps {
   selectedCustomer?: customer;
@@ -57,11 +58,12 @@ const BillTable: FC<BillTableProps> = ({
   errorMessage,
   loading
 }) => {
-  // Local State
+  // Local State 
   const [specialProductName, setSpecialProductName] = useState("");
   const [specialProductPrice, setSpecialProductPrice] = useState<number | "">("");
   const [specialProductQty, setSpecialProductQty] = useState<number | "">("");
   const [showReturnList, setShowReturnList] = useState<boolean>(false)
+  const [disInPrecentage, setDisInPrecentage] = useState<number>(0)
   // Redux State
   const dispatch = useAppDispatch();
   const chartList: Products[] = useTypedSelector((state) => state.chart.chartList);
@@ -71,42 +73,34 @@ const BillTable: FC<BillTableProps> = ({
   );
   // Modifty for return 
   const mode = useTypedSelector((state) => state.mode); // mode
-  // Normal Logic
-  // let grandTotal = chartList.reduce((total, product) => {
-  //   let lineTotal = product.quantity * product.sellPrice;
-  //   return total + lineTotal;
-  // }, 0);
-  // grand with Return Logic 
-
-  let { total: grandTotal, returnTotal: grandTotalReturnToCustomer } = chartList.reduce(
-    (acc, product) => {
-      const lineTotal = product.quantity * product.sellPrice;
-      if (product.return) {
-        if (product.sold) acc.returnTotal += lineTotal;
-      } else {
-        acc.total += lineTotal;
-      }
-      return acc;
-    },
-    { total: 0, returnTotal: 0 }
-  );
-
-  // oscount
-  let disInPrecentage = calculatePercentage(discount, grandTotal);
+  // Product Filter via Category
+  const returnItems = chartList.filter((product) => product.return);
+  const alreadyBoughtItems = chartList.filter((product) => product.sold && !product.return);
+  const newItems = chartList.filter((product) => !product.sold && !product.return);
+  // Function to Calcuate 
+  const calcSubtotal = (items: ProductDetail[] | any[]) =>
+    items.reduce((total, product) => total + product.sellPrice * product.quantity, 0);
+  // Sub Total Value
+  const newTotalAmount = calcSubtotal(newItems);
+  const returnTotalAmount = calcSubtotal(returnItems);
+  const alreadyBoughtTotalAmount = calcSubtotal(alreadyBoughtItems);
+  // Grand-Total Calculate
+  var grandTotal = returnTotalAmount > 0 ? newTotalAmount - returnTotalAmount : newTotalAmount;
   grandTotal = grandTotal - (discount ? discount : 0);
-  // Effect for Invoice Number 
-  // Helping Function or Clear Button 
-
-
+  // Calcaute Discount for Product to store in state
+  // not to display 
   const calculateDiscount = (value: string) => {
-    const discountPercentage = parseInt(value, 0)
-    const discountAmount = (grandTotal * discountPercentage) / 100;
-    // grandTotal = discountAmount
-
+    // Sate to Pass in other Comp
+    setDisInPrecentage(parseInt(value, 10))
+    // logic to Store in Redux to pass
+    const disInPrecentageTemp = parseInt(value, 10)
+    const discountAmount = (grandTotal * disInPrecentageTemp) / 100;
     dispatch(setDiscount(Math.max(0, parseInt(discountAmount))))
   }
+  // Rest for CLear the Table
   const handleReset = () => {
     if (editInvoice) handleEditInvoice();
+    setDisInPrecentage(0)
     dispatch(clearChart());
     dispatch(setDiscount(0));
     grandTotal = 0;
@@ -199,16 +193,8 @@ const BillTable: FC<BillTableProps> = ({
       console.error("Server Error", error);
     }
   };
-  const BuyTotalAmount = chartList.filter((product) => !product.return)
-    .reduce(
-      (total, product) => total + product.sellPrice * product.quantity,
-      0
-    );
-  const returnTotalAmount = chartList.filter((product) => product.return)
-    .reduce(
-      (total, product) => total + product.sellPrice * product.quantity,
-      0
-    );
+
+
   return (
     <div className="flex flex-col justify-between h-[75vh]">
       <Table>
@@ -241,7 +227,7 @@ const BillTable: FC<BillTableProps> = ({
                     <button onClick={() => handleUpdate(product.productName, -1)}>
                       <MinusSquare />
                     </button>
-                    <input className="w-6" value={product.quantity} />
+                    <p className="w-6">{product.quantity}</p>
                     <button onClick={() => handleUpdate(product.productName, 1)}>
                       <PlusSquare />
                     </button>
@@ -378,14 +364,14 @@ const BillTable: FC<BillTableProps> = ({
       <div>
         <div className={`w-full bg-black p-2 ${editInvoice ? "flex justify-between items-center" : "text-center"}  text-white`}>
           <p className="font-semibold">
-            Grand Total : Rs {grandTotal ? grandTotal - returnTotalAmount : "0.00"}
+            Grand Total : Rs {grandTotal ? grandTotal : "0.00"}
           </p>
           {returnTotalAmount > 0 && editInvoice && <p className="font-semibold">
             Return Item : Rs {returnTotalAmount ? returnTotalAmount : "0.00"}
           </p>
           }
-          {BuyTotalAmount > 0 && editInvoice && <p className="font-semibold">
-            Buy Item : Rs {BuyTotalAmount ? BuyTotalAmount : "0.00"}
+          {alreadyBoughtTotalAmount > 0 && editInvoice && <p className="font-semibold">
+            Already Buy Item : Rs {alreadyBoughtTotalAmount ? alreadyBoughtTotalAmount : "0.00"}
           </p>
           }
         </div>
@@ -408,7 +394,10 @@ const BillTable: FC<BillTableProps> = ({
               }
               className="w-32 rounded-none focus-visible:ring-0 border-black"
             /> */}
-            <Select onValueChange={calculateDiscount} disabled={chartList.length <= 0}>
+            <Select
+              value={disInPrecentage.toString()}
+              onValueChange={calculateDiscount}
+              disabled={chartList.length <= 0}>
               <SelectTrigger className="w-52 rounded-none focus-visible:ring-0 border-black">
                 <SelectValue placeholder="Select a discount" />
               </SelectTrigger>
@@ -416,8 +405,8 @@ const BillTable: FC<BillTableProps> = ({
                 <SelectGroup>
                   <SelectLabel>Discount Value</SelectLabel>
                   <SelectItem value="0">0%</SelectItem>
-                  <SelectItem value="7">7%</SelectItem>
                   <SelectItem value="5">5%</SelectItem>
+                  <SelectItem value="7">7%</SelectItem>
                   <SelectItem value="10">10%</SelectItem>
                   <SelectItem value="15">15%</SelectItem>
                   <SelectItem value="20">20%</SelectItem>

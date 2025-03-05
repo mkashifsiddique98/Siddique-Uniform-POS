@@ -18,6 +18,39 @@ interface ReceiptTemplateProps {
   return: boolean
 }
 
+// Reusable component for rendering a product table
+const ProductTable: FC<{ title: string; products: ProductDetail[] }> = ({ title, products }) => {
+  if (!products.length) return null;
+  return (
+    <>
+     {title !="" && <p className="leading-2 font-bold">{title}</p>}
+      <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "10px" }}>
+        <thead>
+          <tr>
+            <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>Product</th>
+            <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>Qty</th>
+            <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>Price</th>
+            <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {products.map((product) => (
+            <tr key={product.productName}>
+              <td style={{ padding: "5px 3px", border: "1px solid black" }}>{product.productName}</td>
+              <td style={{ textAlign: "center", padding: "8px 0", border: "1px solid black" }}>{product.quantity}</td>
+              <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
+                Rs {product.sellPrice}
+              </td>
+              <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
+                Rs {product.sellPrice * product.quantity}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  );
+};
 const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   productList,
   selectedCustomer,
@@ -29,20 +62,26 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   remainingBalance,
 
 }) => {
-  const totalAmount = productList.reduce(
-    (total, product) => total + product.sellPrice * product.quantity,
-    0
-  );
-  const returnTotalAmount = productList
-    .filter((product) => product.return)
-    .reduce(
-      (total, product) => total + product.sellPrice * product.quantity,
-      0
-    );
-
+  // If customer
   const SPECIAL_STITCHING = "special-stitching";
   const isSpecialStitching =
     selectedCustomer?.type?.trim().toLowerCase() === SPECIAL_STITCHING;
+  // Product Filteration
+  const returnItems = productList.filter((product) => product.return);
+  const alreadyBoughtItems = productList.filter((product) => product.sold && !product.return);
+  const newItems = productList.filter((product) => !product.sold && !product.return);
+  // Function to Calcuate 
+  const calcSubtotal = (items: ProductDetail[]) =>
+    items.reduce((total, product) => total + product.sellPrice * product.quantity, 0);
+  // Sub Total Value
+  const newTotalAmount = calcSubtotal(newItems);
+  const returnTotalAmount = calcSubtotal(returnItems);
+  const alreadyBoughtTotalAmount = calcSubtotal(alreadyBoughtItems);
+  // Grand-Total Calculate
+  const computedTotal = returnTotalAmount > 0 ? newTotalAmount - returnTotalAmount : newTotalAmount;
+  const discountAmount = computedTotal * (disInPercentage / 100);
+  const GrandTotal = computedTotal - discountAmount;
+ 
 
   return (
     <div
@@ -128,121 +167,37 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         </>
       )}
       {/* Whole Product List */}
-      {productList.filter((product) => product.return).length >= 1 && <>
+      {(returnItems.length > 0 || alreadyBoughtItems.length > 0) && (
+            <>
+              <ProductTable title="Return Items" products={returnItems} />
+              {returnItems.length > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0" }}>
+                  <span>Sub-Total</span>
+                  <span>-Rs {returnTotalAmount}</span>
+                </div>
+              )}
 
-        {/* Return Product Table */}
-        <p className="leading-2 font-bold">Return Items</p>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            marginBottom: "10px",
-          }}
-        >
-          <thead>
-            <tr>
-              <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>
-                Product
-              </th>
-              <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>
-                Qty
-              </th>
-              <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>
-                Price
-              </th>
-              <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>
-                Total
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {productList
-              .filter((product) => product.return)
-              .map((product) => (
-                <tr key={product.productName}>
-                  <td style={{ padding: "5px 0 5px 3px", border: "1px solid black" }}>{product.productName}</td>
-                  <td style={{ textAlign: "center", padding: "5px 0", border: "1px solid black" }}>
-                    {product.quantity}
-                  </td>
-                  <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
-                    {product.sellPrice}
-                  </td>
-                  <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
-                    {product.sellPrice * product.quantity}
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            padding: "5px 0",
-          }}
-        >
-          <span>Sub-Total</span>
-          <span>-Rs {returnTotalAmount}</span>
-        </div>
-        {/*New Product Table */}
-        <p className="leading-2 font-bold">New Items</p>
-      </>
-      }
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          marginBottom: "10px",
-        }}
-      >
-        <thead>
-          <tr>
-            <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>
-              Product
-            </th>
-            <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>
-              Qty
-            </th>
-            <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>
-              Price
-            </th>
-            <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>
-              Total
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {productList
-            .filter((product) => !product.return)
-            .map((product) => (
-              <tr key={product.productName}>
-                <td style={{ padding: "5px 0 5px 3px", border: "1px solid black" }}>{product.productName}</td>
-                <td style={{ textAlign: "center", padding: "5px 0", border: "1px solid black" }}>
-                  {product.quantity}
-                </td>
-                <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
-                  {product.sellPrice}
-                </td>
-                <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
-                  {product.sellPrice * product.quantity}
-                </td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
+              <ProductTable title="Already Bought Items" products={alreadyBoughtItems} />
+              {alreadyBoughtItems.length > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0" }}>
+                  <span>Sub-Total</span>
+                  <span>Rs {alreadyBoughtTotalAmount}</span>
+                </div>
+              )}
+          </>
+          )}
+
+          {/* New Items Section */}
+          <ProductTable title={(returnItems.length > 0 || alreadyBoughtItems.length > 0) ? "New Items":""} products={newItems} />
+          {newItems.length > 0 && (
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0" }}>
+              <span>Sub-Total</span>
+              <span>Rs {newTotalAmount}</span>
+            </div>
+          )}
 
       {/* Discounts and Totals */}
-      {grandTotal !== totalAmount && (<div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          padding: "5px 0",
-        }}
-      >
-        <span>Sub-Total</span>
-        <span>Rs {totalAmount}</span>
-      </div>)}
-
+      
       {discount > 0 && (<div
         style={{
           display: "flex",
@@ -266,7 +221,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         }}
       >
         <span>Grand Total</span>
-        <span>Rs {grandTotal}</span>
+        <span>Rs {GrandTotal}</span>
       </div>
 
       {/* Remaining Balance */}
@@ -301,18 +256,19 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         </div>
       )}
       {/* Bar code */}
-      <div className="flex justify-center items-center py-2" style={{ borderTop: "1px dotted black", borderBottom: "1px dotted black" }}>
+
+      {/* <div className="flex justify-center items-center py-2" style={{ borderTop: "1px dotted black", borderBottom: "1px dotted black" }}>
         <Barcode
           margin={0}
           height={25}
           displayValue={false}
           value={invoiceNo.toString()}
         />
-      </div>
-      <div className="flex justify-center items-center gap-0 my-2">
+      </div> */}
+      {/* <div className="flex justify-center items-center gap-0 my-2">
         <span className="capitalize text-base">Follow us Social Media</span>
-      </div>
-      <div className="flex justify-around items-center" style={{ textAlign: "center", marginBottom: "10px" }}>
+      </div> */}
+      {/* <div className="flex justify-around items-center" style={{ textAlign: "center", marginBottom: "10px" }}>
         <Facebook size={15} />
         <QRCode
           value={"https://www.facebook.com/Siddiqueuniformcentre/"}
@@ -326,12 +282,13 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         </div>
 
         {/* // eslint-disable-next-line @next/next/no-img-element */}
-        <img src={"/icon/tiktok.png"} width={12} height={15} alt="tiktok" />
+        {/* <img src={"/icon/tiktok.png"} width={12} height={15} alt="tiktok" />
         <QRCode
           value={"https://www.tiktok.com/@siddique.uniform"}
           size={60}
-        />
-      </div>
+        /> */}
+      {/* </div> */}
+      
       {/* Footer */}
       <div>
         <p

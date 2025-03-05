@@ -7,7 +7,8 @@ export interface ProductDetail {
   quantity: number;     
   sellPrice: number;    
   _id?: string | object;
-  return?: boolean          
+  return?: boolean;
+  sold?: Boolean;           
 }
 
 export interface Invoice {
