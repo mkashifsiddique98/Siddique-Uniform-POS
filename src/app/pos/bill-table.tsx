@@ -58,12 +58,14 @@ const BillTable: FC<BillTableProps> = ({
   errorMessage,
   loading
 }) => {
+
   // Local State 
   const [specialProductName, setSpecialProductName] = useState("");
   const [specialProductPrice, setSpecialProductPrice] = useState<number | "">("");
   const [specialProductQty, setSpecialProductQty] = useState<number | "">("");
   const [showReturnList, setShowReturnList] = useState<boolean>(false)
   const [disInPrecentage, setDisInPrecentage] = useState<number>(0)
+
   // Redux State
   const dispatch = useAppDispatch();
   const chartList: Products[] = useTypedSelector((state) => state.chart.chartList);
@@ -71,24 +73,34 @@ const BillTable: FC<BillTableProps> = ({
   const invoiceNo: number = useTypedSelector(
     (state) => state.invoice.invoiceNumber
   );
+
   // Modifty for return 
   const mode = useTypedSelector((state) => state.mode); // mode
+
   // Product Filter via Category
   const returnItems = chartList.filter((product) => product.return);
   const alreadyBoughtItems = chartList.filter((product) => product.sold && !product.return);
   const newItems = chartList.filter((product) => !product.sold && !product.return);
+
   // Function to Calcuate 
   const calcSubtotal = (items: ProductDetail[] | any[]) =>
     items.reduce((total, product) => total + product.sellPrice * product.quantity, 0);
+
   // Sub Total Value
   const newTotalAmount = calcSubtotal(newItems);
   const returnTotalAmount = calcSubtotal(returnItems);
   const alreadyBoughtTotalAmount = calcSubtotal(alreadyBoughtItems);
+
   // Grand-Total Calculate
-  var grandTotal = returnTotalAmount > 0 ? newTotalAmount - returnTotalAmount : newTotalAmount;
+  var grandTotal = returnTotalAmount > 0 ? (newTotalAmount - returnTotalAmount) : newTotalAmount;
   grandTotal = grandTotal - (discount ? discount : 0);
+ 
+ 
+  // This for Edit Invoice : ==> 
+  // grandTotal = editInvoice ? Math.max(0, grandTotal) : grandTotal
   // Calcaute Discount for Product to store in state
   // not to display 
+
   const calculateDiscount = (value: string) => {
     // Sate to Pass in other Comp
     setDisInPrecentage(parseInt(value, 10))
@@ -97,17 +109,21 @@ const BillTable: FC<BillTableProps> = ({
     const discountAmount = (grandTotal * disInPrecentageTemp) / 100;
     dispatch(setDiscount(Math.max(0, parseInt(discountAmount))))
   }
+
   // Rest for CLear the Table
   const handleReset = () => {
+
     if (editInvoice) handleEditInvoice();
     setDisInPrecentage(0)
     dispatch(clearChart());
     dispatch(setDiscount(0));
     grandTotal = 0;
+
     // For Accuracy of Invoice Number
     const storedValue = Number(localStorage.getItem('invoiceNo')) || 0;
     const newInvoiceNumber = Math.max(storedValue, invoiceNo);
     dispatch(setInvoiceNumber(newInvoiceNumber));
+
   };
 
 
@@ -167,11 +183,13 @@ const BillTable: FC<BillTableProps> = ({
   };
   // ================================ Save Changes in invoice (While Edit invoice)================
   const saveChangeInvoice = async () => {
-    // incase if some try to save empty invoice
+    // In case if some try to save empty invoice
+    
     if (chartList.length === 0) {
       handleReset();
       return;
     }
+
     const invoiceDetail = {
       customer: selectedCustomer,
       productDetail: chartList,
@@ -482,7 +500,11 @@ const BillTable: FC<BillTableProps> = ({
 
           {mode === "retail" && (
             <PayNowChart
-              grandTotal={grandTotal}
+              // Edit Invoice 
+              // I add  alreadyBoughtTotalAmount  becuase its not Paynow  my or not
+              // Working Paid
+              
+              grandTotal={grandTotal}  
               discount={discount}
               productList={chartList}
               disInPercentage={disInPrecentage}

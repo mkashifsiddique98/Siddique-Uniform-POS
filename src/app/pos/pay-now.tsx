@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -44,6 +45,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
   const returnChange = Math.max(receiveAmount - grandTotal, 0);
   const [partialMoneyPay, setPartialMoneyPay] = useState<boolean>(false)
   const componentRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     setPayingAmount(grandTotal);
   }, [grandTotal]);
@@ -150,15 +152,17 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
 
   return (
     <Dialog>
+      {/*  Dont Render  */}
       <DialogTrigger asChild>
         <Button
           size="lg"
           className="bg-green-500 hover:bg-green-600 disabled:cursor-not-allowed"
-          disabled={grandTotal === 0}
+          disabled={grandTotal === 0 || productList.length === 0}
         >
-          <ShoppingCart className="w-4 h-4 mr-4" />
+          <ShoppingCart className="w-4 h-4 mr-4" aria-hidden="true" />
           Pay Now
         </Button>
+
       </DialogTrigger>
 
       <DialogContent>
@@ -215,7 +219,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
                 <Table>
                   <TableRow>
                     <p className="p-4 font-semibold">
-                      Discount: Rs {discount} ({disInPercentage}%)
+                      Discount: Rs {discount} {disInPercentage ? { disInPercentage } + "%" : ""}
                     </p>
                   </TableRow>
                   <TableRow>
@@ -240,7 +244,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
                   date={dueDate} handleDateChange={setDueDate}
                 />
 
-          </div>
+              </div>
             )}
           </div>
         </div>
@@ -261,7 +265,8 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
 
       {/* Receipt content for printing */}
       <div
-        style={{ display: "none" , position: "absolute", top: 1 ,right:1, backgroundColor: "white" 
+        style={{
+          display: "none", position: "absolute", top: 1, right: 1, backgroundColor: "white"
         }}
       >
         <div ref={componentRef}>

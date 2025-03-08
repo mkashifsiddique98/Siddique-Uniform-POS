@@ -121,6 +121,7 @@ const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
     dispatch(clearChart())
     setLoading(false)
     setErrorMessage("")
+    
   };
 
   const handleChangeInvoiceNumber = (e: React.ChangeEvent<HTMLInputElement>) => {
