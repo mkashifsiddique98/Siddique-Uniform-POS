@@ -77,10 +77,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   const newTotalAmount = calcSubtotal(newItems);
   const returnTotalAmount = calcSubtotal(returnItems);
   const alreadyBoughtTotalAmount = calcSubtotal(alreadyBoughtItems);
-  // Grand-Total Calculate
-  const computedTotal = returnTotalAmount > 0 ? newTotalAmount - returnTotalAmount : newTotalAmount;
-  const discountAmount = computedTotal * (disInPercentage / 100);
-  const GrandTotal = computedTotal - discountAmount;
+
  
 
   return (
@@ -221,7 +218,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         }}
       >
         <span>Grand Total</span>
-        <span>Rs {GrandTotal}</span>
+        <span>Rs {grandTotal}</span>
       </div>
 
       {/* Remaining Balance */}

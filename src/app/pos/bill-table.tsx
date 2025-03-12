@@ -21,6 +21,7 @@ import {
   Undo2,
   View,
   XCircle,
+  Printer
 } from "lucide-react";
 import React, { FC, useEffect, useState } from "react";
 import PayNowChart from "./pay-now";
@@ -94,8 +95,8 @@ const BillTable: FC<BillTableProps> = ({
   // Grand-Total Calculate
   var grandTotal = returnTotalAmount > 0 ? (newTotalAmount - returnTotalAmount) : newTotalAmount;
   grandTotal = grandTotal - (discount ? discount : 0);
- 
- 
+
+
   // This for Edit Invoice : ==> 
   // grandTotal = editInvoice ? Math.max(0, grandTotal) : grandTotal
   // Calcaute Discount for Product to store in state
@@ -184,7 +185,7 @@ const BillTable: FC<BillTableProps> = ({
   // ================================ Save Changes in invoice (While Edit invoice)================
   const saveChangeInvoice = async () => {
     // In case if some try to save empty invoice
-    
+
     if (chartList.length === 0) {
       handleReset();
       return;
@@ -400,23 +401,12 @@ const BillTable: FC<BillTableProps> = ({
 
         <div className="flex justify-end mt-3 relative">
           <>
-            {/* <Input
-              id="discount"
-              placeholder="discount %"
-              type="number"
-              min={0}
-              disabled={chartList.length <= 0}
-              value={discount}
-              onChange={(e) =>
-                dispatch(setDiscount(Math.max(0, parseInt(e.target.value, 10))))
-              }
-              className="w-32 rounded-none focus-visible:ring-0 border-black"
-            /> */}
+
             <Select
               value={disInPrecentage.toString()}
               onValueChange={calculateDiscount}
               disabled={chartList.length <= 0}>
-              <SelectTrigger className="w-52 rounded-none focus-visible:ring-0 border-black">
+              <SelectTrigger className="w-52 rounded-none  border-black">
                 <SelectValue placeholder="Select a discount" />
               </SelectTrigger>
               <SelectContent>
@@ -431,7 +421,6 @@ const BillTable: FC<BillTableProps> = ({
                 </SelectGroup>
               </SelectContent>
             </Select>
-
           </>
           <Input
             id="discount"
@@ -443,18 +432,18 @@ const BillTable: FC<BillTableProps> = ({
             onChange={(e) =>
               dispatch(setDiscount(Math.max(0, parseInt(e.target.value, 10))))
             }
-            className="w-32 rounded-none focus-visible:ring-0 border-black"
+            className="w-32 rounded-none border-black"
           />
           <div className="absolute bg-black text-white p-2 text-center">Rs</div>
         </div>
 
-        <div className="flex justify-between mt-1">
-          <Button size={"lg"} variant="destructive" onClick={handleReset}>
+        <div className="flex justify-between mt-1 flex-1 gap-2 flex-wrap">
+          <Button size={"default"} variant="destructive" onClick={handleReset}>
             <RotateCcw className="w-4 h-4 mr-4" /> Clear
           </Button>
           {!editInvoice && (
             <Button
-              size={"lg"}
+              size={"default"}
               variant="outline"
               onClick={handleEditInvoice}
               className="border-black"
@@ -466,7 +455,7 @@ const BillTable: FC<BillTableProps> = ({
           {editInvoice && (
             <Button
               disabled={loading}
-              size={"lg"}
+              size={"default"}
               variant="outline"
               onClick={saveChangeInvoice}
               className={`btn border-black ${loading ? "btn-disabled" : "btn-primary"}`}
@@ -477,11 +466,12 @@ const BillTable: FC<BillTableProps> = ({
 
 
           )}
-
+         
           {/* Only show the PayNow button if customer type is wholesale and mode is wholesale */}
           {mode === "wholesale" &&
             (selectedCustomer?.type?.toLocaleLowerCase() === "wholesale" ? (
               <PayNowChart
+              editInvoice={editInvoice}
                 grandTotal={grandTotal}
                 discount={discount}
                 productList={chartList}
@@ -503,13 +493,14 @@ const BillTable: FC<BillTableProps> = ({
               // Edit Invoice 
               // I add  alreadyBoughtTotalAmount  becuase its not Paynow  my or not
               // Working Paid
-              
-              grandTotal={grandTotal}  
+              editInvoice={editInvoice}
+              grandTotal={grandTotal}
               discount={discount}
               productList={chartList}
               disInPercentage={disInPrecentage}
               selectedCustomer={selectedCustomer}
               handleReset={handleReset}
+
             />
           )}
         </div>

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import Calendar from "@/components/custom-components/Calender";
-import { ShoppingCart } from "lucide-react";
+import { Printer, ShoppingCart } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import { clearChart, Products, setInvoiceNumber, useAppDispatch, useTypedSelector } from "@/lib/store";
 import ReceiptTemplate from "./receipt-template";
@@ -23,6 +23,7 @@ interface PayNowChartProps {
   disInPercentage: number;
   selectedCustomer?: customer;
   handleReset: () => void;
+  editInvoice: Boolean;
 }
 
 const PayNowChart: React.FC<PayNowChartProps> = ({
@@ -32,7 +33,9 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
   disInPercentage,
   selectedCustomer,
   handleReset,
+  editInvoice
 }) => {
+
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [payingAmount, setPayingAmount] = useState<number>(grandTotal);
   const [receiveAmount, setReceiveAmount] = useState<number>(0);
@@ -46,6 +49,12 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
   const [partialMoneyPay, setPartialMoneyPay] = useState<boolean>(false)
   const componentRef = useRef<HTMLDivElement>(null);
 
+  // Model 
+  const [isOpen, setIsOpen] = useState(false);
+
+  const modelManage = () => {
+    setIsOpen(!isOpen)
+  }
   useEffect(() => {
     setPayingAmount(grandTotal);
   }, [grandTotal]);
@@ -149,21 +158,40 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
     documentTitle: "Receipt",
     onAfterPrint: handleNoReceipt,
   });
+  // Open Model 
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       {/*  Dont Render  */}
       <DialogTrigger asChild>
-        <Button
-          size="lg"
-          className="bg-green-500 hover:bg-green-600 disabled:cursor-not-allowed"
-          disabled={grandTotal === 0 || productList.length === 0}
-        >
-          <ShoppingCart className="w-4 h-4 mr-4" aria-hidden="true" />
-          Pay Now
-        </Button>
-
-      </DialogTrigger>
+        <>
+          {/* For Re-Print Receipt  */}
+          {editInvoice && (
+            <Button
+              title="Please only use to Print Re-Receipt"
+              size={"default"}
+              variant="secondary"
+              className={`btn border-black font-bold disabled:cursor-not-allowed`}
+              disabled={ productList.length === 0 || !editInvoice}
+              onClick={handlePrint}
+            >
+              <Printer className="w-4 h-4 mr-4" />
+              Re-Print Recipt
+            </Button>
+          )}
+          {/* Perform direct */}
+          <Button
+            size="default"
+            className="bg-green-500 hover:bg-green-600 disabled:cursor-not-allowed"
+            disabled={grandTotal === 0 || productList.length === 0}
+            onClick={modelManage}
+          >
+            <ShoppingCart className="w-4 h-4 mr-4" aria-hidden="true" />
+            Pay Now
+          </Button>
+          
+        </>
+</DialogTrigger>
 
       <DialogContent>
         <DialogHeader>
@@ -219,7 +247,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
                 <Table>
                   <TableRow>
                     <p className="p-4 font-semibold">
-                      Discount: Rs {discount} {disInPercentage ? { disInPercentage } + "%" : ""}
+                      Discount: Rs {discount} and  {disInPercentage+"%"}
                     </p>
                   </TableRow>
                   <TableRow>
