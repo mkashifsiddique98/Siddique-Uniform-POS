@@ -92,11 +92,20 @@ const BillTable: FC<BillTableProps> = ({
   const returnTotalAmount = calcSubtotal(returnItems);
   const alreadyBoughtTotalAmount = calcSubtotal(alreadyBoughtItems);
 
+  // Calculate Grand Total
+  let calculatedTotal = newTotalAmount;
+  
   // Grand-Total Calculate
-  var grandTotal = returnTotalAmount > 0 ? (newTotalAmount - returnTotalAmount) : newTotalAmount;
-  grandTotal = grandTotal - (discount ? discount : 0);
+  if (editInvoice) {
+    calculatedTotal += alreadyBoughtTotalAmount;
+  }
+  var grandTotal:Number = calculatedTotal - returnTotalAmount - (discount || 0);
+ 
+  // my old Logic
+  // var grandTotal = returnTotalAmount > 0 ? (newTotalAmount - returnTotalAmount) : newTotalAmount;
+  // grandTotal = grandTotal - (discount ? discount : 0);
 
-
+ 
   // This for Edit Invoice : ==> 
   // grandTotal = editInvoice ? Math.max(0, grandTotal) : grandTotal
   // Calcaute Discount for Product to store in state

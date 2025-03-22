@@ -15,6 +15,7 @@ import { clearChart, Products, setInvoiceNumber, useAppDispatch, useTypedSelecto
 import ReceiptTemplate from "./receipt-template";
 import { customer } from "@/types/customer";
 import { handleGenerateNewInvoiceNumber } from "./usePos";
+import { ClientPageRoot } from "../../../node_modules/next/dist/client/components/client-page";
 
 interface PayNowChartProps {
   grandTotal: number;
@@ -41,7 +42,8 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
   const [receiveAmount, setReceiveAmount] = useState<number>(0);
   const [customerNotes, setCustomerNotes] = useState("");
   const [customerdetail, setCustomerDetail] = useState(selectedCustomer);
-
+  // RePrint State
+  const [isRePrint,setRePrint] = useState<Boolean>(false)
   const dispatch = useAppDispatch();
   const invoiceNo = useTypedSelector((state) => state.invoice.invoiceNumber);
   const chartList = useTypedSelector((state) => state.chart.chartList);
@@ -158,7 +160,16 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
     documentTitle: "Receipt",
     onAfterPrint: handleNoReceipt,
   });
-  // Open Model 
+  // Handle Re-Print Functionality 
+  const rePrintFunctionality = ()=>{
+    setRePrint(true)
+  }
+  useEffect(() => {
+    if (isRePrint) {
+      handlePrint(); 
+      setRePrint(false);
+    }
+  }, [isRePrint]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -169,11 +180,10 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
           {editInvoice && (
             <Button
               title="Please only use to Print Re-Receipt"
-              size={"default"}
               variant="secondary"
               className={`btn border-black font-bold disabled:cursor-not-allowed`}
               disabled={ productList.length === 0 || !editInvoice}
-              onClick={handlePrint}
+              onClick={rePrintFunctionality}
             >
               <Printer className="w-4 h-4 mr-4" />
               Re-Print Recipt
@@ -181,7 +191,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
           )}
           {/* Perform direct */}
           <Button
-            size="default"
+           
             className="bg-green-500 hover:bg-green-600 disabled:cursor-not-allowed"
             disabled={grandTotal === 0 || productList.length === 0}
             onClick={modelManage}
@@ -299,6 +309,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
       >
         <div ref={componentRef}>
           <ReceiptTemplate
+
             invoiceNo={invoiceNo}
             remainingBalance={partialMoneyPay ? (payingAmount - receiveAmount) : 0}
             disInPercentage={disInPercentage}
@@ -307,6 +318,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
             productList={productList}
             selectedCustomer={selectedCustomer}
             dueDate={dueDate}
+            isRePrint={isRePrint}
           />
         </div>
       </div>

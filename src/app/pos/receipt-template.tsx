@@ -15,7 +15,8 @@ interface ReceiptTemplateProps {
   dueDate: Date | null;
   invoiceNo: number;
   remainingBalance: number;
-  return: boolean
+  return: boolean;
+  isRePrint: boolean;
 }
 
 // Reusable component for rendering a product table
@@ -23,7 +24,7 @@ const ProductTable: FC<{ title: string; products: ProductDetail[] }> = ({ title,
   if (!products.length) return null;
   return (
     <>
-     {title !="" && <p className="leading-2 font-bold">{title}</p>}
+      {title != "" && <p className="leading-2 font-bold">--------- {title} ----------</p>}
       <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "10px" }}>
         <thead>
           <tr>
@@ -60,6 +61,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   dueDate,
   invoiceNo,
   remainingBalance,
+  isRePrint,
 
 }) => {
   // If customer
@@ -69,7 +71,8 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   // Product Filteration
   const returnItems = productList.filter((product) => product.return);
   const alreadyBoughtItems = productList.filter((product) => product.sold && !product.return);
-  const newItems = productList.filter((product) => !product.sold && !product.return);
+  const newItems =
+    isRePrint ? [] : productList.filter((product) => !product.sold && !product.return);
   // Function to Calcuate 
   const calcSubtotal = (items: ProductDetail[]) =>
     items.reduce((total, product) => total + product.sellPrice * product.quantity, 0);
@@ -78,7 +81,9 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   const returnTotalAmount = calcSubtotal(returnItems);
   const alreadyBoughtTotalAmount = calcSubtotal(alreadyBoughtItems);
 
- 
+  const computedGrandTotal = isRePrint
+    ? alreadyBoughtTotalAmount - returnTotalAmount - discount  
+    : newTotalAmount + alreadyBoughtTotalAmount - returnTotalAmount - discount;
 
   return (
     <div
@@ -148,11 +153,9 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
 
       {/* Customer Info */}
       {selectedCustomer?.type === "wake-in-customer" ? (
-        <div className="flex items-center my-2">
-          <p className="font-bold">
-            Name: Regular Customer
-          </p>
-        </div>
+        // 
+        <>
+        </>
       ) : (
         <>
           <p style={{ margin: "5px 0", fontWeight: "bold" }}>
@@ -165,36 +168,37 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
       )}
       {/* Whole Product List */}
       {(returnItems.length > 0 || alreadyBoughtItems.length > 0) && (
-            <>
-              <ProductTable title="Return Items" products={returnItems} />
-              {returnItems.length > 0 && (
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0" }}>
-                  <span>Sub-Total</span>
-                  <span>-Rs {returnTotalAmount}</span>
-                </div>
-              )}
-
-              <ProductTable title="Already Bought Items" products={alreadyBoughtItems} />
-              {alreadyBoughtItems.length > 0 && (
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0" }}>
-                  <span>Sub-Total</span>
-                  <span>Rs {alreadyBoughtTotalAmount}</span>
-                </div>
-              )}
-          </>
-          )}
-
-          {/* New Items Section */}
-          <ProductTable title={(returnItems.length > 0 || alreadyBoughtItems.length > 0) ? "New Items":""} products={newItems} />
-          {newItems.length > 0 && (
+        <>
+          <ProductTable title="Return Items" products={returnItems} />
+          {returnItems.length > 0 && (
             <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0" }}>
               <span>Sub-Total</span>
-              <span>Rs {newTotalAmount}</span>
+              <span>-Rs {returnTotalAmount}</span>
             </div>
           )}
 
+
+          <ProductTable title={isRePrint ? "" : "Already Bought Items"} products={alreadyBoughtItems} />
+          {alreadyBoughtItems.length > 0 && (
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0" }}>
+              <span>Sub-Total</span>
+              <span>Rs {alreadyBoughtTotalAmount}</span>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* New Items Section */}
+      <ProductTable title={(returnItems.length > 0 || alreadyBoughtItems.length > 0) ? "New Items" : ""} products={newItems} />
+      {newItems.length > 0 && (
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0" }}>
+          <span>Sub-Total</span>
+          <span>Rs {newTotalAmount}</span>
+        </div>
+      )}
+
       {/* Discounts and Totals */}
-      
+
       {discount > 0 && (<div
         style={{
           display: "flex",
@@ -218,7 +222,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         }}
       >
         <span>Grand Total</span>
-        <span>Rs {grandTotal}</span>
+        <span>Rs {isRePrint ? computedGrandTotal : grandTotal}</span>
       </div>
 
       {/* Remaining Balance */}
@@ -279,13 +283,13 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         </div>
 
         {/* // eslint-disable-next-line @next/next/no-img-element */}
-        {/* <img src={"/icon/tiktok.png"} width={12} height={15} alt="tiktok" />
+      {/* <img src={"/icon/tiktok.png"} width={12} height={15} alt="tiktok" />
         <QRCode
           value={"https://www.tiktok.com/@siddique.uniform"}
           size={60}
         /> */}
       {/* </div> */}
-      
+
       {/* Footer */}
       <div>
         <p
