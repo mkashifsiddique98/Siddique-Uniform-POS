@@ -17,6 +17,9 @@ interface Props {
 const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [query, setQuery] = useState(""); // Search
+  // Feature
+  const [filteredProducts, setFilteredProducts] = useState<ProductFormState[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [filterElement, setFilterElement] = useState<FilterElementProps>({
     filterBy: "",
     filterValue: "",
@@ -51,11 +54,6 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
 
   const handlePaginationClick = (pageNumber: number) => setCurrentPage(pageNumber);
 
-  const handleChangeQuery = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(event.target.value);
-    setCurrentPage(1); // Reset page when search query changes
-  };
-
   // Filter function
   const handleFilterChangeElement = (filterElement: FilterElementProps) => {
     setFilterElement(filterElement);
@@ -67,6 +65,28 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
   // ***************************   Bar-Code *******************************
   
 // ************************************************************************
+
+const handleChangeQuery = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const input = e.target.value;
+  setQuery(input);
+  setCurrentPage(1);
+  if (input.length > 0) {
+    const filtered = currentItems.filter((item) =>
+      item.productName.toLowerCase().replace(/\s+/g, "").includes(input.toLowerCase().replace(/\s+/g, ""))
+    );
+    setFilteredProducts(filtered);
+    setShowSuggestions(true);
+  } else {
+    setFilteredProducts([]);
+    setShowSuggestions(false);
+  }
+};
+
+const handleSelect = (item: string) => {
+  setQuery(item);
+  setShowSuggestions(false);
+};
+
   return (
     <div className="my-4">
       <FilterBtnProduct
@@ -80,6 +100,19 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
         value={query}
         onChange={(e) => handleChangeQuery(e)}
       />
+      {showSuggestions && filteredProducts.length > 0 && (
+        <ul className="absolute z-10 mt-1 bg-white border rounded shadow-lg max-h-60 overflow-y-auto">
+          {filteredProducts.map((item, index) => (
+            <li
+              key={index}
+              className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+              onClick={() => handleSelect(item.productName)}
+            >
+              {item.productName}
+            </li>
+          ))}
+        </ul>
+      )}
       {/* Display current items */}
       <div className="m-2" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 m-2 ">

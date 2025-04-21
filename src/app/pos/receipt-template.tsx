@@ -80,7 +80,6 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   const newTotalAmount = calcSubtotal(newItems);
   const returnTotalAmount = calcSubtotal(returnItems);
   const alreadyBoughtTotalAmount = calcSubtotal(alreadyBoughtItems);
-
   const computedGrandTotal = isRePrint
     ? alreadyBoughtTotalAmount - returnTotalAmount - discount  
     : newTotalAmount + alreadyBoughtTotalAmount - returnTotalAmount - discount;

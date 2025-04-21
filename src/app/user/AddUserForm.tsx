@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -32,7 +32,7 @@ const userSchema = z.object({
   ),
 });
 
-type UserFormValues = z.infer<typeof userSchema>;
+export type UserFormValues = z.infer<typeof userSchema>;
 const allowedPages = [
   "customer",
   "invoice",
@@ -40,15 +40,25 @@ const allowedPages = [
   "product",
   "user",
   "utilize",
-  "purchase"
+  "purchase",
 ] as const;
 
-export default function AddUserForm({
-  fetchUsers,
-}: {
+interface UserFormProps {
+  // When editing, pass in the user data (including an id property)
+  user?: UserFormValues & { id: string };
   fetchUsers: () => void;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
+  // Optionally control whether the dialog is open externally
+  open?: boolean;
+}
+
+export default function UserForm({
+  user,
+  fetchUsers,
+  open: openProp,
+}: UserFormProps) {
+  const [isOpen, setIsOpen] = useState(openProp ?? false);
+
+  // Initialize the form with default values from the user (if editing) or with defaults for adding.
   const {
     register,
     handleSubmit,
@@ -58,66 +68,82 @@ export default function AddUserForm({
     formState: { errors },
   } = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
-    defaultValues: { role: "employee", pages: [] },
+    defaultValues: user ? { ...user } : { role: "employee", pages: [] },
   });
 
-  // Use watch to subscribe to changes in the pages field.
+  // When the user prop changes (e.g. editing a different user), reset the form.
+  useEffect(() => {
+    if (user) {
+      reset(user);
+    } else {
+      reset({ role: "employee", pages: [] });
+    }
+  }, [user, reset]);
+
   const pages = watch("pages");
 
   const onSubmit = async (data: UserFormValues) => {
     try {
-      const res = await fetch("/api/users", {
-        method: "POST",
+      // Choose API endpoint and method based on whether a user is provided.
+      const endpoint = user ? `/api/users/${user.id}` : "/api/users";
+      const method = user ? "PUT" : "POST";
+
+      const res = await fetch(endpoint, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
       if (!res.ok) {
-        throw new Error("Failed to create user");
+        throw new Error(user ? "Failed to update user" : "Failed to create user");
       }
 
-      toast({ title: "User added successfully!" });
-      fetchUsers(); // Refresh user list
+      toast({
+        title: user ? "User updated successfully!" : "User added successfully!",
+      });
+      fetchUsers();
       reset();
       setIsOpen(false);
     } catch (error) {
-      toast({ title: "Error adding user", variant: "destructive" });
+      toast({
+        title: user ? "Error updating user" : "Error adding user",
+        variant: "destructive",
+      });
     }
   };
-
+  useEffect(() => {
+    if (user) {
+      reset(user);
+    }
+  }, [user, reset]);
+  
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>Add User</Button>
+        <Button>{user ? "Edit User" : "Add User"}</Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogHeader>Add New User</DialogHeader>
+        <DialogHeader>{user ? "Edit User" : "Add New User"}</DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <Label htmlFor="name">Name</Label>
             <Input id="name" {...register("name")} />
             {errors.name && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.name.message}
-              </p>
+              <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
             )}
           </div>
           <div>
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" {...register("email")} />
             {errors.email && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.email.message}
-              </p>
+              <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
             )}
           </div>
           <div>
             <Label htmlFor="password">Password</Label>
             <Input id="password" type="password" {...register("password")} />
             {errors.password && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.password.message}
-              </p>
+              <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
             )}
           </div>
           <div>
@@ -137,9 +163,7 @@ export default function AddUserForm({
               </SelectContent>
             </Select>
             {errors.role && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.role.message}
-              </p>
+              <p className="text-red-500 text-xs mt-1">{errors.role.message}</p>
             )}
           </div>
           <div>
@@ -160,17 +184,17 @@ export default function AddUserForm({
                     }}
                     className="form-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded"
                   />
-                  <Label htmlFor={page} className="capitalize">{page}</Label>
+                  <Label htmlFor={page} className="capitalize">
+                    {page}
+                  </Label>
                 </div>
               ))}
             </div>
             {errors.pages && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.pages.message}
-              </p>
+              <p className="text-red-500 text-xs mt-1">{errors.pages.message}</p>
             )}
           </div>
-          <Button type="submit">Create User</Button>
+          <Button type="submit">{user ? "Update User" : "Create User"}</Button>
         </form>
       </DialogContent>
     </Dialog>

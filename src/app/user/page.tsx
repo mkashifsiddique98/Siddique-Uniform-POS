@@ -68,15 +68,21 @@ export default function UserManagementPage() {
             </TableHeader>
             <TableBody>
               {users.map((user) => (
-                <TableRow key={user.email + user._id}>
+                <TableRow key={user.email + user._id} className="capitalize">
                   <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
+                  <TableCell className="normal-case">{user.email}</TableCell>
                   <TableCell>{user.role}</TableCell>
-                  <TableCell>{user.pages.join(", ")}</TableCell>
-                  <TableCell>
+                  <TableCell >{user.pages.join(", ")}</TableCell>
+                  <TableCell className="flex  gap-2">
+                  <Button
+                      variant="outline"
+                      // onClick={() => deleteUser(user._id)}
+                    >
+                      Edit
+                    </Button>
                     <Button
                       variant="destructive"
-                      onClick={() => deleteUser(user._id)}
+                      onClick={() => deleteUser(user?._id)}
                     >
                       Delete
                     </Button>
