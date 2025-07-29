@@ -16,6 +16,7 @@ import Link from "next/link";
 import { Purchase } from "@/types/purchase";
 import { Invoice } from "@/types/invoice";
 import HorizontalBarChart from "@/components/dashboard/horizontal-bar-chart";
+import { MonthlyOverview } from "@/components/dashboard/month-overview";
 
 const DOMAIN_NAME = process.env.DOMAIN_NAME || "http://localhost:3000";
 
@@ -216,6 +217,14 @@ export default async function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <RecentSales InvoiceData={InvoiceData} />
+                </CardContent>
+              </Card>
+               <Card className="col-span-7">
+                <CardHeader>
+                  <CardTitle>Day-wise Overview Sales</CardTitle>
+                </CardHeader>
+                <CardContent className="pl-2">
+                  <MonthlyOverview InvoiceData={InvoiceData} />
                 </CardContent>
               </Card>
             </div>

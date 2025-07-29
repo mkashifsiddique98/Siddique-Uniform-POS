@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ProductCard from "./product-card";
 import { FilterElementProps, ProductFormState } from "@/types/product";
 import FilterBtnProduct from "./Filter-btn-product";
@@ -18,13 +18,17 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [query, setQuery] = useState(""); // Search
   // Feature
-  const [filteredProducts, setFilteredProducts] = useState<ProductFormState[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<ProductFormState[]>(
+    []
+  );
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filterElement, setFilterElement] = useState<FilterElementProps>({
     filterBy: "",
     filterValue: "",
   });
-  
+  //   // suggestion timeout
+  // const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const calculateIndexRange = () => {
     const indexOfLastItem = currentPage * perPage;
     const indexOfFirstItem = indexOfLastItem - perPage;
@@ -36,10 +40,16 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
   // Combined filter function for search and filter
   const combinedFilter = (item: ProductFormState) => {
     const matchesSearch = query
-      ? item.productName.toLowerCase().replace(/\s+/g, "").includes(query.toLowerCase().replace(/\s+/g, ""))
+      ? item.productName
+          .toLowerCase()
+          .replace(/\s+/g, "")
+          .includes(query.toLowerCase().replace(/\s+/g, ""))
       : true;
     const matchesFilter = filterElement.filterValue
-      ? item[filterElement.filterBy]?.toLowerCase().trim().includes(filterElement.filterValue.toLowerCase().trim())
+      ? item[filterElement.filterBy]
+          ?.toLowerCase()
+          .trim()
+          .includes(filterElement.filterValue.toLowerCase().trim())
       : true;
 
     return matchesSearch && matchesFilter;
@@ -52,7 +62,8 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
     .filter(combinedFilter)
     .slice(indexOfFirstItem, indexOfLastItem);
 
-  const handlePaginationClick = (pageNumber: number) => setCurrentPage(pageNumber);
+  const handlePaginationClick = (pageNumber: number) =>
+    setCurrentPage(pageNumber);
 
   // Filter function
   const handleFilterChangeElement = (filterElement: FilterElementProps) => {
@@ -63,29 +74,39 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
     setCurrentPage(1); // Reset page when filter changes
   }, [filterElement]);
   // ***************************   Bar-Code *******************************
-  
-// ************************************************************************
 
-const handleChangeQuery = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const input = e.target.value;
-  setQuery(input);
-  setCurrentPage(1);
-  if (input.length > 0) {
-    const filtered = currentItems.filter((item) =>
-      item.productName.toLowerCase().replace(/\s+/g, "").includes(input.toLowerCase().replace(/\s+/g, ""))
-    );
-    setFilteredProducts(filtered);
-    setShowSuggestions(true);
-  } else {
-    setFilteredProducts([]);
+  // ************************************************************************
+
+  const handleChangeQuery = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    setQuery(input);
+    setCurrentPage(1);
+    if (input.length > 0) {
+      const filtered = currentItems.filter((item) =>
+        item.productName
+          .toLowerCase()
+          .replace(/\s+/g, "")
+          .includes(input.toLowerCase().replace(/\s+/g, ""))
+      );
+      setFilteredProducts(filtered);
+      setShowSuggestions(true);
+    } else {
+      setFilteredProducts([]);
+      setShowSuggestions(false);
+    }
+
+    //   if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+    // // Set timeout to hide suggestions after 500ms of inactivity
+    // typingTimeoutRef.current = setTimeout(() => {
+    //   setShowSuggestions(false);
+    // }, 500);
+  };
+
+  const handleSelect = (item: string) => {
+    setQuery(item);
     setShowSuggestions(false);
-  }
-};
-
-const handleSelect = (item: string) => {
-  setQuery(item);
-  setShowSuggestions(false);
-};
+  };
 
   return (
     <div className="my-4">
@@ -98,6 +119,12 @@ const handleSelect = (item: string) => {
         className="w-full  focus-visible:ring-black focus-visible:ring-2"
         placeholder="Product Name or Product code"
         value={query}
+        onBlur={() => {
+          setTimeout(() => setShowSuggestions(false), 150); 
+        }}
+        onFocus={() => {
+          if (filteredProducts.length > 0) setShowSuggestions(true);
+        }}
         onChange={(e) => handleChangeQuery(e)}
       />
       {showSuggestions && filteredProducts.length > 0 && (
@@ -114,12 +141,12 @@ const handleSelect = (item: string) => {
         </ul>
       )}
       {/* Display current items */}
-      <div className="m-2" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 m-2 ">
-        {currentItems.map((item, index) => (
-          <ProductCard key={item.productName + index} product={item} />
-        ))}
-      </div>
+      <div className="m-2" style={{ maxHeight: "80vh", overflowY: "auto" }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 m-2 ">
+          {currentItems.map((item, index) => (
+            <ProductCard key={item.productName + index} product={item} />
+          ))}
+        </div>
       </div>
       {currentItems.length === 0 && (
         <div className="flex justify-center items-center h-[50vh] sm:h-[70vh]">
@@ -175,7 +202,11 @@ const handleSelect = (item: string) => {
                 }
 
                 // Always show the last five pages if not already included
-                for (let i = Math.max(totalPages - 4, endPage + 1); i <= totalPages; i++) {
+                for (
+                  let i = Math.max(totalPages - 4, endPage + 1);
+                  i <= totalPages;
+                  i++
+                ) {
                   if (!pages.includes(i) && i !== "...") {
                     pages.push(i);
                   }
@@ -185,14 +216,17 @@ const handleSelect = (item: string) => {
               return pages.map((page, index) => (
                 <li key={`pagination-${page}`}>
                   {page === "..." ? (
-                    <span className="px-3 text-gray-500 dark:text-gray-400">...</span>
+                    <span className="px-3 text-gray-500 dark:text-gray-400">
+                      ...
+                    </span>
                   ) : (
                     <button
                       onClick={() => handlePaginationClick(page)}
-                      className={`flex items-center justify-center px-3 h-8 leading-tight font-bold border border-gray-300 dark:border-gray-700 ${currentPage === page
+                      className={`flex items-center justify-center px-3 h-8 leading-tight font-bold border border-gray-300 dark:border-gray-700 ${
+                        currentPage === page
                           ? "bg-gray-950 text-white dark:bg-gray-700 dark:text-white"
                           : "bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                        }`}
+                      }`}
                       aria-current={currentPage === page ? "page" : undefined}
                     >
                       {page}
@@ -205,8 +239,9 @@ const handleSelect = (item: string) => {
             {/* Next Button */}
             <li>
               <button
-
-                disabled={currentPage >= Math.ceil(totalFilteredItems / perPage)}
+                disabled={
+                  currentPage >= Math.ceil(totalFilteredItems / perPage)
+                }
                 onClick={() => handlePaginationClick(currentPage + 1)}
                 className="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                 aria-label="Next Page"
