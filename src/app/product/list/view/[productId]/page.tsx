@@ -18,7 +18,9 @@ const ProductDetailPage: React.FC<{ params: { productId: string } }> = ({
   params,
 }) => {
   const [product, setProduct] = useState<ProductFormState | null>(null);
+  const [components, setComponents] = useState<ProductFormState[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadingComponents, setLoadingComponents] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -38,11 +40,41 @@ const ProductDetailPage: React.FC<{ params: { productId: string } }> = ({
     }
   };
 
+  // Fetch components one by one in parallel using Promise.all
+  const getComponents = async (componentIds: string[]) => {
+    if (componentIds.length === 0) {
+      setComponents([]);
+      return;
+    }
+    setLoadingComponents(true);
+    try {
+      const componentsData = await Promise.all(
+        componentIds.map(async (id) => {
+          const res = await fetch(`/api/product/${id}`);
+          if (!res.ok) throw new Error(`Failed to fetch component with id ${id}`);
+          const data = await res.json();
+          return data.response as ProductFormState;
+        })
+      );
+      setComponents(componentsData);
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setLoadingComponents(false);
+    }
+  };
+
   useEffect(() => {
     if (productId) {
       getProductById(productId);
     }
   }, [productId]);
+
+  useEffect(() => {
+    if (product?.isBundle && Array.isArray(product.components)) {
+      getComponents(product.components as string[]);
+    }
+  }, [product]);
 
   if (loading) {
     return (
@@ -52,7 +84,6 @@ const ProductDetailPage: React.FC<{ params: { productId: string } }> = ({
         <Skeleton className="h-4 w-1/3 mb-4" />
         <Skeleton className="h-4 w-1/3 mb-4" />
         <Skeleton className="h-4 w-1/3 mb-4" />
-         {/* Image Placeholder */}
       </div>
     );
   }
@@ -72,16 +103,25 @@ const ProductDetailPage: React.FC<{ params: { productId: string } }> = ({
       </div>
     );
   }
-
+  const imageSrc =
+  Array.isArray(product?.images) && product.images.length > 0
+    ? product.images[0]
+    : "/product/no-image-product.jpg";
   return (
     <div className="container p-6">
       <h1 className="text-2xl font-bold mb-4">Product Details</h1>
 
-      {/* Product Image Placeholder */}
-      <div className="mb-6 w-72 h-72 flex items-center justify-center">
-        <Image src="/product/no-image-product.jpg" alt="no-product-image" width={320} height={320}/>
+      {/* Product Image */}
+      <div className="mb-6 w-72 h-72 flex items-center justify-center overflow-hidden">
+        <Image
+          src={imageSrc}
+          alt="no-product-image"
+          width={320}
+          height={320}
+        />
       </div>
 
+      {/* Main Product Details */}
       <Table>
         <TableHeader>
           <TableRow>
@@ -134,6 +174,45 @@ const ProductDetailPage: React.FC<{ params: { productId: string } }> = ({
           )}
         </TableBody>
       </Table>
+
+      {/* Bundle Components Table */}
+      {product.isBundle && (
+        <>
+          <h2 className="text-xl font-semibold mt-8 mb-4">Bundle Components</h2>
+          {loadingComponents ? (
+            <p>Loading components...</p>
+          ) : components.length === 0 ? (
+            <p>No components found.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Component Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Size</TableHead>
+                  <TableHead>Quantity</TableHead>
+                  <TableHead>Product Cost</TableHead>
+                   <TableHead>whole Sale Price</TableHead>
+                    <TableHead>Sell price</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {components.map((comp,index) => (
+                  <TableRow key={`${comp._id}-${index}`}>
+                    <TableCell>{comp.productName}</TableCell>
+                    <TableCell>{comp.category}</TableCell>
+                    <TableCell>{comp.size}</TableCell>
+                    <TableCell>{comp.quantity ?? "N/A"}</TableCell>
+                    <TableCell>{comp.productCost}</TableCell>
+                    <TableCell>{comp.wholesalePrice}</TableCell>
+                    <TableCell>{comp.sellPrice}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </>
+      )}
 
       <Button variant="outline" className="mt-6" onClick={() => router.back()}>
         Back

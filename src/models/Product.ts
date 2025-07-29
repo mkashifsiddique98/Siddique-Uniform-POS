@@ -4,6 +4,7 @@ import { ProductFormState } from "@/types/product";
 interface IProduct extends ProductFormState {}
 
 const productSchema: Schema = new Schema({
+ 
   productName: { type: String, required: true },
   productCode:{ type: Number, default: 0},
   schoolName: { type: String },
@@ -15,6 +16,11 @@ const productSchema: Schema = new Schema({
   wholesalePrice: { type: Number, required: true },
   quantity: { type: Number, default: 0 },
   stockAlert: { type: Number, default: 0 },
+  // 
+  isBundle: { type: Boolean, default: false }, // full suit?
+  components: [{ type: Schema.Types.ObjectId, ref: 'Product' }], 
+  parentProduct: { type: Schema.Types.ObjectId, ref: 'Product' },
+   images: [{ type: String }],
 });
 
 const Product =

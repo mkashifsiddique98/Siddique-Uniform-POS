@@ -8,21 +8,18 @@ import sizeListTemplate from "../../../../public/size-catgory-template.json";
 import { formSchema } from "@/validation/product";
 import { toast } from "@/components/ui/use-toast";
 import BreadCrum from "@/components/custom-components/bread-crum";
-import ProductForm from "@/components/Product/product-form"; // Import the Reused component
-async function getAllSchoolDetail() {
-  const res = await fetch("http://localhost:3000/api/customer", {
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    throw new Error("Failed to fetch data");
-  }
+import ProductForm from "@/components/Product/product-form"; // Reused component
+import { ProductFormState } from "@/types/product";
 
-  return res.json();
-}
+const DOMAIN_NAME = process.env.NEXT_PUBLIC_DOMAIN_NAME || "http://localhost:3000"; // fallback
+
 const Product = () => {
   const [schoolList, setSchoolList] = useState([]);
+  const [productList, setProductList] = useState([]);
+
+  // ✅ Fetch school names
   useEffect(() => {
-    const getAllSchoolDetail = async () => {
+    const fetchSchoolNames = async () => {
       try {
         const res = await fetch("/api/product/school-name");
         const data = await res.json();
@@ -32,8 +29,27 @@ const Product = () => {
         console.error("Error fetching school details:", error);
       }
     };
-    getAllSchoolDetail();
+    fetchSchoolNames();
   }, []);
+
+  // ✅ Fetch existing products
+  useEffect(() => {
+    const fetchProductData = async () => {
+      try {
+        const res = await fetch(`${DOMAIN_NAME}/api/product`);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        setProductList(data.response);
+      } catch (error) {
+        console.error("Failed to fetch product data:", error);
+      }
+    };
+    fetchProductData();
+  }, []);
+
+  // ✅ Hook Form Setup
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -45,19 +61,38 @@ const Product = () => {
       wholesalePrice: 0,
       stockAlert: 0,
       productCost: 0,
+      isBundle: false,
+      components: [],
+      images:[],
     },
   });
 
+  // ✅ Submit Handler
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const response = await fetch("/api/product/", {
-      method: "POST",
-      body: JSON.stringify(values),
-    });
-    if (response.ok) {
-      form.reset();
+    try {
+      const response = await fetch("/api/product/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+
+      if (response.ok) {
+        form.reset();
+        toast({
+          title: "Product Created!",
+          description: "New product has been created successfully!",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Something went wrong while creating the product.",
+        });
+      }
+    } catch (error) {
+      console.error("Submit error:", error);
       toast({
-        title: "Product Created!",
-        description: "New Prodcut is Created Successfully!",
+        title: "Error",
+        description: "Failed to submit the form.",
       });
     }
   }
@@ -70,6 +105,8 @@ const Product = () => {
         onSubmit={onSubmit}
         sizeListTemplate={sizeListTemplate}
         schoolList={schoolList}
+        // for Bundling...
+        productList={productList}
         mode="Add Product"
       />
     </div>

@@ -1,11 +1,15 @@
 /* eslint-disable @next/next/no-img-element */
-"use client"
+"use client";
 import { customer } from "@/types/customer";
 import { ProductDetail } from "@/types/invoice";
 import { Facebook, MapPinIcon, Phone, Smartphone, Store } from "lucide-react";
 import QRCode from "react-qr-code";
 import React, { FC, useEffect } from "react";
 import Barcode from "react-barcode";
+type socialMediaType = {
+   facebook:string,
+    tiktok:string
+}
 interface ReceiptTemplateProps {
   selectedCustomer: customer | undefined;
   productList: ProductDetail[];
@@ -17,32 +21,115 @@ interface ReceiptTemplateProps {
   remainingBalance: number;
   return: boolean;
   isRePrint: boolean;
+  shopName?: string | undefined;
+  shopTagline?: string | undefined;
+  shopAddress:  string | undefined;
+  shopPhone: string | undefined;
+  messageCustomer:string | undefined;
+  socialMedia: socialMediaType  | undefined
 }
-
+const receiptTemplateVariable = {
+  shopName: "صدیق یونیفارم سنٹر",
+  shopTagline: "بہترین معیار، مناسب قیمت",
+  shopAddress: "پتہ: سراں مارکیٹ کریانوالہ",
+  shopPhone: "فون نمبر: 03086139401",
+  messageCustomer:"  نوٹ: خریدا ہوا سامان بل کے بغیر واپس یا تبدیل نہیں ہوگا ",
+  socialMedia: {
+    facebook:"",
+    tiktok:""
+  }
+};
 // Reusable component for rendering a product table
-const ProductTable: FC<{ title: string; products: ProductDetail[] }> = ({ title, products }) => {
+const ProductTable: FC<{ title: string; products: ProductDetail[] }> = ({
+  title,
+  products,
+}) => {
   if (!products.length) return null;
   return (
     <>
-      {title != "" && <p className="leading-2 font-bold">--------- {title} ----------</p>}
-      <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "10px" }}>
+      {title != "" && (
+        <p className="leading-2 font-bold">--------- {title} ----------</p>
+      )}
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          marginBottom: "10px",
+        }}
+      >
         <thead>
           <tr>
-            <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>Product</th>
-            <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>Qty</th>
-            <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>Price</th>
-            <th style={{ textAlign: "center", border: "1px solid black", fontWeight: "bold" }}>Total</th>
+            <th
+              style={{
+                textAlign: "center",
+                border: "1px solid black",
+                fontWeight: "bold",
+              }}
+            >
+              Product
+            </th>
+            <th
+              style={{
+                textAlign: "center",
+                border: "1px solid black",
+                fontWeight: "bold",
+              }}
+            >
+              Qty
+            </th>
+            <th
+              style={{
+                textAlign: "center",
+                border: "1px solid black",
+                fontWeight: "bold",
+              }}
+            >
+              Price
+            </th>
+            <th
+              style={{
+                textAlign: "center",
+                border: "1px solid black",
+                fontWeight: "bold",
+              }}
+            >
+              Total
+            </th>
           </tr>
         </thead>
         <tbody>
           {products.map((product) => (
             <tr key={product.productName}>
-              <td style={{ padding: "5px 3px", border: "1px solid black" }}>{product.productName}</td>
-              <td style={{ textAlign: "center", padding: "8px 0", border: "1px solid black" }}>{product.quantity}</td>
-              <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
+              <td style={{ padding: "5px 3px", border: "1px solid black" }}>
+                {product.productName}
+              </td>
+              <td
+                style={{
+                  textAlign: "center",
+                  padding: "8px 0",
+                  border: "1px solid black",
+                }}
+              >
+                {product.quantity}
+              </td>
+              <td
+                style={{
+                  textAlign: "right",
+                  padding: "5px 3px",
+                  border: "1px solid black",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 Rs {product.sellPrice}
               </td>
-              <td style={{ textAlign: "right", padding: "5px 3px", border: "1px solid black", whiteSpace: "nowrap" }}>
+              <td
+                style={{
+                  textAlign: "right",
+                  padding: "5px 3px",
+                  border: "1px solid black",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 Rs {product.sellPrice * product.quantity}
               </td>
             </tr>
@@ -62,7 +149,6 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   invoiceNo,
   remainingBalance,
   isRePrint,
-
 }) => {
   // If customer
   const SPECIAL_STITCHING = "special-stitching";
@@ -70,18 +156,24 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
     selectedCustomer?.type?.trim().toLowerCase() === SPECIAL_STITCHING;
   // Product Filteration
   const returnItems = productList.filter((product) => product.return);
-  const alreadyBoughtItems = productList.filter((product) => product.sold && !product.return);
-  const newItems =
-    isRePrint ? [] : productList.filter((product) => !product.sold && !product.return);
-  // Function to Calcuate 
+  const alreadyBoughtItems = productList.filter(
+    (product) => product.sold && !product.return
+  );
+  const newItems = isRePrint
+    ? []
+    : productList.filter((product) => !product.sold && !product.return);
+  // Function to Calcuate
   const calcSubtotal = (items: ProductDetail[]) =>
-    items.reduce((total, product) => total + product.sellPrice * product.quantity, 0);
+    items.reduce(
+      (total, product) => total + product.sellPrice * product.quantity,
+      0
+    );
   // Sub Total Value
   const newTotalAmount = calcSubtotal(newItems);
   const returnTotalAmount = calcSubtotal(returnItems);
   const alreadyBoughtTotalAmount = calcSubtotal(alreadyBoughtItems);
   const computedGrandTotal = isRePrint
-    ? alreadyBoughtTotalAmount - returnTotalAmount - discount  
+    ? alreadyBoughtTotalAmount - returnTotalAmount - discount
     : newTotalAmount + alreadyBoughtTotalAmount - returnTotalAmount - discount;
 
   return (
@@ -91,7 +183,6 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         fontFamily: "monospace",
         padding: "10px",
         margin: "2px",
-
       }}
     >
       {/* Header */}
@@ -110,16 +201,16 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
           صدیق یونیفارم سنٹر
         </h2>
       </div>
-      <p className="capitalize text-center italic text-xs mb-6 urdu-font" >
+      <p className="capitalize text-center italic text-xs mb-6 urdu-font">
         بہترین معیار، مناسب قیمت
       </p>
 
-      <p className="flex justify-center items-center text-xs gap-1 urdu-font" >
+      <p className="flex justify-center items-center text-xs gap-1 urdu-font">
         پتہ:سراں مارکیٹ کریانوالہ
         <MapPinIcon size={14} className="inline-block" />
         <Store size={14} className="inline-block" />
       </p>
-      <p className="flex justify-center items-center gap-1 urdu-font" >
+      <p className="flex justify-center items-center gap-1 urdu-font">
         <span>فون نمبر: 03086139401</span>
         <Phone size={14} className="inline-block" />
         <Smartphone size={14} className="inline-block" />
@@ -136,25 +227,27 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
           margin: "8px 0",
           borderRadius: "3px",
           alignItems: "center",
-
         }}
       >
-        <p style={{ margin: "0", fontWeight: "bold" }}>Receipt No: <span style={{ margin: "0", fontWeight: "normal" }}>{invoiceNo}</span></p>
+        <p style={{ margin: "0", fontWeight: "bold" }}>
+          Receipt No:{" "}
+          <span style={{ margin: "0", fontWeight: "normal" }}>{invoiceNo}</span>
+        </p>
         <p style={{ margin: "0" }}>
-          <span style={{ fontWeight: "bold" }}> Date:</span> {new Date().toLocaleDateString("en-PK")} <br />
-          <span style={{ fontWeight: "bold" }}>Time:</span>  {new Date().toLocaleTimeString("en-PK", {
+          <span style={{ fontWeight: "bold" }}> Date:</span>{" "}
+          {new Date().toLocaleDateString("en-PK")} <br />
+          <span style={{ fontWeight: "bold" }}>Time:</span>{" "}
+          {new Date().toLocaleTimeString("en-PK", {
             hour: "2-digit",
             minute: "2-digit",
           })}
         </p>
       </div>
 
-
       {/* Customer Info */}
       {selectedCustomer?.type === "wake-in-customer" ? (
-        // 
-        <>
-        </>
+        //
+        <></>
       ) : (
         <>
           <p style={{ margin: "5px 0", fontWeight: "bold" }}>
@@ -170,16 +263,30 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
         <>
           <ProductTable title="Return Items" products={returnItems} />
           {returnItems.length > 0 && (
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "5px 0",
+              }}
+            >
               <span>Sub-Total</span>
               <span>-Rs {returnTotalAmount}</span>
             </div>
           )}
 
-
-          <ProductTable title={isRePrint ? "" : "Already Bought Items"} products={alreadyBoughtItems} />
+          <ProductTable
+            title={isRePrint ? "" : "Already Bought Items"}
+            products={alreadyBoughtItems}
+          />
           {alreadyBoughtItems.length > 0 && (
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "5px 0",
+              }}
+            >
               <span>Sub-Total</span>
               <span>Rs {alreadyBoughtTotalAmount}</span>
             </div>
@@ -188,9 +295,22 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
       )}
 
       {/* New Items Section */}
-      <ProductTable title={(returnItems.length > 0 || alreadyBoughtItems.length > 0) ? "New Items" : ""} products={newItems} />
+      <ProductTable
+        title={
+          returnItems.length > 0 || alreadyBoughtItems.length > 0
+            ? "New Items"
+            : ""
+        }
+        products={newItems}
+      />
       {newItems.length > 0 && (
-        <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "5px 0",
+          }}
+        >
           <span>Sub-Total</span>
           <span>Rs {newTotalAmount}</span>
         </div>
@@ -198,19 +318,21 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
 
       {/* Discounts and Totals */}
 
-      {discount > 0 && (<div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          padding: "5px 0",
-          borderTop: "1px dotted black",
-        }}
-      >
-        <span>Discount</span>
-        <span>
-          Rs {discount} ({disInPercentage}%)
-        </span>
-      </div>)}
+      {discount > 0 && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "5px 0",
+            borderTop: "1px dotted black",
+          }}
+        >
+          <span>Discount</span>
+          <span>
+            Rs {discount} ({disInPercentage}%)
+          </span>
+        </div>
+      )}
       <div
         style={{
           display: "flex",
@@ -241,20 +363,23 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
       )}
 
       {/* Due Date for Special Stitching */}
-      {isSpecialStitching || dueDate && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            padding: "5px 0",
-            borderTop: "1px dotted black",
-            fontWeight: "bold",
-          }}
-        >
-          <span>Due Date for Stitching</span>
-          <span>{dueDate ? new Date(dueDate).toLocaleDateString() : "N/A"}</span>
-        </div>
-      )}
+      {isSpecialStitching ||
+        (dueDate && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "5px 0",
+              borderTop: "1px dotted black",
+              fontWeight: "bold",
+            }}
+          >
+            <span>Due Date for Stitching</span>
+            <span>
+              {dueDate ? new Date(dueDate).toLocaleDateString() : "N/A"}
+            </span>
+          </div>
+        ))}
       {/* Bar code */}
 
       {/* <div className="flex justify-center items-center py-2" style={{ borderTop: "1px dotted black", borderBottom: "1px dotted black" }}>
@@ -299,7 +424,8 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
             fontFamily: "Noto Nastaliq Urdu",
           }}
         >
-          نوٹ: خریدا ہوا سامان بل کے بغیر واپس یا تبدیل نہیں ہوگا۔  </p>
+          نوٹ: خریدا ہوا سامان بل کے بغیر واپس یا تبدیل نہیں ہوگا۔{" "}
+        </p>
       </div>
     </div>
   );

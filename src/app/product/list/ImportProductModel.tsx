@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Upload } from "lucide-react";
 import React, { ChangeEvent, useRef, useState } from "react";
 import { getAllProductDetail, readExcelFile } from "./useProduct";
 import { ProductFormState as ProductTypes } from "@/types/product";
@@ -27,9 +27,7 @@ const ImportProductBtn = ({
 
       if (selectedFile) {
         const { products, message } = await readExcelFile(selectedFile);
-        console.log("Products:", products);
-        //
-        // Clear the file input after reading the file
+       // Clear the file input after reading the file
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
@@ -131,7 +129,7 @@ const ImportProductModal = ({
         className="flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 sm:px-2 py-2.5 sm:py-1 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
         type="button"
       >
-        <Download size={14} />
+        <Upload size={14} />
         &nbsp;Import Product
       </Button>
 

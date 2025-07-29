@@ -8,7 +8,8 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, BellRingIcon } from "lucide-react";
+import { Bell, BellRingIcon, LayoutList } from "lucide-react";
+import Link from "next/link";
 
 export function AlertNav() {
   return (
@@ -27,15 +28,22 @@ export function AlertNav() {
         forceMount
       >
         <DropdownMenuLabel className="font-normal">
-          <div className="flex justify-between items-center">
-            <div className="pr-4 border-r-2">
+          <div className="flex justify-evenly items-center">
+            <div className="pr-2 border-r-2">
               <BellRingIcon />
             </div>
             <p className="text-sm font-medium leading-none">
-              {" "}
-              Move to Dashboard
+              Kashif- Due-<span>(04/21/2025)</span>
             </p>
           </div>
+        </DropdownMenuLabel>
+        <DropdownMenuLabel className="flex justify-evenly items-center border-t-2  hover:bg-slate-200">
+          <Link
+            href={"/notification"}
+            className="text-center font-extrabold"
+          >
+            Show-More
+          </Link>
         </DropdownMenuLabel>
       </DropdownMenuContent>
     </DropdownMenu>

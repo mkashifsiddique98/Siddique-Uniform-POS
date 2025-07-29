@@ -6,6 +6,7 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Eye, EyeOff } from "lucide-react";
 import {
   Dialog,
   DialogTrigger,
@@ -28,11 +29,20 @@ const userSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
   role: z.enum(["admin", "employee"]),
   pages: z.array(
-    z.enum(["customer", "invoice", "pos", "product", "user", "utilize"])
+    z.enum([
+      "customer",
+      "invoice",
+      "pos",
+      "product",
+      "user",
+      "utilize",
+      "purchase",
+    ])
   ),
 });
 
 export type UserFormValues = z.infer<typeof userSchema>;
+
 const allowedPages = [
   "customer",
   "invoice",
@@ -44,21 +54,20 @@ const allowedPages = [
 ] as const;
 
 interface UserFormProps {
-  // When editing, pass in the user data (including an id property)
-  user?: UserFormValues & { id: string };
+  mode: "create" | "update";
+  user?: UserFormValues & { id: string }; // Required in update mode
   fetchUsers: () => void;
-  // Optionally control whether the dialog is open externally
   open?: boolean;
 }
 
 export default function UserForm({
+  mode,
   user,
   fetchUsers,
   open: openProp,
 }: UserFormProps) {
   const [isOpen, setIsOpen] = useState(openProp ?? false);
-
-  // Initialize the form with default values from the user (if editing) or with defaults for adding.
+  const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
@@ -68,25 +77,25 @@ export default function UserForm({
     formState: { errors },
   } = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
-    defaultValues: user ? { ...user } : { role: "employee", pages: [] },
+    defaultValues:
+      mode === "update" && user ? { ...user } : { role: "employee", pages: [] },
   });
 
-  // When the user prop changes (e.g. editing a different user), reset the form.
   useEffect(() => {
-    if (user) {
+    if (mode === "update" && user) {
       reset(user);
     } else {
       reset({ role: "employee", pages: [] });
     }
-  }, [user, reset]);
+  }, [mode, user, reset]);
 
   const pages = watch("pages");
 
   const onSubmit = async (data: UserFormValues) => {
     try {
-      // Choose API endpoint and method based on whether a user is provided.
-      const endpoint = user ? `/api/users/${user.id}` : "/api/users";
-      const method = user ? "PUT" : "POST";
+      const endpoint =
+        mode === "update" && user ? `/api/users/${user.id}` : "/api/users";
+      const method = mode === "update" ? "PUT" : "POST";
 
       const res = await fetch(endpoint, {
         method,
@@ -95,35 +104,38 @@ export default function UserForm({
       });
 
       if (!res.ok) {
-        throw new Error(user ? "Failed to update user" : "Failed to create user");
+        throw new Error(
+          mode === "update" ? "Failed to update user" : "Failed to create user"
+        );
       }
 
       toast({
-        title: user ? "User updated successfully!" : "User added successfully!",
+        title:
+          mode === "update"
+            ? "User updated successfully!"
+            : "User added successfully!",
       });
+
       fetchUsers();
       reset();
       setIsOpen(false);
     } catch (error) {
       toast({
-        title: user ? "Error updating user" : "Error adding user",
+        title: mode === "update" ? "Error updating user" : "Error adding user",
         variant: "destructive",
       });
     }
   };
-  useEffect(() => {
-    if (user) {
-      reset(user);
-    }
-  }, [user, reset]);
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>{user ? "Edit User" : "Add User"}</Button>
+        <Button>{mode === "update" ? "Edit User" : "Add User"}</Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogHeader>{user ? "Edit User" : "Add New User"}</DialogHeader>
+        <DialogHeader>
+          {mode === "update" ? "Edit User" : "Add New User"}
+        </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <Label htmlFor="name">Name</Label>
@@ -136,16 +148,43 @@ export default function UserForm({
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" {...register("email")} />
             {errors.email && (
-              <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+              <p className="text-red-500 text-xs mt-1">
+                {errors.email.message}
+              </p>
             )}
           </div>
           <div>
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" {...register("password")} />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                {...register("password")}
+                placeholder={
+                  mode === "update" ? "Update password or leave blank" : ""
+                }
+                className="pr-10"
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground"
+                onClick={() => setShowPassword((prev) => !prev)}
+                tabIndex={-1}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
             {errors.password && (
-              <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+              <p className="text-red-500 text-xs mt-1">
+                {errors.password.message}
+              </p>
             )}
           </div>
+
           <div>
             <Label htmlFor="role">Role</Label>
             <Select
@@ -191,10 +230,14 @@ export default function UserForm({
               ))}
             </div>
             {errors.pages && (
-              <p className="text-red-500 text-xs mt-1">{errors.pages.message}</p>
+              <p className="text-red-500 text-xs mt-1">
+                {errors.pages.message}
+              </p>
             )}
           </div>
-          <Button type="submit">{user ? "Update User" : "Create User"}</Button>
+          <Button type="submit">
+            {mode === "update" ? "Update User" : "Create User"}
+          </Button>
         </form>
       </DialogContent>
     </Dialog>

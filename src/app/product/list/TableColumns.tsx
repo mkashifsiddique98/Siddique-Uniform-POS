@@ -11,11 +11,11 @@ import { usePathname, useRouter } from "next/navigation";
 
 interface DeteleBtnSingleRowModalProps {
   productId: object | undefined;
-  onDelete?: ()=>void;
+  onDelete?: () => void;
 }
 export const DeteleBtnSingleRowModal: FC<DeteleBtnSingleRowModalProps> = ({
   productId,
-  onDelete
+  onDelete,
 }) => {
   const route = useRouter();
   const pathName = usePathname();
@@ -56,8 +56,7 @@ export const DeteleBtnSingleRowModal: FC<DeteleBtnSingleRowModalProps> = ({
                 onClick={async (e) => {
                   const response = await handleSingleRowDataFn(productId);
                   if (response) {
-                  
-                    route.push(pathName)
+                    route.push(pathName);
                     toast({
                       description: `Product deleted!`,
                     });
@@ -96,7 +95,6 @@ export const columns: ColumnDef<Product>[] = [
     ),
     cell: ({ row }) => (
       <Checkbox
-      
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
@@ -106,12 +104,30 @@ export const columns: ColumnDef<Product>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "id",
+    accessorKey: "_id",
     header: "ID",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.index+1}</div>
-    ),
+    cell: ({ row }) => {
+      const id = row.original?._id?.toString?.() || "";
+      const handleCopy = () => {
+        navigator.clipboard.writeText(id);
+        toast({
+          
+          title: "Copied ID",
+          description: `Copied: ${id}`,
+        });
+      };
+
+      return (
+        <button
+          className="text-xs font-mono hover:underline text-left"
+          onClick={handleCopy}
+        >
+          {row.index + 1}
+        </button>
+      );
+    },
   },
+
   {
     accessorKey: "productName",
     header: ({ column }) => {
@@ -175,17 +191,17 @@ export const columns: ColumnDef<Product>[] = [
       return (
         <div className="flex space-x-1 cursor-pointer">
           <Link href={`/product/list/view/${product._id}`}>
-         <div className="group flex relative hover:bg-gray-100 p-1 rounded-full" >
-            <ViewIcon />
-            <span
-              className="group-hover:opacity-100 transition-opacity bg-gray-800 px-2 text-sm text-gray-100 rounded-md absolute left-1/2 
+            <div className="group flex relative hover:bg-gray-100 p-1 rounded-full">
+              <ViewIcon />
+              <span
+                className="group-hover:opacity-100 transition-opacity bg-gray-800 px-2 text-sm text-gray-100 rounded-md absolute left-1/2 
       -translate-x-1/3  opacity-0 m-4 mx-auto
       -translate-y-[200%]
       "
-            >
-              View
-            </span>
-          </div>
+              >
+                View
+              </span>
+            </div>
           </Link>
           <Link href={`/product/edit/${product._id}`}>
             <div className="group flex relative hover:bg-gray-100 p-1 ">

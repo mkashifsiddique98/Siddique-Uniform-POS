@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     const res = await request.json();
     const newProduct = new Product(res);
     const savedProduct = await newProduct.save();
-    
+
     return Response.json({ response: savedProduct }, { status: 201 });
   } catch (error) {
     console.error(error);
@@ -41,6 +41,9 @@ export async function PUT(request: Request) {
       wholesalePrice,
       category,
       quantity,
+      isBundle,
+      components,
+      images,
     } = updateData;
 
     // Use findByIdAndUpdate to update the document by _id
@@ -55,17 +58,23 @@ export async function PUT(request: Request) {
         wholesalePrice,
         category,
         quantity,
+        isBundle,
+        components,
+        images,
       },
-      { new: true } 
+      { new: true }
     );
-    
+
     if (!updatedProduct) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
     console.log("Updated product:", updatedProduct);
 
-    return NextResponse.json({ response: "Product updated", updatedProduct }, { status: 200 });
+    return NextResponse.json(
+      { response: "Product updated", updatedProduct },
+      { status: 200 }
+    );
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
@@ -83,7 +92,7 @@ export async function DELETE(request: Request) {
     if (!deletedProduct) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
-return Response.json({ response: "Product deleted" }, { status: 200 });
+    return Response.json({ response: "Product deleted" }, { status: 200 });
   } catch (error) {
     console.error(error);
     return Response.json({ error: "Server error" }, { status: 500 });

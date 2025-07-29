@@ -52,13 +52,13 @@ export function Topnav({
       <div className="flex justify-between items-center h-16 px-4 w-full">
         <div className="flex items-center">
           <Link href={"/"}>
-          <Avatar
-            className="ml-2 h-12 w-12 mr-5 border cursor-pointer"
-            onClick={() => route.push("/")}
-          >
-            <AvatarImage src="/73804159Siddique.png" alt="@Siddique" />
-            <AvatarFallback>SU</AvatarFallback>
-          </Avatar>
+            <Avatar
+              className="ml-2 h-12 w-12 mr-5 border cursor-pointer"
+              onClick={() => route.push("/")}
+            >
+              <AvatarImage src="/73804159Siddique.png" alt="@Siddique" />
+              <AvatarFallback>SU</AvatarFallback>
+            </Avatar>
           </Link>
           {pathName !== "/pos" && (
             <div>
@@ -87,21 +87,15 @@ export function Topnav({
               </Button> */}
             </div>
           )}
-          {pathName === "/pos" &&
-          <ToggleMode/> 
-          }
+          {pathName === "/pos" && <ToggleMode />}
           <div
             onClick={handleFullScreen}
             className="cursor-pointer hover:bg-gray-100 p-2 rounded-md hidden md:block"
           >
             <Expand />
           </div>
-          {pathName !== "/pos" && (
-            <div>
-              <AlertNav />
-            </div>
-          )}
-          
+          {pathName !== "/pos" && <AlertNav />}
+
           <UserNav />
         </div>
       </div>

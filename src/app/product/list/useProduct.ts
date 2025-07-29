@@ -167,7 +167,7 @@ export const readExcelFile = (
         // Assuming the first row contains headers
         const headers = data[0];
         const products: Product[] = [];
-        // Check Whether all fields are filled
+        // Required fields
         const requiredFields = [
           "productName",
           // "schoolName",
@@ -190,7 +190,7 @@ export const readExcelFile = (
           if (hasData) {
             const product: Product = {} as Product;
 
-            // Check if required fields are not empty
+            // Validate required fields
             const missingFields = requiredFields.filter(
               (field) => !rowData[headers.indexOf(field)]
             );
@@ -202,11 +202,20 @@ export const readExcelFile = (
               return;
             }
 
+            // Assign values from Excel row to product object
             for (let j = 0; j < headers.length; j++) {
               const header = headers[j];
-              // Use type assertion here to tell TypeScript that product[header] is of type string
-              product[header] = rowData[j] as string;
+              const value = rowData[j];
+
+              if (header === "components" && typeof value === "string") {
+                product[header] = value.includes(",")
+                  ? value.split(",").map((v) => v.trim())
+                  : [value.trim()];
+              } else {
+                product[header] = value;
+              }
             }
+
             products.push(product);
           }
         }
@@ -221,10 +230,11 @@ export const readExcelFile = (
       }
     };
 
-    reader.onerror = (event) => {
+    reader.onerror = () => {
       reject(new Error("Error reading the file"));
     };
 
     reader.readAsBinaryString(file);
   });
 };
+
