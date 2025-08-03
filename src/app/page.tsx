@@ -17,6 +17,7 @@ import { Purchase } from "@/types/purchase";
 import { Invoice } from "@/types/invoice";
 import HorizontalBarChart from "@/components/dashboard/horizontal-bar-chart";
 import { MonthlyOverview } from "@/components/dashboard/month-overview";
+import ExpenseOverview from "@/components/dashboard/expense-overview";
 
 const DOMAIN_NAME = process.env.DOMAIN_NAME || "http://localhost:3000";
 
@@ -42,6 +43,10 @@ async function getAllInvoiceDetail() {
 async function getAllPurchaseDetail() {
   const res = await fetchData(`${DOMAIN_NAME}/api/purchase`);
   return res?.response || [];
+}
+async function getAllExpenseDetail() {
+  const res = await fetchData(`${DOMAIN_NAME}/api/utilize`);
+  return res || [];
 }
 
 function calculateMonthSales(invoices: Invoice[], year: number, month: number) {
@@ -137,7 +142,8 @@ export default async function DashboardPage() {
   const purchaseData = await getAllPurchaseDetail();
   const { totalCurrentMonth, percentageChangePurchase } = calculateMonthlyPurchases(purchaseData);
   const { totalCurrentMonthRevenue, percentageChangeRevenue } = calculateRevenuePercentageChange(InvoiceData);
-
+  const expenses = await getAllExpenseDetail()
+ 
   return (
     <div className="hidden flex-col md:flex">
       <div className="flex-1 space-y-4 p-8 pt-6">
@@ -210,6 +216,23 @@ export default async function DashboardPage() {
               </Card>
               <Card className="col-span-3">
                 <CardHeader>
+                  <CardTitle>Overview Expense</CardTitle>
+                </CardHeader>
+                <CardContent className="pl-2">
+                  <ExpenseOverview expenses={expenses} />
+                </CardContent>
+              </Card>
+             
+               <Card className="col-span-4">
+                <CardHeader>
+                  <CardTitle>Day-wise Overview Sales</CardTitle>
+                </CardHeader>
+                <CardContent className="pl-2">
+                  <MonthlyOverview InvoiceData={InvoiceData} />
+                </CardContent>
+                </Card>
+                 <Card className="col-span-3">
+                <CardHeader>
                   <CardTitle>Recent Sales</CardTitle>
                   <CardDescription>
                     You made {InvoiceData.length} sales this month.
@@ -219,14 +242,7 @@ export default async function DashboardPage() {
                   <RecentSales InvoiceData={InvoiceData} />
                 </CardContent>
               </Card>
-               <Card className="col-span-7">
-                <CardHeader>
-                  <CardTitle>Day-wise Overview Sales</CardTitle>
-                </CardHeader>
-                <CardContent className="pl-2">
-                  <MonthlyOverview InvoiceData={InvoiceData} />
-                </CardContent>
-              </Card>
+                
             </div>
           </TabsContent>
           <TabsContent value="analytics" className="space-y-4">
