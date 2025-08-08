@@ -1,0 +1,54 @@
+# Node modules
+/node_modules/
+
+# Next.js build output
+/.next/
+/out/
+/dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Electron build output
+/build/
+/release/
+
+# Typescript
+*.tsbuildinfo
+
+# Misc
+*.log
+
+# Coverage reports
+coverage/
+
+# Optional npm cache directory
+.npm/
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Lock files (uncomment if you want to ignore them)
+/package-lock.json
+/yarn.lock
+/pnpm-lock.yaml
