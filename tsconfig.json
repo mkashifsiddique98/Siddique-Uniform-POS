@@ -23,7 +23,7 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/pos/pay-now.jsx", "src/app/utilize/ExpenseCategoriesForm.txs"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/pos/pay-now.jsx", "src/app/utilize/ExpenseCategoriesForm.txs", "seed/adminSeed.ts"],
   "exclude": ["node_modules"],
   "eslint": {
     // Warning: This allows production builds to successfully complete even if

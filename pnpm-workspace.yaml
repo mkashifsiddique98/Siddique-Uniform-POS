@@ -1,0 +1,6 @@
+ignoredBuiltDependencies:
+  - core-js
+  - electron
+  - sharp
+  - unrs-resolver
+  - usb
