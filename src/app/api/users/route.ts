@@ -1,7 +1,6 @@
 import connectDB from "@/utils/connectDB";
 import User from "@/models/user";
 import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
 
 connectDB();
 
@@ -15,13 +14,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User already exists" }, { status: 400 });
     }
 
-    // Hash password before saving
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const newUser = new User({
       name,
       email,
-      password: hashedPassword,
+      password,
       role,
       pages,
     });

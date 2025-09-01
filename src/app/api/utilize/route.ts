@@ -11,7 +11,8 @@ export async function POST(req: Request) {
 
 export async function GET() {
   await connectDB();
-  const all = await Utilize.find().sort({ createdAt: -1 }).populate("category");
+  const all = await Utilize.find().sort({ createdAt: -1 });
+  // i Add Exe for populate issue let see it work or not 
   return NextResponse.json(all);
 }
 

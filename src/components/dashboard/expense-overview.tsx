@@ -15,7 +15,7 @@ interface Expense {
   _id: string;
   title: string;
   amount: number;
-  category: { _id: string; name: string };
+  category: string;
   paymentMethod: string;
   handledBy: string;
   createdAt: string;
@@ -41,7 +41,7 @@ export default function ExpenseOverview({ expenses }: { expenses: Expense[] }) {
   const [availableDates, setAvailableDates] = useState<MonthYear[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
-
+    
   const extractAvailableDates = (expenses: Expense[]): MonthYear[] => {
     const seen = new Set<string>();
     const results: MonthYear[] = [];
@@ -67,11 +67,12 @@ export default function ExpenseOverview({ expenses }: { expenses: Expense[] }) {
     });
 
     const totals: Record<string, number> = {};
-    filtered.forEach(({ amount, category }) => {
-      if (category?.name) {
-        totals[category.name] = (totals[category.name] || 0) + amount;
-      }
-    });
+   filtered.forEach(({ amount, category }) => {
+  if (category) {
+    totals[category] = (totals[category] || 0) + amount;
+  }
+});
+
 
     const chartData = Object.entries(totals).map(([name, total]) => ({
       name,

@@ -82,11 +82,42 @@ export default function ExpenseTable({
     setEditItem(item);
   };
 
-  const handleUpdated = () => {
+  const handleUpdated = async () => {
     setEditItem(null);
-    fetch("/api/utilize")
-      .then((res) => res.json())
-      .then(setData);
+    try {
+    const [utilizeRes, categoriesRes] = await Promise.all([
+      fetch("/api/utilize"),
+      fetch("/api/utilize/expense-categories"),
+    ]);
+
+    if (!utilizeRes.ok || !categoriesRes.ok) {
+      throw new Error("Failed to fetch utilize or categories");
+    }
+
+    const [utilizeData, categoryData] = await Promise.all([
+      utilizeRes.json(),
+      categoriesRes.json(),
+    ]);
+
+    // Create a category lookup map using _id
+    const categoryMap = categoryData.reduce((acc, category) => {
+      acc[category._id] = category.name;
+      return acc;
+    }, {} as Record<string, string>);
+
+    // Replace category ID with actual name
+    const updatedUtilize = utilizeData.map((item: { category: string  }) => ({
+      ...item,
+      category: categoryMap[item.category] || "Unknown Category",
+    }));
+   console.log(updatedUtilize)
+    setData(updatedUtilize);
+    
+  } catch (error) {
+    console.error("Fetch error:", error);
+    setData([]);
+    
+  }
   };
 
   // Reset to page 1 when data or refresh changes (optional)
@@ -119,7 +150,7 @@ export default function ExpenseTable({
               </TableCell>
 
               <TableCell>{item.title}</TableCell>
-              <TableCell>{item.category?.name || "N/A"}</TableCell>
+              <TableCell>{item.category || "N/A"}</TableCell>
               <TableCell>RS {item.amount}</TableCell>
               <TableCell>{item.paymentMethod}</TableCell>
               <TableCell>{item.handledBy}</TableCell>

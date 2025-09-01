@@ -25,26 +25,24 @@ export default function ProductFormClient({
   productid,
 }: ProductFormClientProps) {
   const router = useRouter();
+  // for Select product or Linked Product
   const [productList, setProductList] = useState([]);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues:
-      product ||
-      ({
-        productName: "",
-        schoolName: "",
-        category: "",
-        size: "",
-        sellPrice: 0,
-        wholesalePrice: 0,
-        stockAlert: 0,
-        productCost: 0,
-        isBundle: false,
-        components: [],
-        images: [],
-      } as ProductFormState),
+    defaultValues: {
+    productName: product?.productName || "",
+    schoolName: product?.schoolName || "",
+    category: product?.category || "",
+    sellPrice: product?.sellPrice || 0,
+    wholesalePrice: product?.wholesalePrice || 0,
+    stockAlert: product?.stockAlert || 0,
+    productCost: product?.productCost || 0,
+    size: product?.size || "",
+    isBundle: product?.isBundle || false,
+    components: product?.components || [],
+    images: product?.images || []
+  },
   });
-   console.log("product Edit",product)
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const response = await fetch("/api/product/", {
       method: "PUT",

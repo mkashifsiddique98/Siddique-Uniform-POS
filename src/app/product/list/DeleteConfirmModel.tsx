@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Download, Trash2 } from "lucide-react";
 import { FC, useState } from "react";
 interface DeleteConfirmModelProps {
   selectedNumberOfRow: number;

@@ -28,17 +28,7 @@ interface ReceiptTemplateProps {
   messageCustomer:string | undefined;
   socialMedia: socialMediaType  | undefined
 }
-const receiptTemplateVariable = {
-  shopName: "صدیق یونیفارم سنٹر",
-  shopTagline: "بہترین معیار، مناسب قیمت",
-  shopAddress: "پتہ: سراں مارکیٹ کریانوالہ",
-  shopPhone: "فون نمبر: 03086139401",
-  messageCustomer:"  نوٹ: خریدا ہوا سامان بل کے بغیر واپس یا تبدیل نہیں ہوگا ",
-  socialMedia: {
-    facebook:"",
-    tiktok:""
-  }
-};
+
 // Reusable component for rendering a product table
 const ProductTable: FC<{ title: string; products: ProductDetail[] }> = ({
   title,
@@ -149,6 +139,15 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   invoiceNo,
   remainingBalance,
   isRePrint,
+
+  // Template Detail 
+  shopName,
+  shopTagline,
+  shopAddress,
+  shopPhone,
+  messageCustomer,
+  
+  socialMedia
 }) => {
   // If customer
   const SPECIAL_STITCHING = "special-stitching";
@@ -198,20 +197,20 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
             paddingBottom: "10px",
           }}
         >
-          صدیق یونیفارم سنٹر
+        {shopName ||  "صدیق یونیفارم سنٹر"}
         </h2>
       </div>
       <p className="capitalize text-center italic text-xs mb-6 urdu-font">
-        بہترین معیار، مناسب قیمت
+       {shopTagline || " بہترین معیار، مناسب قیمت"  }
       </p>
 
       <p className="flex justify-center items-center text-xs gap-1 urdu-font">
-        پتہ:سراں مارکیٹ کریانوالہ
+        {shopAddress || "پتہ:سراں مارکیٹ کریانوالہ"}
         <MapPinIcon size={14} className="inline-block" />
         <Store size={14} className="inline-block" />
       </p>
       <p className="flex justify-center items-center gap-1 urdu-font">
-        <span>فون نمبر: 03086139401</span>
+        <span> {shopPhone ||"فون نمبر: 03086139401" } </span>
         <Phone size={14} className="inline-block" />
         <Smartphone size={14} className="inline-block" />
       </p>
@@ -424,7 +423,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
             fontFamily: "Noto Nastaliq Urdu",
           }}
         >
-          نوٹ: خریدا ہوا سامان بل کے بغیر واپس یا تبدیل نہیں ہوگا۔{" "}
+       {messageCustomer ||   "نوٹ: خریدا ہوا سامان بل کے بغیر واپس یا تبدیل نہیں ہوگا۔"}
         </p>
       </div>
     </div>

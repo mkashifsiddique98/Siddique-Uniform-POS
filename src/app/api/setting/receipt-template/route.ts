@@ -28,15 +28,13 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
     try {
-        const url = new URL(request.url);
-        const id = url.searchParams.get("id");
         const body = await request.json();
-
-        if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+          
+        if (!body._id || !mongoose.Types.ObjectId.isValid(body._id)) {
             return NextResponse.json({ success: false, error: "Invalid ID" }, { status: 400 });
         }
 
-        const receiptTemplate = await ReceiptTemplate.findByIdAndUpdate(id, body, {
+        const receiptTemplate = await ReceiptTemplate.findByIdAndUpdate(body._id, body, {
             new: true,
             runValidators: true,
         });
@@ -52,24 +50,3 @@ export async function PUT(request: Request) {
     }
 }
 
-export async function DELETE(request: Request) {
-    try {
-        const url = new URL(request.url);
-        const id = url.searchParams.get("id");
-
-        if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-            return NextResponse.json({ success: false, error: "Invalid ID" }, { status: 400 });
-        }
-
-        const deletedReceiptTemplate = await ReceiptTemplate.findByIdAndDelete(id);
-
-        if (!deletedReceiptTemplate) {
-            return NextResponse.json({ success: false, error: "ReceiptTemplate not found" }, { status: 404 });
-        }
-
-        return NextResponse.json({ success: true, data: deletedReceiptTemplate }, { status: 200 });
-    } catch (error) {
-        console.error("Error deleting receipt template", error);
-        return NextResponse.json({ success: false, error: (error as any)?.message }, { status: 400 });
-    }
-}

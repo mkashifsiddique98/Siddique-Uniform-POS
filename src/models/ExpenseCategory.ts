@@ -9,5 +9,6 @@ const ExpenseCategorySchema: Schema = new Schema({
   name: { type: String, required: true, unique: true },
 });
 
-export default mongoose.models.ExpenseCategory ||
-  mongoose.model<IExpenseCategory>("ExpenseCategory", ExpenseCategorySchema);
+const ExpenseCategory = mongoose.models.ExpenseCategory || mongoose.model("ExpenseCategory", ExpenseCategorySchema);
+
+export default ExpenseCategory;

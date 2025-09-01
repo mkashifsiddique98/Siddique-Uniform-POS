@@ -14,7 +14,7 @@ const UtilizeSchema: Schema = new Schema(
   {
     title: { type: String, required: true },
     amount: { type: Number, required: true },
-     category: { type: Schema.Types.ObjectId, ref: "ExpenseCategory", required: true },
+    category:{ type: Schema.Types.ObjectId},
     paymentMethod: { type: String, required: true },
     handledBy: { type: String, required: true },
     note: { type: String },

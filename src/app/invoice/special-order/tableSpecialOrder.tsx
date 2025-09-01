@@ -110,7 +110,7 @@ export function TableSpecialOrder({ invoiceList }: { invoiceList: Invoice[] }) {
               </TableCell>
               <TableCell className="font-medium">
                 {new Date(
-                  invoice?.invoiceDate ?? new Date()
+                  invoice?.dueDate ?? new Date()
                 ).toLocaleDateString()}
               </TableCell>
 

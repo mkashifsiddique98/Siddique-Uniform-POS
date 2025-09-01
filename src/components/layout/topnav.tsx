@@ -52,10 +52,7 @@ export function Topnav({
       <div className="flex justify-between items-center h-16 px-4 w-full">
         <div className="flex items-center">
           <Link href={"/"}>
-            <Avatar
-              className="ml-2 h-12 w-12 mr-5 border cursor-pointer"
-              onClick={() => route.push("/")}
-            >
+            <Avatar className="ml-2 h-12 w-12 mr-5 border cursor-pointer">
               <AvatarImage src="/73804159Siddique.png" alt="@Siddique" />
               <AvatarFallback>SU</AvatarFallback>
             </Avatar>
@@ -94,7 +91,7 @@ export function Topnav({
           >
             <Expand />
           </div>
-          {pathName !== "/pos" && <AlertNav />}
+          <AlertNav />
 
           <UserNav />
         </div>

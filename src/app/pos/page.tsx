@@ -6,6 +6,7 @@ import Fullscreen from "@/utils/fullScreen";
 import BillBook from "./bill-book";
 import { School } from "@/types/school-name";
 import { Metadata } from "next";
+
 export const metadata: Metadata = {
   title: "POS",
   description: "Point of Sale ",

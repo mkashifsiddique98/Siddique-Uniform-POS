@@ -3,7 +3,16 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableRow } from "@/components/ui/table";
@@ -11,11 +20,16 @@ import { Textarea } from "@/components/ui/textarea";
 import Calendar from "@/components/custom-components/Calender";
 import { Printer, ShoppingCart } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
-import { clearChart, Products, setInvoiceNumber, useAppDispatch, useTypedSelector } from "@/lib/store";
+import {
+  clearChart,
+  Products,
+  setInvoiceNumber,
+  useAppDispatch,
+  useTypedSelector,
+} from "@/lib/store";
 import ReceiptTemplate from "./receipt-template";
 import { customer } from "@/types/customer";
 import { handleGenerateNewInvoiceNumber } from "./usePos";
-import { ClientPageRoot } from "../../../node_modules/next/dist/client/components/client-page";
 
 interface PayNowChartProps {
   grandTotal: number;
@@ -34,29 +48,41 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
   disInPercentage,
   selectedCustomer,
   handleReset,
-  editInvoice
+  editInvoice,
 }) => {
-
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [payingAmount, setPayingAmount] = useState<number>(grandTotal);
   const [receiveAmount, setReceiveAmount] = useState<number>(0);
   const [customerNotes, setCustomerNotes] = useState("");
   const [customerdetail, setCustomerDetail] = useState(selectedCustomer);
   // RePrint State
-  const [isRePrint,setRePrint] = useState<Boolean>(false)
+  const [isRePrint, setRePrint] = useState<Boolean>(false);
   const dispatch = useAppDispatch();
   const invoiceNo = useTypedSelector((state) => state.invoice.invoiceNumber);
   const chartList = useTypedSelector((state) => state.chart.chartList);
   const returnChange = Math.max(receiveAmount - grandTotal, 0);
-  const [partialMoneyPay, setPartialMoneyPay] = useState<boolean>(false)
+  const [partialMoneyPay, setPartialMoneyPay] = useState<boolean>(false);
   const componentRef = useRef<HTMLDivElement>(null);
 
-  // Model 
+  // Model
   const [isOpen, setIsOpen] = useState(false);
+  // ==================== Receipt Template ================
+  const [formData, setFormData] = useState({
+    shopName: "",
+    shopTagline: "",
+    shopAddress: "",
+    shopPhone: "",
+    messageCustomer: "",
+    socialMedia: {
+      facebook: "",
+      tiktok: "",
+    },
+  });
 
+  // --------      ---- --------------------
   const modelManage = () => {
-    setIsOpen(!isOpen)
-  }
+    setIsOpen(!isOpen);
+  };
   useEffect(() => {
     setPayingAmount(grandTotal);
   }, [grandTotal]);
@@ -72,7 +98,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
     }
   }, [receiveAmount]);
   const handleInvoiceGenerate = async () => {
-    const remainingBalance = partialMoneyPay ? (payingAmount - receiveAmount) : 0;
+    const remainingBalance = partialMoneyPay ? payingAmount - receiveAmount : 0;
     // Mark product as Sold
     const updateCharList = chartList.map((item: any) => ({
       ...item,
@@ -102,7 +128,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
         setCustomerNotes("");
         setPayingAmount(0);
 
-        const storedValue = Number(localStorage.getItem('invoiceNo'));
+        const storedValue = Number(localStorage.getItem("invoiceNo"));
 
         // Check if storedValue is a valid number, otherwise set it to 0
         const validStoredValue = isNaN(storedValue) ? 0 : storedValue;
@@ -111,26 +137,31 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
         const invoiceNewNumber = await handleGenerateNewInvoiceNumber();
 
         // Ensure that invoiceNewNumber is a valid number
-        const validInvoiceNewNumber = isNaN(invoiceNewNumber) ? 0 : invoiceNewNumber;
+        const validInvoiceNewNumber =
+          typeof invoiceNewNumber === "number" && !isNaN(invoiceNewNumber)
+            ? invoiceNewNumber
+            : 0;
 
         // Decide which number to use (stored or generated)
-        const newInvoiceNumber = Math.max(validStoredValue, validInvoiceNewNumber);
+        const newInvoiceNumber = Math.max(
+          validStoredValue,
+          validInvoiceNewNumber
+        );
 
         // Update localStorage with the new number
-        localStorage.setItem('invoiceNo', String(newInvoiceNumber + 1));
+        localStorage.setItem("invoiceNo", String(newInvoiceNumber + 1));
 
         // Dispatch the new invoice number to the store
         dispatch(setInvoiceNumber(newInvoiceNumber + 1));
 
         console.log("New invoice number:", newInvoiceNumber + 1);
-
       }
     } catch (error) {
       console.error("Error generating invoice:", error);
     }
   };
 
-  // Problem : if someone just return and 
+  // Problem : if someone just return and
   // second time you return it only show run to minus the
   // product qty , how can deal in this situtation
   const handleProductQtyUpdate = async () => {
@@ -154,23 +185,50 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
       console.error("Error in handling no receipt:", error);
     }
   };
-
+  // ---------- For Web Printing -------------
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
     documentTitle: "Receipt",
     onAfterPrint: handleNoReceipt,
   });
-  // Handle Re-Print Functionality 
-  const rePrintFunctionality = ()=>{
-    setRePrint(true)
-  }
+  // --------------- For Window Printing ---------
+  //  const handlePrint = () => {
+  //   if (!componentRef.current) return;
+
+  //   // Get the HTML content you want to print
+  //   const contentHTML = componentRef.current.innerHTML;
+
+  //   // Send to main process to print silently
+  //   ipcRenderer.send('print-silent', contentHTML);
+  // };
+  // ---Handle Re-Print Functionality ---
+  const rePrintFunctionality = () => {
+    setRePrint(true);
+  };
   useEffect(() => {
     if (isRePrint) {
-      handlePrint(); 
+      handlePrint();
       setRePrint(false);
     }
   }, [isRePrint]);
+  // ======================== Template From Backend ==================
 
+  useEffect(() => {
+    // Fetch existing data to populate the form for editing
+    const fetchData = async () => {
+      try {
+        const response = await fetch("/api/setting/receipt-template");
+        const res = await response.json();
+        if (res.success && res.data.length > 0) {
+          setFormData(res.data[0]);
+        }
+      } catch (error) {
+        console.error("Error fetching data", error);
+      }
+    };
+
+    fetchData();
+  }, []);
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       {/*  Dont Render  */}
@@ -182,7 +240,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
               title="Please only use to Print Re-Receipt"
               variant="secondary"
               className={`btn border-black font-bold disabled:cursor-not-allowed`}
-              disabled={ productList.length === 0 || !editInvoice}
+              disabled={productList.length === 0 || !editInvoice}
               onClick={rePrintFunctionality}
             >
               <Printer className="w-4 h-4 mr-4" />
@@ -191,7 +249,6 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
           )}
           {/* Perform direct */}
           <Button
-           
             className="bg-green-500 hover:bg-green-600 disabled:cursor-not-allowed"
             disabled={grandTotal === 0 || productList.length === 0}
             onClick={modelManage}
@@ -199,9 +256,8 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
             <ShoppingCart className="w-4 h-4 mr-4" aria-hidden="true" />
             Pay Now
           </Button>
-          
         </>
-</DialogTrigger>
+      </DialogTrigger>
 
       <DialogContent>
         <DialogHeader>
@@ -257,7 +313,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
                 <Table>
                   <TableRow>
                     <p className="p-4 font-semibold">
-                      Discount: Rs {discount} and  {disInPercentage+"%"}
+                      Discount: Rs {discount} and {disInPercentage + "%"}
                     </p>
                   </TableRow>
                   <TableRow>
@@ -268,20 +324,21 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
                 </Table>
               </CardContent>
             </Card>
-            {partialMoneyPay && <div className="m-2 p-2">
-              <p className="text-sm">
-                <strong>Remaining Balance :</strong> {payingAmount - receiveAmount}
-              </p>
-            </div>}
-
+            {partialMoneyPay && (
+              <div className="m-2 p-2">
+                <p className="text-sm">
+                  <strong>Remaining Balance :</strong>{" "}
+                  {payingAmount - receiveAmount}
+                </p>
+              </div>
+            )}
 
             {selectedCustomer?.type === "special-sitching" && (
               <div>
-                <Label htmlFor="calendar" className="py-2">Due Date for Special Stitching</Label>
-                <Calendar
-                  date={dueDate} handleDateChange={setDueDate}
-                />
-
+                <Label htmlFor="calendar" className="py-2">
+                  Due Date for Special Stitching
+                </Label>
+                <Calendar date={dueDate} handleDateChange={setDueDate} />
               </div>
             )}
           </div>
@@ -304,14 +361,19 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
       {/* Receipt content for printing */}
       <div
         style={{
-          display: "none", position: "absolute", top: 1, right: 1, backgroundColor: "white"
+          display: "none",
+          position: "absolute",
+          top: 1,
+          right: 1,
+          backgroundColor: "white",
         }}
       >
         <div ref={componentRef}>
           <ReceiptTemplate
-
             invoiceNo={invoiceNo}
-            remainingBalance={partialMoneyPay ? (payingAmount - receiveAmount) : 0}
+            remainingBalance={
+              partialMoneyPay ? payingAmount - receiveAmount : 0
+            }
             disInPercentage={disInPercentage}
             discount={discount}
             grandTotal={grandTotal}
@@ -319,6 +381,14 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
             selectedCustomer={selectedCustomer}
             dueDate={dueDate}
             isRePrint={isRePrint}
+            // Receipt Template
+
+            shopName={formData.shopName}
+            shopTagline={formData.shopTagline}
+            shopAddress={formData.shopAddress}
+            messageCustomer={formData.messageCustomer}
+            shopPhone={formData.shopPhone}
+            socialMedia={formData.socialMedia}
           />
         </div>
       </div>

@@ -44,9 +44,39 @@ async function getAllPurchaseDetail() {
   const res = await fetchData(`${DOMAIN_NAME}/api/purchase`);
   return res?.response || [];
 }
-async function getAllExpenseDetail() {
-  const res = await fetchData(`${DOMAIN_NAME}/api/utilize`);
-  return res || [];
+export async function getAllExpenseDetail() {
+  try {
+    const [utilizeRes, categoriesRes] = await Promise.all([
+      fetch(`${DOMAIN_NAME}/api/utilize`),
+      fetch(`${DOMAIN_NAME}/api/utilize/expense-categories`),
+    ]);
+
+    if (!utilizeRes.ok || !categoriesRes.ok) {
+      throw new Error("Failed to fetch utilize or categories");
+    }
+
+    const [utilizeData, categoryData] = await Promise.all([
+      utilizeRes.json(),
+      categoriesRes.json(),
+    ]);
+
+    // Create a category lookup map using _id
+    const categoryMap = categoryData.reduce((acc, category) => {
+      acc[category._id] = category.name;
+      return acc;
+    }, {} as Record<string, string>);
+
+    // Replace category ID with actual name
+    const updatedUtilize = utilizeData.map((item: any) => ({
+      ...item,
+      category: categoryMap[item.category] || "Unknown Category",
+    }));
+    
+    return updatedUtilize;
+  } catch (error) {
+    console.error("Server Fetch Error:", error);
+    return []; // return empty array on failure
+  }
 }
 
 function calculateMonthSales(invoices: Invoice[], year: number, month: number) {
@@ -143,7 +173,7 @@ export default async function DashboardPage() {
   const { totalCurrentMonth, percentageChangePurchase } = calculateMonthlyPurchases(purchaseData);
   const { totalCurrentMonthRevenue, percentageChangeRevenue } = calculateRevenuePercentageChange(InvoiceData);
   const expenses = await getAllExpenseDetail()
- 
+
   return (
     <div className="hidden flex-col md:flex">
       <div className="flex-1 space-y-4 p-8 pt-6">

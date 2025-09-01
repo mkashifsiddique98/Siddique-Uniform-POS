@@ -15,7 +15,7 @@ connectDB(); // Connect to MongoDB
 export async function PUT(request: Request) {
   try {
     const productsToUpdate = await request.json();
-    console.log("productsToUpdate :",productsToUpdate)
+   
     if (!Array.isArray(productsToUpdate)) {
       return NextResponse.json(
         { error: "Invalid request format. Expected an array of products." },

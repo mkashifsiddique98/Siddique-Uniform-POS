@@ -1,6 +1,7 @@
 import { ProductFormState } from "@/types/product";
 import React from "react";
 import TableLowStock from "./tableLowStock";
+import BreadCrum from "@/components/custom-components/bread-crum";
 const DOMAIN_NAME = process.env.DOMAIN_NAME;
 async function getAllProductData() {
   try {
@@ -21,7 +22,8 @@ export default async function LowStock() {
   const dataProduct = await getAllProductData();
   const productResponse: ProductFormState[] = dataProduct?.response || [];
   return (
-    <div>
+    <div className="container p-6">
+      <BreadCrum mainfolder="Product" subfolder="Low Product Stock" />
       {productResponse && <TableLowStock productResponse={productResponse} />}
       {productResponse.length === 0 && (
         <p className="font-extrabold text-centre">All Stock is Okey!</p>

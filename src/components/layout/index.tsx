@@ -8,6 +8,7 @@ import { Provider } from "react-redux";
 import { store } from "@/lib/store";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+
 const queryClient = new QueryClient();
 
 const MasterLayout = ({ children }: { children: React.ReactNode }) => {
@@ -15,14 +16,16 @@ const MasterLayout = ({ children }: { children: React.ReactNode }) => {
   const handleToggleSidebar = () => {
     setShowSideBar(!showSideBar);
   };
-  const pathname = usePathname();
+  
+  
+const pathname = usePathname();
 
   return (
     <Provider store={store}>
       {/* Uncomment if you need the QueryClientProvider */}
       <QueryClientProvider client={queryClient}>
       <div className="flex h-screen flex-col">
-        {pathname === "/pos" ? (
+        {pathname === "/pos" || pathname =="/login" || pathname=="/unauthorized" ? (
           <div>{children}</div>
         ) : (
           <div>
@@ -36,7 +39,7 @@ const MasterLayout = ({ children }: { children: React.ReactNode }) => {
                 </aside>
               )}
               {/*------------------- Main Content -------------*/}
-              <div className="flex-1 overflow-x-auto overflow-y-auto">
+              <div className="flex-1 overflow-x-auto overflow-y-auto ">
                 {children}
               </div>
             </div>

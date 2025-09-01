@@ -44,8 +44,9 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
           size: p.size,
           wholesalePrice: p.wholesalePrice,
           productCost: p.productCost,
-          components:p.components,
-          isBundle:p.isBundle
+          components: p.components,
+          isBundle: p.isBundle,
+          images: []
         })
       );
     }

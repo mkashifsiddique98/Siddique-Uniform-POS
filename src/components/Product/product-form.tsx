@@ -73,17 +73,25 @@ const ProductForm: React.FC<ProductFormProps> = ({
 }) => {
   const category = useWatch({ control: form.control, name: "category" });
   const isBundle = useWatch({ control: form.control, name: "isBundle" });
-   const images = useWatch({ control: form.control, name: "images" }) || [];
-  const setImages = (newImages: string[]) => {
-    form.setValue("images", newImages); // Updates the form field
+  const images = useWatch({ control: form.control, name: "images" }) || [];
+ 
+
+  const setImages = (newImages: string[] | ((prev: string[]) => string[])) => {
+    if (typeof newImages === "function") {
+      // if passed a callback
+      form.setValue("images", newImages(images));
+    } else {
+      form.setValue("images", newImages);
+    }
   };
+
   const sizeList = useMemo(() => {
     const selectedData = sizeListTemplate.find(
       (item) => item.name.toLowerCase() === category?.toLowerCase()
     );
     return selectedData?.size || [];
   }, [category, sizeListTemplate]);
-   
+
   return (
     <Form {...form}>
       <form

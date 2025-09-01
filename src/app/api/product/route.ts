@@ -69,7 +69,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    console.log("Updated product:", updatedProduct);
+    // console.log("Updated product:", updatedProduct);
 
     return NextResponse.json(
       { response: "Product updated", updatedProduct },

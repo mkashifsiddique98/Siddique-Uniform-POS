@@ -69,23 +69,47 @@ const UtilizePage = () => {
     setRefresh((prev) => !prev);
     setOpenExpenseDialog(false);
   };
+  // ---------------  Feteh Categories ====
+ const fetchUtilizeAndCategories = async () => {
+  try {
+    const [utilizeRes, categoriesRes] = await Promise.all([
+      fetch("/api/utilize"),
+      fetch("/api/utilize/expense-categories"),
+    ]);
+
+    if (!utilizeRes.ok || !categoriesRes.ok) {
+      throw new Error("Failed to fetch utilize or categories");
+    }
+
+    const [utilizeData, categoryData] = await Promise.all([
+      utilizeRes.json(),
+      categoriesRes.json(),
+    ]);
+
+    // Create a category lookup map using _id
+    const categoryMap = categoryData.reduce((acc, category) => {
+      acc[category._id] = category.name;
+      return acc;
+    }, {} as Record<string, string>);
+
+    // Replace category ID with actual name
+    const updatedUtilize = utilizeData.map((item: { category: string  }) => ({
+      ...item,
+      category: categoryMap[item.category] || "Unknown Category",
+    }));
+   console.log(updatedUtilize)
+    setData(updatedUtilize);
+    setLoading(false);
+  } catch (error) {
+    console.error("Fetch error:", error);
+    setData([]);
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     setLoading(true);
-    fetch("/api/utilize")
-      .then((res) => {
-        if (!res.ok) throw new Error("Network error");
-        return res.json();
-      })
-      .then((utilizeData) => {
-        setData(utilizeData);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Fetch error:", error);
-        setData([]);
-        setLoading(false);
-      });
+ fetchUtilizeAndCategories();
   }, [refresh]);
 
   // Filter data
@@ -166,7 +190,7 @@ const UtilizePage = () => {
             <ExpenseForm onAdd={handleAdd} />
           </DialogContent>
         </Dialog>
-
+        
         <Dialog open={openCategoryDialog} onOpenChange={setOpenCategoryDialog}>
           <DialogTrigger asChild>
             <Button variant="outline">Manage Expense Categories</Button>
