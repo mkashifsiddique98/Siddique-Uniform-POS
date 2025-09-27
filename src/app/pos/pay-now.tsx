@@ -352,7 +352,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
               </Button>
             </DialogClose>
             <DialogClose>
-              <Button onClick={handlePrint}>Print Receipt</Button>
+              <Button onClick={handlePrint}>Print Receipt</Button> 
             </DialogClose>
           </div>
         </DialogFooter>

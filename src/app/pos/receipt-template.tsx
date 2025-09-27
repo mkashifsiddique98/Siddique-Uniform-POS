@@ -7,9 +7,9 @@ import QRCode from "react-qr-code";
 import React, { FC, useEffect } from "react";
 import Barcode from "react-barcode";
 type socialMediaType = {
-   facebook:string,
-    tiktok:string
-}
+  facebook: string;
+  tiktok: string;
+};
 interface ReceiptTemplateProps {
   selectedCustomer: customer | undefined;
   productList: ProductDetail[];
@@ -23,10 +23,10 @@ interface ReceiptTemplateProps {
   isRePrint: boolean;
   shopName?: string | undefined;
   shopTagline?: string | undefined;
-  shopAddress:  string | undefined;
+  shopAddress: string | undefined;
   shopPhone: string | undefined;
-  messageCustomer:string | undefined;
-  socialMedia: socialMediaType  | undefined
+  messageCustomer: string | undefined;
+  socialMedia: socialMediaType | undefined;
 }
 
 // Reusable component for rendering a product table
@@ -37,9 +37,9 @@ const ProductTable: FC<{ title: string; products: ProductDetail[] }> = ({
   if (!products.length) return null;
   return (
     <>
-      {title != "" && (
+      {/* {title != "" && (
         <p className="leading-2 font-bold">--------- {title} ----------</p>
-      )}
+      )} */}
       <table
         style={{
           width: "100%",
@@ -140,14 +140,14 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   remainingBalance,
   isRePrint,
 
-  // Template Detail 
+  // Template Detail
   shopName,
   shopTagline,
   shopAddress,
   shopPhone,
   messageCustomer,
-  
-  socialMedia
+
+  socialMedia,
 }) => {
   // If customer
   const SPECIAL_STITCHING = "special-stitching";
@@ -197,22 +197,26 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
             paddingBottom: "10px",
           }}
         >
-        {shopName ||  "صدیق یونیفارم سنٹر"}
+          {shopName || "صدیق یونیفارم سنٹر"}
         </h2>
       </div>
       <p className="capitalize text-center italic text-xs mb-6 urdu-font">
-       {shopTagline || " بہترین معیار، مناسب قیمت"  }
+        {shopTagline || " بہترین معیار، مناسب قیمت"}
       </p>
 
       <p className="flex justify-center items-center text-xs gap-1 urdu-font">
         {shopAddress || "پتہ:سراں مارکیٹ کریانوالہ"}
-        <MapPinIcon size={14} className="inline-block" />
-        <Store size={14} className="inline-block" />
+        <span className="flex items-center gap-1">
+          <MapPinIcon size={14} className="inline-block" />
+          <Store size={14} className="inline-block" />
+        </span>
       </p>
       <p className="flex justify-center items-center gap-1 urdu-font">
-        <span> {shopPhone ||"فون نمبر: 03086139401" } </span>
-        <Phone size={14} className="inline-block" />
-        <Smartphone size={14} className="inline-block" />
+        <span> {shopPhone || "فون نمبر: 03086139401"} </span>
+        <span className="flex items-center gap-1">
+          <Phone size={14} className="inline-block" />
+          <Smartphone size={14} className="inline-block" />
+        </span>
       </p>
 
       {/* Receipt Information */}
@@ -423,7 +427,8 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
             fontFamily: "Noto Nastaliq Urdu",
           }}
         >
-       {messageCustomer ||   "نوٹ: خریدا ہوا سامان بل کے بغیر واپس یا تبدیل نہیں ہوگا۔"}
+          {messageCustomer ||
+            "نوٹ: خریدا ہوا سامان بل کے بغیر واپس یا تبدیل نہیں ہوگا۔"}
         </p>
       </div>
     </div>
