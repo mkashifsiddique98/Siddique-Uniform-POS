@@ -147,7 +147,7 @@ const SaleList: React.FC = () => {
         `${DOMAIN_NAME}/api/invoice/`
       );
       setInvoices(data.response || []);
-      toast({ description: "Invoices updated!" });
+      // toast({ description: "Invoices updated!" });
     } catch (error: any) {
       console.error("Failed to fetch invoices:", error.message);
       toast({ description: "Failed to fetch invoices" });
@@ -162,17 +162,35 @@ const SaleList: React.FC = () => {
 
   // Filter invoices by date + search term
   const filteredInvoices = useMemo(() => {
-    const selectedDate = form.getValues("dob").toLocaleDateString();
-    return invoices.filter((invoice) => {
-      const invoiceDate = new Date(invoice.invoiceDate).toLocaleDateString();
-      const matchesDate = invoiceDate === selectedDate;
-      const matchesName =
-        invoice.customer?.customerName
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase()) ?? false;
-      return matchesDate && matchesName;
-    });
-  }, [invoices, form.watch("dob"), searchTerm]);
+  const dob = form.getValues("dob");
+
+  // If dob is missing, return all invoices or empty array (your choice)
+  if (!dob) return invoices;
+
+  const selectedDate = new Date(dob).toLocaleDateString();
+
+  return invoices.filter((invoice) => {
+    // Safely handle invoice date
+    const invoiceDateValue = invoice?.invoiceDate
+      ? new Date(invoice.invoiceDate)
+      : null;
+
+    const invoiceDate = invoiceDateValue
+      ? invoiceDateValue.toLocaleDateString()
+      : "";
+
+    const matchesDate = invoiceDate === selectedDate;
+
+    // Safely handle name search
+    const customerName = invoice?.customer?.customerName ?? "";
+    const matchesName = customerName
+      .toLowerCase()
+      .includes((searchTerm ?? "").toLowerCase());
+
+    return matchesDate && matchesName;
+  });
+}, [invoices, form.watch("dob"), searchTerm]);
+
 
   // Calculate total sale
   const totalDaySale = useMemo(

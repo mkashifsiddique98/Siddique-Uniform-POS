@@ -18,6 +18,7 @@ import { Invoice } from "@/types/invoice";
 import HorizontalBarChart from "@/components/dashboard/horizontal-bar-chart";
 import { MonthlyOverview } from "@/components/dashboard/month-overview";
 import ExpenseOverview from "@/components/dashboard/expense-overview";
+import LiveTrackProduct from "@/components/dashboard/live-track-product";
 
 const DOMAIN_NAME = process.env.DOMAIN_NAME || "http://localhost:3000";
 
@@ -193,6 +194,9 @@ export default async function DashboardPage() {
             <TabsTrigger value="reports" disabled>
               Reports
             </TabsTrigger>
+            <TabsTrigger value="live-product-sale-check">
+              Live Product Sale Check
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -277,6 +281,9 @@ export default async function DashboardPage() {
           </TabsContent>
           <TabsContent value="analytics" className="space-y-4">
             <HorizontalBarChart invoices={InvoiceData} />
+          </TabsContent>
+           <TabsContent value="live-product-sale-check" className="space-y-4">
+            <LiveTrackProduct invoices={InvoiceData} />
           </TabsContent>
         </Tabs>
       </div>

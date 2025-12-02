@@ -4,7 +4,7 @@ module.exports = {
         name: "pos",
         script: "node_modules/next/dist/bin/next",
         args: "start",
-        cwd: "D:/Dd/MYSHOP/my-shop", // Change to your project directory
+        cwd: "D:\\Dd/MYSHOP/my-shop", // Change to your project directory
         instances: "max", // Uses all available CPU cores
         exec_mode:"cluster", // Enables clustering for high performance
         env: {

@@ -45,7 +45,7 @@ const chartColors = [
   "#ef4444", // Red
 ];
 
-const HorizontalBarChart = ({ invoices = [] }: HorizontalBarChartProps) => {
+const HorizontalBarChart = ({ invoices }: HorizontalBarChartProps) => {
   const [data, setData] = useState<{ [key: string]: ProductDetail[] }>({});
 
   const groupProducts = (filteredInvoices: Invoice[]) => {
