@@ -4,12 +4,14 @@ import Invoice from "@/models/invoice";
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 connectDB();
-// Get Invoice by ID (GET /api/invoice/[id])
+// --- Get Invoice by ID (GET /api/invoice/[id])
+// --- I need to check this one also !
 export async function GET(request: Request, { params }: { params: { invoiceId: string } }) {
     try {
       const { invoiceId } = params;
        const id = invoiceId
-      // Ensure the ID is a valid MongoDB ObjectId
+       
+       // Ensure the ID is a valid MongoDB ObjectId
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return NextResponse.json({ error: "Invalid invoice ID" }, { status: 400 });
       }

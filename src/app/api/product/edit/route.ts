@@ -1,119 +1,116 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import mongoose from "mongoose";
+import { NextResponse } from "next/server";
 import connectDB from "@/utils/connectDB";
 import Product from "@/models/Product";
-import { NextResponse } from "next/server";
-import { ProductFormState } from "@/types/product";
-
-connectDB(); // Connect to MongoDB
-// Create New Product
-// POS Page : Qty - Function    
-// ***********************************************************
-// ***********************************************************
-//               We can Manage POS Functionality Here
-// ***********************************************************
 
 export async function PUT(request: Request) {
+  await connectDB();
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const productsToUpdate = await request.json();
-   
-    if (!Array.isArray(productsToUpdate)) {
-      return NextResponse.json(
-        { error: "Invalid request format. Expected an array of products." },
-        { status: 400 }
-      );
+    const { mode, products } = await request.json();
+    const isReturn = mode === "return";
+
+    if (!Array.isArray(products)) {
+      throw new Error("Invalid request format. Expected array.");
     }
 
-    const updatedProducts = await Promise.all(
-      productsToUpdate.map(async (productData) => {
-        const { productId, quantity, return: isReturn } = productData;
+    const results = [];
 
-        if (!productId || typeof quantity !== "number") {
-          return { error: `Invalid product data for productId: ${productId}` };
-        }
+    for (const productData of products) {
+      const { productId, quantity } = productData;
 
-        const product = await Product.findOne({ _id: productId });
-        if (!product) {
-          return null; // Skip if not found
-        }
+      if (!productId || typeof quantity !== "number") {
+        throw new Error(`Invalid product data for ${productId}`);
+      }
 
-        if (isReturn) {
-          // Return case — just increase quantity
-          return await Product.findOneAndUpdate(
-            { _id: productId },
-            { $inc: { quantity: quantity } },
-            { new: true }
-          );
-        }
+      const product = await Product.findById(productId).session(session);
+      if (!product) {
+        throw new Error(`Product not found: ${productId}`);
+      }
 
-        // --- Handle BUNDLE PRODUCTS ---
-        if (product.isBundle && Array.isArray(product.components)) {
-          const updatedComponents = await Promise.all(
-            product.components.map(async (componentId: string) => {
-              const component:ProductFormState = await Product.findOne({ _id: componentId });
-              if (!component) {
-                return { error: `Component product not found: ${componentId}` };
-              }
+      // -----------------------
+      // RETURN CASE
+      // -----------------------
 
-              // Check for stock
-              if (component.quantity < quantity) {
-                return {
-                  error: `Insufficient stock for component ID ${componentId}. Required: ${quantity}, Available: ${component.quantity}`
-                };
-              }
+      if (isReturn) {
+        const updated = await Product.findByIdAndUpdate(
+          productId,
+          { $inc: { quantity: quantity } },
+          { new: true, session },
+        );
 
-              // Reduce component quantity
-              return await Product.findOneAndUpdate(
-                { _id: componentId },
-                { $inc: { quantity: -quantity } },
-                { new: true }
-              );
-            })
+        results.push(updated);
+        continue;
+      }
+
+      // -----------------------
+      // BUNDLE PRODUCT
+      // -----------------------
+      
+      if (product.isBundle && Array.isArray(product.components)) {
+        for (const componentId of product.components) {
+          const component = await Product.findById(componentId).session(
+            session,
           );
 
-          return {
-            bundleProduct: productId,
-            updatedComponents
-          };
-        }
+          if (!component) {
+            throw new Error(`Component not found: ${componentId}`);
+          }
 
-        // --- Regular product (non-bundle) ---
-        if (product.quantity >= quantity) {
-          return await Product.findOneAndUpdate(
-            { _id: productId },
+          // Atomic stock check
+          const updatedComponent = await Product.findOneAndUpdate(
+            {
+              _id: componentId,
+              quantity: { $gte: quantity }, // prevents negative stock
+            },
             { $inc: { quantity: -quantity } },
-            { new: true }
+            { new: true, session },
           );
-        } else {
-          return {
-            error: `Insufficient quantity for product with ID ${productId}`
-          };
-        }
-      })
-    );
 
-    const filteredUpdatedProducts = updatedProducts.filter((p) => p !== null);
+          if (!updatedComponent) {
+            throw new Error(`Insufficient stock for component ${componentId}`);
+          }
+        }
+
+        results.push({ bundleProduct: productId });
+        continue;
+      }
+
+      // -----------------------
+      // NORMAL PRODUCT
+      // -----------------------
+      const updatedProduct = await Product.findOneAndUpdate(
+        {
+          _id: productId,
+          quantity: { $gte: quantity }, // atomic condition
+        },
+        { $inc: { quantity: -quantity } },
+        { new: true, session },
+      );
+
+      if (!updatedProduct) {
+        throw new Error(`Insufficient stock for ${productId}`);
+      }
+
+      results.push(updatedProduct);
+    }
+
+    // If all success → commit
+    await session.commitTransaction();
+    session.endSession();
+
+    return NextResponse.json({ success: true, data: results }, { status: 200 });
+  } catch (error: any) {
+    // If any error → rollback
+    await session.abortTransaction();
+    session.endSession();
 
     return NextResponse.json(
-      { response: filteredUpdatedProducts },
-      { status: 200 }
+      { success: false, error: error.message },
+      { status: 400 },
     );
-  } catch (error) {
-    console.error("Error updating products:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
-  }
-}
-
-
-
-
-// This basically like get Product by Id for Edit Page 
-// This only get details
-export async function POST(request: Request) {
-  try {
-    const productID = await request.json();
-    const getProduct = await Product.findById({ _id: productID });
-    return Response.json(getProduct, { status: 200 });
-  } catch (error) {
-    return Response.json({ error: "Server error" }, { status: 500 });
   }
 }

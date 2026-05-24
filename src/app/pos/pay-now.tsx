@@ -145,7 +145,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
         // Decide which number to use (stored or generated)
         const newInvoiceNumber = Math.max(
           validStoredValue,
-          validInvoiceNewNumber
+          validInvoiceNewNumber,
         );
 
         // Update localStorage with the new number
@@ -163,28 +163,51 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
 
   // Problem : if someone just return and
   // second time you return it only show run to minus the
-  // product qty , how can deal in this situtation
+  // **************************************************
+  // *****************      Solution        **********
+  // **************************************************
+  // i m handle problem by
+  // product qty , how can deal in this situtationjust making
+  // every product as a return product
+
   const handleProductQtyUpdate = async () => {
     try {
+      console.log("chartList", chartList);
+
       await fetch("/api/product/edit", {
         method: "PUT",
-        body: JSON.stringify(chartList),
+        body: JSON.stringify({ mode: editInvoice?"return":"sale", products: chartList }),
       });
       dispatch(clearChart());
+      return true;
     } catch (error) {
       console.error("Error updating product quantity:", error);
+      return false;
     }
   };
 
   const handleNoReceipt = async () => {
-    try {
-      handleProductQtyUpdate();
-      handleInvoiceGenerate();
-      handleReset();
-    } catch (error) {
-      console.error("Error in handling no receipt:", error);
+  try {
+    // 1️⃣ Update Stock First
+    const stockUpdated = await handleProductQtyUpdate();
+
+    if (!stockUpdated) {
+      return; // stop if stock failed
     }
-  };
+
+    // 2️⃣ Generate Invoice
+    await handleInvoiceGenerate();
+
+    // 3️⃣ Reset UI
+    handleReset();
+
+    // 4️⃣ Clear chart at end
+    dispatch(clearChart());
+
+  } catch (error) {
+    console.error("Error in handling no receipt:", error);
+  }
+};
   // ---------- For Web Printing -------------
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
@@ -352,7 +375,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
               </Button>
             </DialogClose>
             <DialogClose>
-              <Button onClick={handlePrint}>Print Receipt</Button> 
+              <Button onClick={handlePrint}>Print Receipt</Button>
             </DialogClose>
           </div>
         </DialogFooter>

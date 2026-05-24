@@ -228,7 +228,7 @@ const SaleList: React.FC = () => {
       <div className="flex justify-between mb-4 flex-wrap gap-4 items-center">
         <Search searchTerm={searchTerm} onSearchChange={setSearchTerm} />
         <div className="font-extrabold border rounded-md p-2 text-2xl">
-          Total Sale of Today : Rs {totalDaySale}
+          Total Sale of Today : Rs {totalDaySale.toFixed(2)}
         </div>
         <div className="flex gap-2 items-center">
           {/* Date Picker */}

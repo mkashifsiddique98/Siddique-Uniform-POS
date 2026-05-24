@@ -17,7 +17,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const monthNames = [
-  "All",
   "January",
   "February",
   "March",
@@ -39,150 +38,145 @@ const UtilizePage = () => {
   const [openExpenseDialog, setOpenExpenseDialog] = useState(false);
   const [openCategoryDialog, setOpenCategoryDialog] = useState(false);
   const [perPageExpense, setPerPageExpense] = useState<number>(7);
-  const [selectedMonth, setSelectedMonth] = useState<number>(0); // 0 = All
+
+  // IMPORTANT
+  const [selectedMonth, setSelectedMonth] = useState<number>(-1); // -1 = All
   const [selectedYear, setSelectedYear] = useState<number | "All">("All");
-
-  // Get available years
-  const availableYears = useMemo(() => {
-    const years = Array.from(
-      new Set(data.map((item) => new Date(item.createdAt).getFullYear()))
-    ).sort((a, b) => b - a);
-    return ["All", ...years];
-  }, [data]);
-
-  // Get months for selected year
-  const availableMonthsForYear = useMemo(() => {
-    if (selectedYear === "All") return monthNames;
-
-    const monthsSet = new Set<number>();
-    data.forEach((item) => {
-      const date = new Date(item.createdAt);
-      if (date.getFullYear() === selectedYear) {
-        monthsSet.add(date.getMonth());
-      }
-    });
-    const monthsArr = Array.from(monthsSet).sort((a, b) => a - b);
-    return ["All", ...monthsArr.map((m) => monthNames[m + 1])];
-  }, [data, selectedYear]);
 
   const handleAdd = () => {
     setRefresh((prev) => !prev);
     setOpenExpenseDialog(false);
   };
-  // ---------------  Feteh Categories ====
- const fetchUtilizeAndCategories = async () => {
-  try {
-    const [utilizeRes, categoriesRes] = await Promise.all([
-      fetch("/api/utilize"),
-      fetch("/api/utilize/expense-categories"),
-    ]);
 
-    if (!utilizeRes.ok || !categoriesRes.ok) {
-      throw new Error("Failed to fetch utilize or categories");
+  // ================= Fetch =================
+  const fetchUtilizeAndCategories = async () => {
+    try {
+      const [utilizeRes, categoriesRes] = await Promise.all([
+        fetch("/api/utilize"),
+        fetch("/api/utilize/expense-categories"),
+      ]);
+
+      if (!utilizeRes.ok || !categoriesRes.ok) throw new Error("Fetch failed");
+
+      const [utilizeData, categoryData] = await Promise.all([
+        utilizeRes.json(),
+        categoriesRes.json(),
+      ]);
+
+      const categoryMap = categoryData.reduce(
+        (
+          acc: Record<string, string>,
+          category: { _id: string; name: string },
+        ) => {
+          acc[category._id] = category.name;
+          return acc;
+        },
+        {},
+      );
+
+      const updated = utilizeData.map((item: Utilize) => ({
+        ...item,
+        category: categoryMap[item.category] || "Unknown Category",
+      }));
+
+      setData(updated);
+      setLoading(false);
+    } catch (err) {
+      console.error(err);
+      setData([]);
+      setLoading(false);
     }
-
-    const [utilizeData, categoryData] = await Promise.all([
-      utilizeRes.json(),
-      categoriesRes.json(),
-    ]);
-
-    // Create a category lookup map using _id
-    const categoryMap = categoryData.reduce((acc, category) => {
-      acc[category._id] = category.name;
-      return acc;
-    }, {} as Record<string, string>);
-
-    // Replace category ID with actual name
-    const updatedUtilize = utilizeData.map((item: { category: string  }) => ({
-      ...item,
-      category: categoryMap[item.category] || "Unknown Category",
-    }));
-   console.log(updatedUtilize)
-    setData(updatedUtilize);
-    setLoading(false);
-  } catch (error) {
-    console.error("Fetch error:", error);
-    setData([]);
-    setLoading(false);
-  }
-};
+  };
 
   useEffect(() => {
     setLoading(true);
- fetchUtilizeAndCategories();
+    fetchUtilizeAndCategories();
   }, [refresh]);
 
-  // Filter data
-  const filteredData = useMemo(() => {
-    if (selectedMonth === 0 && selectedYear === "All") return data;
+  // ================= Available Years =================
+  const availableYears = useMemo(() => {
+    const years = Array.from(
+      new Set(data.map((d) => new Date(d.createdAt).getFullYear())),
+    ).sort((a, b) => b - a);
 
+    return ["All", ...years];
+  }, [data]);
+
+  // ================= Available Months =================
+  const availableMonths = useMemo(() => {
+    const set = new Set<number>();
+
+    data.forEach((item) => {
+      const date = new Date(item.createdAt);
+      if (selectedYear === "All" || date.getFullYear() === selectedYear)
+        set.add(date.getMonth());
+    });
+
+    const arr = Array.from(set).sort();
+
+    return [
+      { label: "All", value: -1 },
+      ...arr.map((m) => ({
+        label: monthNames[m],
+        value: m,
+      })),
+    ];
+  }, [data, selectedYear]);
+
+  // ================= Filter =================
+  const filteredData = useMemo(() => {
     return data.filter((expense) => {
       const date = new Date(expense.createdAt);
+
       const yearMatch =
         selectedYear === "All" || date.getFullYear() === selectedYear;
+
       const monthMatch =
-        selectedMonth === 0 ||
-        (selectedYear === "All"
-          ? date.getMonth() === selectedMonth - 1
-          : date.getMonth() ===
-            (availableMonthsForYear[selectedMonth] !== "All"
-              ? monthNames.indexOf(availableMonthsForYear[selectedMonth]) - 1
-              : -1));
+        selectedMonth === -1 || date.getMonth() === selectedMonth;
+
       return yearMatch && monthMatch;
     });
-  }, [data, selectedMonth, selectedYear, availableMonthsForYear]);
+  }, [data, selectedMonth, selectedYear]);
 
-  // Totals
+  // ================= Totals =================
   const { totalToday, totalThisMonth } = useMemo(() => {
-    if (!filteredData.length) return { totalToday: 0, totalThisMonth: 0 };
-
     const now = new Date();
-    const todayYear = now.getFullYear();
-    const todayMonth = now.getMonth();
-    const todayDate = now.getDate();
 
-    let todayTotal = 0;
-    let monthTotal = 0;
+    let today = 0;
+    let month = 0;
 
-    filteredData.forEach((expense) => {
-      const expenseDate = new Date(expense.createdAt);
+    filteredData.forEach((exp) => {
+      const d = new Date(exp.createdAt);
+
       if (
-        expenseDate.getFullYear() === todayYear &&
-        expenseDate.getMonth() === todayMonth
+        d.getFullYear() === now.getFullYear() &&
+        d.getMonth() === now.getMonth()
       ) {
-        monthTotal += expense.amount;
-        if (expenseDate.getDate() === todayDate) {
-          todayTotal += expense.amount;
-        }
+        month += exp.amount;
+        if (d.getDate() === now.getDate()) today += exp.amount;
       }
     });
 
-    return { totalToday: todayTotal, totalThisMonth: monthTotal };
+    return { totalToday: today, totalThisMonth: month };
   }, [filteredData]);
 
-  // Display label for month filter
-  const displayMonthLabel = useMemo(() => {
-  const now = new Date();
+  const displayMonthLabel =
+    selectedMonth === -1
+      ? monthNames[new Date().getMonth()]
+      : monthNames[selectedMonth];
 
-  if (selectedMonth !== 0 && availableMonthsForYear[selectedMonth] !== "All") {
-    return availableMonthsForYear[selectedMonth]; // Proper label from filtered months
-  }
-
-  // Default to current month name
-  return monthNames[now.getMonth() + 1];
-}, [selectedMonth, availableMonthsForYear]);
-
-
+  // ================= UI =================
   return (
     <div className="container p-6 space-y-4">
       <BreadCrum mainfolder="Utilize" subfolder="Utilize Management" />
 
-      {/* Top Buttons */}
+      {/* Buttons */}
       <div className="flex flex-wrap justify-between items-center gap-4">
         <Dialog open={openExpenseDialog} onOpenChange={setOpenExpenseDialog}>
           <DialogTrigger asChild>
             <Button>Add New Expense</Button>
           </DialogTrigger>
+
           <DialogContent className="max-w-xl">
             <DialogHeader>
               <DialogTitle>Add Expense</DialogTitle>
@@ -190,11 +184,12 @@ const UtilizePage = () => {
             <ExpenseForm onAdd={handleAdd} />
           </DialogContent>
         </Dialog>
-        
+
         <Dialog open={openCategoryDialog} onOpenChange={setOpenCategoryDialog}>
           <DialogTrigger asChild>
             <Button variant="outline">Manage Expense Categories</Button>
           </DialogTrigger>
+
           <DialogContent className="max-w-xl">
             <DialogHeader>
               <DialogTitle>Expense Categories</DialogTitle>
@@ -205,90 +200,77 @@ const UtilizePage = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap justify-between items-center gap-4 mt-4 border rounded-xl p-4">
+      <div className="flex flex-wrap gap-4 mt-4 border rounded-xl p-4">
+         {/* Year */}
+        <div className="flex gap-2 items-center">
+          <label className="font-semibold">Year:</label>
+          <select
+            className="rounded-md border px-3 py-2 text-sm"
+            value={selectedYear}
+            onChange={(e) => {
+              const year =
+                e.target.value === "All" ? "All" : Number(e.target.value);
+
+              setSelectedYear(year);
+              setSelectedMonth(-1); // reset month
+            }}
+          >
+            {availableYears.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+        </div>
         {/* Month */}
         <div className="flex gap-2 items-center">
-          <label className="font-semibold text-gray-700 dark:text-gray-200">
-            Filter by Month:
-          </label>
-          {loading ? (
-            <div className="h-10 w-32 bg-gray-300 dark:bg-gray-600 rounded animate-pulse" />
-          ) : (
-            <select
-              className="rounded-md border px-3 py-2 text-sm dark:bg-gray-700 dark:text-white"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-            >
-              {availableMonthsForYear.map((monthName, idx) => (
-                <option key={idx} value={idx}>
-                  {monthName}
-                </option>
-              ))}
-            </select>
-          )}
+          <label className="font-semibold">Month:</label>
+          <select
+            className="rounded-md border px-3 py-2 text-sm"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(Number(e.target.value))}
+          >
+            {availableMonths.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* Year */}
-        <div className="flex gap-2 items-center">
-          <label className="font-semibold text-gray-700 dark:text-gray-200">
-            Filter by Year:
-          </label>
-          {loading ? (
-            <div className="h-10 w-20 bg-gray-300 dark:bg-gray-600 rounded animate-pulse" />
-          ) : (
-            <select
-              className="rounded-md border px-3 py-2 text-sm dark:bg-gray-700 dark:text-white"
-              value={selectedYear}
-              onChange={(e) =>
-                setSelectedYear(
-                  e.target.value === "All" ? "All" : Number(e.target.value)
-                )
-              }
-            >
-              {availableYears.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
+       
 
         {/* Per Page */}
-        <div className="flex items-center gap-2 ">
-          <label htmlFor="perPageInput" className=" font-semibold text-gray-700 dark:text-gray-200">
-            Per Page
-          </label>
+        <div className="flex items-center gap-2">
+          <label>Per Page</label>
           <Input
-            id="perPageInput"
             className="w-16"
             type="number"
             min={1}
             value={perPageExpense}
-            onChange={(e) => {
-              const value = Number(e.target.value);
-              setPerPageExpense(value >= 1 ? value : 7);
-            }}
+            onChange={(e) =>
+              setPerPageExpense(Math.max(1, Number(e.target.value)))
+            }
           />
         </div>
 
         {/* Totals */}
-        <span className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-          Total Expense Today: Rs {totalToday.toFixed(0)}
-        </span>
-        <span className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-          Total Expense {displayMonthLabel}: Rs {totalThisMonth.toFixed(0)}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="font-semibold ">
+            Today: Rs {totalToday.toFixed(0)}
+          </span>
+
+          <span className="font-semibold">
+            {displayMonthLabel}: Rs {totalThisMonth.toFixed(0)}
+          </span>
+        </div>
       </div>
 
       {/* Table */}
       {loading ? (
         <div className="space-y-2 mt-6">
           {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="h-8 bg-gray-300 dark:bg-gray-600 rounded animate-pulse"
-            />
+            <div key={i} className="h-8 bg-gray-300 rounded animate-pulse" />
           ))}
         </div>
       ) : (

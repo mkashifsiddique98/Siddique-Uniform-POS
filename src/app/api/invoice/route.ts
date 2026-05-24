@@ -1,11 +1,9 @@
 import connectDB from "@/utils/connectDB";
 import Invoice from "@/models/invoice";
 import { NextResponse } from "next/server";
-import mongoose from "mongoose";
 import Customer from "@/models/customer";
 connectDB();
 // ********************************Create New Customer*******************************
-
 export async function POST(request: Request) {
   try {
     const req = await request.json();

@@ -49,7 +49,7 @@ async function createInvoiceNo() {
   const invoiceNo = await fetchData("/api/invoice/create_unique_id");
   return invoiceNo ? invoiceNo : { response: 0 }; // Return an empty number if null
 }
-// ***************************** Main ********************
+  // ************************************* Main ******************************************
 const PointOfSale = async () => {
   // All Product
   const data = await getAllProductData();

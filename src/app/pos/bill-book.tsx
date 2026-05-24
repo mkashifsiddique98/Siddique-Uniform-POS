@@ -38,6 +38,7 @@ const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
   >(invoiceNo);
   const [errorMessage,setErrorMessage] =useState<string>("")
   const [loading,setLoading] = useState(false)
+  
   // Helper function to fetch customer data
   const handleGetAllCustomer = useCallback(async () => {
     try {
@@ -46,18 +47,17 @@ const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
         const { listCustomer } = await response.json();
         setCustomerDetailList(listCustomer);
       }
+
     } catch (error) {
       console.error("Error fetching customer data:", error);
     }
   }, []);
-
+ 
   // Fetch invoice details by invoice number
   const getInvoiceDetailbyNo = useCallback(async () => {
     // Clear chart for new incoming product
     dispatch(clearChart());
     dispatch(setDiscount(0));
-    
-    
     try {
       setLoading(true); // Start the loading indicator
       const response = await fetch("/api/invoice/GET_BY_ID", {
@@ -123,7 +123,7 @@ const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
     setErrorMessage("")
     
   };
-
+  // 
   const handleChangeInvoiceNumber = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (!isNaN(Number(value)) || value === "") {

@@ -21,8 +21,6 @@ import {
 
 import { Utilize } from "@/types/utilize";
 
-
-
 export default function ExpenseTable({
   refresh,
   data,
