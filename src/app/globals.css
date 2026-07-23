@@ -1,0 +1,75 @@
+/* Tailwind base layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 12px;
+}
+::-webkit-scrollbar-track {
+  background-color: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #b9b6b6d9;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #9e9a9a;
+}
+
+/* Pagination ellipsis fix */
+.pagination-ellipsis::marker {
+  unicode-bidi: normal;
+  font-variant-numeric: normal;
+  text-transform: initial;
+  text-indent: initial;
+  text-align: initial;
+  text-align-last: initial;
+}
+
+/* Inter font */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/Inter-VariableFont_opsz,wght.ttf') format('truetype');
+}
+
+/* Noto Nastaliq Urdu font */
+@font-face {
+  font-family: 'Noto Nastaliq Urdu';
+  font-weight: 100 900;
+  font-style: normal;
+  src: url('/fonts/NotoNastaliqUrdu-VariableFont_wght.ttf') format('truetype');
+}
+
+/* Default font */
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Urdu font class */
+.urdu-font {
+  font-family: 'Noto Nastaliq Urdu', serif;
+  font-weight: 500;
+  font-style: normal;
+}
+
+/* Print overrides */
+@media print {
+  body {
+    font-family: 'Noto Nastaliq Urdu', serif;
+  }
+
+  @page {
+    /* Prevent unnecessary page styles */
+    margin: 0;
+    size: auto;
+  }
+
+  /* Optional: Hide elements during print */
+  .no-print {
+    display: none !important;
+  }
+}
