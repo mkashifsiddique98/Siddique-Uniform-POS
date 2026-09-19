@@ -21,8 +21,7 @@ import ExpenseOverview from "@/components/dashboard/expense-overview";
 import LiveTrackProduct from "@/components/dashboard/live-track-product";
 import ZakatOverview from "@/components/dashboard/zakat-overview";
 import { calculateZakat } from "@/lib/zikat";
-
-const DOMAIN_NAME = process.env.DOMAIN_NAME || "http://localhost:3000";
+import { serverFetch } from "@/lib/serverFetch";
 
 interface DateRange {
   from?: Date;
@@ -31,7 +30,8 @@ interface DateRange {
 
 async function fetchData(url: string) {
   try {
-    const res = await fetch(url, { cache: "no-store" });
+    const endpoint = url.replace(process.env.DOMAIN_NAME || "http://localhost:3000", "");
+    const res = await serverFetch(endpoint, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     return await res.json();
   } catch (error: any) {
@@ -41,23 +41,23 @@ async function fetchData(url: string) {
 }
 
 async function getAllProductData() {
-  return await fetchData(`${DOMAIN_NAME}/api/product`);
+  return await fetchData("/api/product");
 }
 
 async function getAllInvoiceDetail() {
-  return await fetchData(`${DOMAIN_NAME}/api/invoice`);
+  return await fetchData("/api/invoice");
 }
 
 async function getAllPurchaseDetail() {
-  const res = await fetchData(`${DOMAIN_NAME}/api/purchase`);
+  const res = await fetchData("/api/purchase");
   return res?.response || [];
 }
 
 export async function getAllExpenseDetail() {
   try {
     const [utilizeRes, categoriesRes] = await Promise.all([
-      fetch(`${DOMAIN_NAME}/api/utilize`),
-      fetch(`${DOMAIN_NAME}/api/utilize/expense-categories`),
+      serverFetch("/api/utilize"),
+      serverFetch("/api/utilize/expense-categories"),
     ]);
 
     if (!utilizeRes.ok || !categoriesRes.ok) {

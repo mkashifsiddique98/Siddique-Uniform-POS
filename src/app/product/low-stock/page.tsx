@@ -2,10 +2,10 @@ import { ProductFormState } from "@/types/product";
 import React from "react";
 import TableLowStock from "./tableLowStock";
 import BreadCrum from "@/components/custom-components/bread-crum";
-const DOMAIN_NAME = process.env.DOMAIN_NAME;
+import { serverFetch } from "@/lib/serverFetch";
 async function getAllProductData() {
   try {
-    const res = await fetch(`${DOMAIN_NAME}/api/product`, {
+    const res = await serverFetch("/api/product", {
       cache: "no-store",
     });
     if (!res.ok) {

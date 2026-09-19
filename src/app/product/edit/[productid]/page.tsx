@@ -2,11 +2,11 @@
 import BreadCrum from "@/components/custom-components/bread-crum";
 import ProductFormClient from "./productFormClient";
 import { sizeListTemplate } from "@/data";
+import { serverFetch } from "@/lib/serverFetch";
 
-const DOMAIN_NAME = process.env.DOMAIN_NAME;
 // Server-side function to fetch product data by ID
 async function getProductById(productId: string) {
-  const response = await fetch(`${DOMAIN_NAME}/api/product/edit`, {
+  const response = await serverFetch("/api/product/edit", {
     method: "POST",
     body: JSON.stringify(productId),
     cache: "no-store",
@@ -17,7 +17,7 @@ async function getProductById(productId: string) {
 
 // Server-side function to fetch school list
 async function getSchoolList() {
-  const response = await fetch(`${DOMAIN_NAME}/api/product/school-name`);
+  const response = await serverFetch("/api/product/school-name");
   if (!response.ok) return [];
   const data = await response.json();
   return data.response || [];

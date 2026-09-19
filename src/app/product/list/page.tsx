@@ -1,16 +1,15 @@
 import BreadCrum from "@/components/custom-components/bread-crum";
 import AllProductTable from "./ProductTable";
 import { Metadata } from "next";
+import { serverFetch } from "@/lib/serverFetch";
 
 export const metadata: Metadata = {
   title: "All Product",
 };
 
-const DOMAIN_NAME = process.env.DOMAIN_NAME;
-
 async function getAllProductData() {
   try {
-    const res = await fetch(`${DOMAIN_NAME}/api/product`,
+    const res = await serverFetch("/api/product",
       {cache:"no-store"}
   );
    if (!res.ok) {
