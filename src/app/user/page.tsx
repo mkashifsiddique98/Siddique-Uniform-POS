@@ -5,12 +5,12 @@ import { User } from "@/types/user";
 import BreadCrum from "@/components/custom-components/bread-crum";
 import UserTable from "./UserTable";
 import { cookies } from "next/headers";
+import { serverApiUrl } from "@/lib/serverFetch";
 
 async function getUsers(): Promise<User[]> {
   try {
     const cookieHeader = cookies().toString();
-    const baseUrl = process.env.DOMAIN_NAME || "http://localhost:3000";
-    const res = await fetch(`${baseUrl}/api/users`, {
+    const res = await fetch(serverApiUrl("/api/users"), {
       cache: "no-store",
       headers: {
         Cookie: cookieHeader,
