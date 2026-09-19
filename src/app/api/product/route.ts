@@ -1,12 +1,15 @@
 import connectDB from "@/utils/connectDB";
 import Product from "@/models/Product";
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth";
 
 connectDB(); // Connect to MongoDB
 // Create New Product
 
 export async function POST(request: Request) {
   try {
+    const auth = await requireAuth(request);
+    if (!auth.ok) return auth.response;
     const res = await request.json();
     const newProduct = new Product(res);
     const savedProduct = await newProduct.save();
@@ -18,7 +21,9 @@ export async function POST(request: Request) {
   }
 }
 // Get All Product
-export async function GET() {
+export async function GET(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
   try {
     const products = await Product.find();
     return Response.json({ response: products }, { status: 200 });
@@ -30,6 +35,8 @@ export async function GET() {
 //update product
 export async function PUT(request: Request) {
   try {
+    const auth = await requireAuth(request);
+    if (!auth.ok) return auth.response;
     const updateData = await request.json();
     const {
       productid,
@@ -84,6 +91,8 @@ export async function PUT(request: Request) {
 // Delete Product by ID
 export async function DELETE(request: Request) {
   try {
+    const auth = await requireAuth(request);
+    if (!auth.ok) return auth.response;
     const { _id } = await request.json();
 
     // Use findByIdAndDelete to delete the document by _id

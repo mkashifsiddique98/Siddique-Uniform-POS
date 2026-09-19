@@ -1,23 +1,28 @@
 import connectDB from "@/utils/connectDB";
 import User from "@/models/user";
+import { hashPassword } from "@/lib/password";
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth";
 
 connectDB();
 
 export async function POST(req: Request) {
   try {
+    const auth = await requireAuth(req, { role: "admin" });
+    if (!auth.ok) return auth.response;
     const { name, email, password, role, pages } = await req.json();
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return NextResponse.json({ error: "User already exists" }, { status: 400 });
     }
 
+    const hashedPassword = await hashPassword(password);
+
     const newUser = new User({
       name,
       email,
-      password,
+      password: hashedPassword,
       role,
       pages,
     });
@@ -32,6 +37,8 @@ export async function POST(req: Request) {
 }
 export async function GET(req: Request) {
   try {
+    const auth = await requireAuth(req, { role: "admin" });
+    if (!auth.ok) return auth.response;
     const UserList = await User.find();
     return NextResponse.json(UserList, { status: 200 });
   } catch (error) {

@@ -1,11 +1,14 @@
 import connectDB from "@/utils/connectDB";
 import SizeTemplate from "@/models/size-template";
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth";
 
 connectDB();
 
 // Get all size templates
-export async function GET() {
+export async function GET(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
   try {
     const sizeTemplates = await SizeTemplate.find();
     return NextResponse.json(sizeTemplates, { status: 200 });
@@ -17,6 +20,8 @@ export async function GET() {
 
 // Create a new size template
 export async function POST(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
   try {
     const res = await request.json();
     const newSizeTemplate = new SizeTemplate(res);
@@ -30,6 +35,8 @@ export async function POST(request: Request) {
 
 // Update a size template
 export async function PUT(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
   try {
     const res = await request.json();
     const { _id, name, sizes } = res
@@ -54,6 +61,8 @@ export async function PUT(request: Request) {
 
 // Delete a size template
 export async function DELETE(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
   try {
     const  _id  = await request.json();
     

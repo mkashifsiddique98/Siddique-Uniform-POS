@@ -1,9 +1,12 @@
 import connectDB from "@/utils/connectDB";
 import Customer from "@/models/customer";
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth";
 connectDB();
 export async function PUT(request: Request) {
     try {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
       
       const updatedData = await request.json();
       const updatedCustomer = await Customer.findByIdAndUpdate(

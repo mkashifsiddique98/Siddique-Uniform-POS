@@ -1,11 +1,14 @@
 import connectDB from "@/utils/connectDB";
 import Purchase from "@/models/purchase";
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth";
 import mongoose from "mongoose";
 connectDB();
 // Get Invoice by ID (GET /api/invoice/[id])
 export async function GET(request: Request, { params }: { params: { purchaseId: string } }) {
     try {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
       const { purchaseId } = params;
        const id = purchaseId
       // Ensure the ID is a valid MongoDB ObjectId

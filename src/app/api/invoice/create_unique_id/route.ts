@@ -1,25 +1,44 @@
 import connectDB from "@/utils/connectDB";
 import Invoice from "@/models/invoice";
+import InvoiceCounter from "@/models/InvoiceCounter";
 import { NextResponse } from "next/server";
-import mongoose from "mongoose";
+import { requireAuth } from "@/lib/auth";
 
 connectDB();
 
 export async function GET(request: Request) {
   try {
-    // Fetch the last invoice sorted by invoiceNo in descending order
-    const lastInvoice = await Invoice.findOne().sort({ invoiceNo: -1 });
-
-    // Determine the next invoice number
-    const lastInvoiceNo = lastInvoice ? lastInvoice.invoiceNo : 0;
-    const newInvoiceNumber = lastInvoiceNo + 1;
-    // Set cache control headers to disable caching
-
-    // Return the new invoice number
-    const response = NextResponse.json(
-      { response: newInvoiceNumber },
-      { status: 200 }
+    const auth = await requireAuth(request);
+    if (!auth.ok) return auth.response;
+    const counter = await InvoiceCounter.findOneAndUpdate(
+      { _id: "invoiceNo" },
+      [
+        { $set: { seq: { $ifNull: ["$seq", 0] } } },
+        { $set: { seq: { $add: ["$seq", 1] } } },
+      ],
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      }
     );
+
+    let nextInvoiceNo = counter?.seq ?? 1;
+
+    const lastInvoice = await Invoice.findOne()
+      .sort({ invoiceNo: -1 })
+      .select({ invoiceNo: 1 })
+      .lean() as { invoiceNo?: number } | null;
+    if (lastInvoice && Number(lastInvoice.invoiceNo || 0) >= nextInvoiceNo) {
+      nextInvoiceNo = Number(lastInvoice.invoiceNo || 0) + 1;
+      await InvoiceCounter.findOneAndUpdate(
+        { _id: "invoiceNo" },
+        { $set: { seq: nextInvoiceNo } },
+        { upsert: true, new: true }
+      );
+    }
+
+    const response = NextResponse.json({ response: nextInvoiceNo }, { status: 200 });
     response.headers.set(
       "Cache-Control",
       "no-store, no-cache, must-revalidate, proxy-revalidate"

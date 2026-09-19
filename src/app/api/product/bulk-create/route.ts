@@ -2,10 +2,13 @@ import connectDB from "@/utils/connectDB";
 import Product from "@/models/Product";
 import { NextResponse } from "next/server";
 import { ProductFormState } from "@/types/product";
+import { requireAuth } from "@/lib/auth";
 
 connectDB(); // Connect to MongoDB
 // Create New Bulk Product
 export async function POST(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
     try {
         const products = await request.json();
         // Assuming products is an array of products

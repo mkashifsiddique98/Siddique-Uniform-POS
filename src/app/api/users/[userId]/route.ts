@@ -1,16 +1,18 @@
 import connectDB from "@/utils/connectDB";
 import User from "@/models/user";
+import { hashPassword } from "@/lib/password";
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth";
 
-// Ensure DB is connected
 connectDB();
 
-// DELETE a user by ID
 export async function DELETE(
   req: Request,
   { params }: { params: { userId: string } }
 ) {
   try {
+    const auth = await requireAuth(req, { role: "admin" });
+    if (!auth.ok) return auth.response;
     const { userId } = params;
 
     const deletedUser = await User.findByIdAndDelete(userId);
@@ -26,15 +28,22 @@ export async function DELETE(
   }
 }
 
-// UPDATE a user by ID
 export async function PUT(
   req: Request,
   { params }: { params: { userId: string } }
 ) {
   try {
+    const auth = await requireAuth(req, { role: "admin" });
+    if (!auth.ok) return auth.response;
     const { userId } = params;
     const body = await req.json();
-  
+
+    if (body.password) {
+      body.password = await hashPassword(body.password);
+    } else {
+      delete body.password;
+    }
+
     const updatedUser = await User.findByIdAndUpdate(userId, body, {
       new: true,
       runValidators: true,

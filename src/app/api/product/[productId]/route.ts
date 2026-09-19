@@ -2,12 +2,15 @@ import connectDB from "@/utils/connectDB";
 import Product from "@/models/Product"; // Ensure this model is correctly defined in your models folder
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
+import { requireAuth } from "@/lib/auth";
 
 connectDB();
 
 // Get Product by ID (GET /api/product/[id])
 export async function GET(request: Request, { params }: { params: { productId: string } }) {
     try {
+    const auth = await requireAuth(request);
+    if (!auth.ok) return auth.response;
         const { productId } = params;
         const id = productId;
 

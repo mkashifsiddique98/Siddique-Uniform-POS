@@ -1,10 +1,13 @@
 import connectDB from "@/utils/connectDB";
 import SCHOOLNAME from "@/models/School-name";
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth";
 
 connectDB(); // Connect to MongoDB
 // Create New Product
 export async function POST(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
   try {
     const res = await request.json();
     const newSchoolName = new SCHOOLNAME(res);
@@ -16,7 +19,9 @@ export async function POST(request: Request) {
   }
 }
 // Get All Product
-export async function GET() {
+export async function GET(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
   try {
     const schoolName = await SCHOOLNAME.find();
     return Response.json({ response: schoolName }, { status: 200 });
@@ -27,6 +32,8 @@ export async function GET() {
 }
 //update product
 export async function PUT(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
   try {
     const updateData = await request.json();
 
@@ -45,6 +52,8 @@ export async function PUT(request: Request) {
 
 // Delete Product by ID
 export async function DELETE(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
   try {
     const { _id } = await request.json();
 
