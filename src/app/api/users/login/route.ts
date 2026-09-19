@@ -42,7 +42,7 @@ export async function POST(req: Request) {
         name: user.name,
         email: user.email,
         role: user.role || "employee",
-        pages: user.pages || [],
+        pages: Array.from(user.pages || [], (page) => String(page)),
       })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
