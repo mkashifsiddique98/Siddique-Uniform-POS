@@ -51,7 +51,7 @@ export async function middleware(req: NextRequest) {
         const apiAuth = await requireAuth(req);
         if (!apiAuth.ok) return apiAuth.response;
 
-        if (apiAuth.user.role === "employee") {
+        if (apiAuth.user.role?.toLowerCase() === "employee") {
           const employeeApiAreas = ["customer", "invoice", "product", "upload"];
           const apiArea = pathname.split("/").filter(Boolean)[1] || "";
           if (!employeeApiAreas.includes(apiArea)) {
@@ -65,14 +65,14 @@ export async function middleware(req: NextRequest) {
 
     // 🏠 Home ("/") as dashboard — only allowed if in `dashboard` pages
     if (pathname === "/") {
-      if (userRole === "employee" || !userPages?.includes("dashboard")) {
+      if (userRole.toLowerCase() === "employee" || !userPages?.includes("dashboard")) {
         return NextResponse.redirect(new URL("/unauthorized", req.url));
       }
       return NextResponse.next();
     }
 
     // 👷 Special rule: employee can only access /pos and /user/profile
-    if (userRole === "employee") {
+    if (userRole.toLowerCase() === "employee") {
       if (pathSegment !== "pos" && pathname !== "/user/profile") {
         return NextResponse.redirect(new URL("/unauthorized", req.url));
       }
@@ -123,14 +123,14 @@ export const config = {
     "/product/:path*",
     "/customer/:path*",
     "/invoice/:path*",
-    // "/user/:path*",
+    "/user/:path*",
     "/dashboard/:path*",
     "/pos/:path*",
     "/utilize/:path*",
     "/purchase/:path*",
     "/wholesalers/:path*",
-    // "/user/profile",
-    // "/",
+    "/user/profile",
+    "/",
     "/api/:path*",
     
   ],

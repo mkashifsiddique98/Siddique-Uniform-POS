@@ -42,7 +42,7 @@ export async function requireAuth(req: Request, options: AuthOptions = {}): Prom
     const { payload } = await jwtVerify(token, new TextEncoder().encode(secretValue));
     const user = payload as AuthUser;
     if (!user.userId || !user.role) return unauthorized("Invalid session");
-    if (options.role && user.role !== options.role) return forbidden();
+    if (options.role && user.role?.toLowerCase() !== options.role.toLowerCase()) return forbidden();
 
     if (options.page && user.role !== "admin" && !user.pages?.some((page) => page.toLowerCase() === options.page?.toLowerCase())) {
       return forbidden();

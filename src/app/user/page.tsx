@@ -16,8 +16,12 @@ async function getUsers(): Promise<User[]> {
         Cookie: cookieHeader,
       },
     });
-    if (!res.ok) throw new Error("Failed to fetch users");
-    return res.json();
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({})) as { error?: string };
+      throw new Error(body.error || `Failed to fetch users (HTTP ${res.status})`);
+    }
+    const data = await res.json() as User[];
+    return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error("Error fetching users:", error);
     return [];
