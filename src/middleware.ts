@@ -98,8 +98,23 @@ export async function middleware(req: NextRequest) {
     // });
     return NextResponse.next();
   } catch (err) {
-    console.error("🔐 Middleware Error:", err);
-    return NextResponse.redirect(new URL("/login", req.url));
+    if (err instanceof Error && err.name !== "JWSSignatureVerificationFailed") {
+      console.error("Middleware Error:", err.message);
+    }
+
+    const response = pathname.startsWith("/api/")
+      ? NextResponse.json({ error: "Invalid session" }, { status: 401 })
+      : NextResponse.redirect(new URL("/login", req.url));
+
+    response.cookies.set("token", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
+
+    return response;
   }
 }
 
@@ -108,14 +123,14 @@ export const config = {
     "/product/:path*",
     "/customer/:path*",
     "/invoice/:path*",
-    "/user/:path*",
+    // "/user/:path*",
     "/dashboard/:path*",
     "/pos/:path*",
     "/utilize/:path*",
     "/purchase/:path*",
     "/wholesalers/:path*",
-    "/user/profile",
-    "/",
+    // "/user/profile",
+    // "/",
     "/api/:path*",
     
   ],
