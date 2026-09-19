@@ -28,11 +28,24 @@ export function AlertNav() {
 
   useEffect(() => {
     const fetchNotifications = async () => {
-      const res = await fetch("/api/notifications");
-      const { notifications } = await res.json();
-      setNotifications(notifications);
-      const unread = notifications.filter((n) => !n.read).length;
-      setUnreadCount(unread);
+      try {
+        const res = await fetch("/api/notifications");
+        if (!res.ok) {
+          setNotifications([]);
+          setUnreadCount(0);
+          return;
+        }
+
+        const data = await res.json() as { notifications?: Notification[] };
+        const nextNotifications = Array.isArray(data.notifications)
+          ? data.notifications
+          : [];
+        setNotifications(nextNotifications);
+        setUnreadCount(nextNotifications.filter((n) => !n.read).length);
+      } catch {
+        setNotifications([]);
+        setUnreadCount(0);
+      }
     };
 
     fetchNotifications();
@@ -69,10 +82,9 @@ export function AlertNav() {
 
           <TabsContent value="low-stock" className="space-y-2">
             {grouped["low-stock"].length > 0 ? (
-              grouped["low-stock"].splice(0, 3).map((n) => (
-                <Link href={"/product/low-stock"}>
+              grouped["low-stock"].slice(0, 3).map((n) => (
+                <Link key={n._id} href={"/product/low-stock"}>
                   <DropdownMenuLabel
-                    key={n._id}
                     className={`border rounded p-2 hover:bg-slate-100 cursor-pointer ${
                       !n.read ? "bg-muted" : ""
                     }`}
@@ -96,10 +108,9 @@ export function AlertNav() {
 
           <TabsContent value="due-date" className="space-y-2">
             {grouped["due-date"].length > 0 ? (
-              grouped["due-date"].splice(0, 3).map((n) => (
-                <Link href={"/invoice/special-order"}>
+              grouped["due-date"].slice(0, 3).map((n) => (
+                <Link key={n._id} href={"/invoice/special-order"}>
                   <DropdownMenuLabel
-                    key={n._id}
                     className={`border rounded p-2 hover:bg-slate-100 cursor-pointer ${
                       !n.read ? "bg-muted" : ""
                     }`}
