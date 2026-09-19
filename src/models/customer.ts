@@ -1,8 +1,13 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { customer } from "@/types/customer";
 
 
-interface ICustomer extends Document, customer {}
+interface ICustomer extends Document {
+  customerName: string;
+  schoolName?: string;
+  type?: string;
+  phone?: number;
+  prevBalance?: number;
+}
 
 const customerSchema: Schema = new Schema({
   customerName: { type: String, required: true },
@@ -12,6 +17,9 @@ const customerSchema: Schema = new Schema({
   prevBalance: { type: Number, default: 0 },
 
 });
+
+customerSchema.index({ phone: 1 });
+customerSchema.index({ customerName: 1, schoolName: 1 });
 
 const Customer =
   (mongoose.models.Customer as mongoose.Model<ICustomer>) ||

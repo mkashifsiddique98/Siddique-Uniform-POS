@@ -23,6 +23,9 @@ const productSchema: Schema = new Schema({
    images: [{ type: String }],
 });
 
+productSchema.index({ productCode: 1 });
+productSchema.index({ schoolName: 1, category: 1 });
+
 const Product =
   (mongoose.models.Product as mongoose.Model<IProduct>) ||
   mongoose.model<IProduct>("Product", productSchema);

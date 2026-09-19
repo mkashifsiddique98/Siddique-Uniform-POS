@@ -9,6 +9,8 @@ const notificationSchema = new Schema({
   read: { type: Boolean, default: false },
 });
 
+notificationSchema.index({ read: 1, type: 1, createdAt: -1 });
+
  const Notification =
   mongoose.models.Notification || mongoose.model("Notification", notificationSchema);
 export default Notification;

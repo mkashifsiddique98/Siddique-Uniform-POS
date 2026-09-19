@@ -3,11 +3,18 @@
 import mongoose, { Schema } from "mongoose";
 
 const ProductSchema: Schema = new Schema({
+  productId: {
+    type: Schema.Types.ObjectId,
+    ref: "Product",
+    required: false,
+  },
   productName: { type: String },
   quantity: { type: Number },
   sellPrice: { type: Number },
   return: { type: Boolean, default: false },
-  sold: { type: Boolean, default: false }
+  sold: { type: Boolean, default: false },
+}, {
+  _id: true,
 });
 // use this method becuase populate is not working
 const customerSchema: Schema = new Schema({
@@ -29,6 +36,10 @@ const invoiceSchema: Schema = new Schema({
   discount: { type: Number, default: 0 },
   status: { type: String, default: "Clear" },
 });
+
+invoiceSchema.index({ invoiceDate: -1, status: 1 });
+invoiceSchema.index({ "customer.phone": 1, invoiceDate: -1 });
+invoiceSchema.index({ "customer.customerName": 1, "customer.schoolName": 1, invoiceDate: -1 });
 
 const Invoice =
   mongoose.models.Invoice || mongoose.model("Invoice", invoiceSchema);
