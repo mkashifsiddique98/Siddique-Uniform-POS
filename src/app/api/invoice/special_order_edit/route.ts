@@ -3,11 +3,14 @@ import Invoice from "@/models/invoice";
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import Customer from "@/models/customer"
+import { requireAuth } from "@/lib/auth";
 connectDB();
 
 // *********************************Update Invoice Status ****************************
 export async function PATCH(request: Request) {
   try {
+    const auth = await requireAuth(request);
+    if (!auth.ok) return auth.response;
     const req = await request.json();
     const { id, status } = req;
     

@@ -3,9 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 import ExpenseCategory from "@/models/ExpenseCategory";
 import connectDB from "@/utils/connectDB";
+import { requireAuth } from "@/lib/auth";
  connectDB();
 export async function POST(req: NextRequest) {
   try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
     
     const { name } = await req.json();
      console.log(name,"categiry")
@@ -26,6 +29,8 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
     await connectDB();
     const categories = await ExpenseCategory.find().sort({ name: 1 }); // optional sorting
     return NextResponse.json(categories, { status: 200 });
