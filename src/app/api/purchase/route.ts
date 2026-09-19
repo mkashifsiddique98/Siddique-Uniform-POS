@@ -4,11 +4,14 @@ import WholeSaler from "@/models/wholesaler";
 import Product from "@/models/Product";
 import { NextResponse } from "next/server";
 import { ProductFormState } from "@/types/product";
+import { requireAuth } from "@/lib/auth";
 
 connectDB();
 
 // Create New WholeSaler
 export async function POST(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
   try {
     const res = await request.json();
     const newPurchase = new Purchase(res);
@@ -34,7 +37,7 @@ export async function POST(request: Request) {
       for (const product of products) {
         const existingProduct = await Product.findById(product._id);
         if (existingProduct) {
-          existingProduct.quantity += product.quantity;
+          existingProduct.quantity = Number(existingProduct.quantity || 0) + Number(product.quantity || 0);
           await existingProduct.save();
         } else {
           return NextResponse.json({ error: `Product with ID ${product._id} not found` }, { status: 404 });
@@ -54,6 +57,8 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
   try {
     const listPurchase = await Purchase.find();
     return NextResponse.json({response: listPurchase }, { status: 200 });
@@ -64,6 +69,8 @@ export async function GET(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
   try {
     const { id } = await request.json(); // Assuming the ID is sent in the request body
     

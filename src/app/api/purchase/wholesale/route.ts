@@ -1,10 +1,13 @@
 import connectDB from "@/utils/connectDB";
 import WholeSaler from "@/models/wholesaler";
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/auth";
 connectDB();
 
 // Create New Whole Saler
 export async function POST(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
   try {
     const res = await request.json();
     const newWholeSaler = new WholeSaler(res);
@@ -17,6 +20,8 @@ export async function POST(request: Request) {
   }
 }
 export async function GET(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
   try {
     const listWholeSaler = await WholeSaler.find();
     return Response.json({ listWholeSaler }, { status: 200 });
@@ -26,6 +31,8 @@ export async function GET(request: Request) {
   }
 }
 export async function DELETE(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
   try {
     const { id } = await request.json(); // Assuming the ID is sent in the request body
 

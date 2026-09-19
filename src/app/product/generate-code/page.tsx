@@ -85,76 +85,89 @@ const BulkGenerateCode = () => {
     <>
       {/* Dynamic CSS Print Injection */}
       <style jsx global>{`
-        @media print {
-          /* Force physical printer media page size without margins */
-          @page {
-            size: ${STICKER_WIDTH} ${STICKER_HEIGHT};
-            margin: 0 !important;
-          }
+  @media print {
+    /* 1. Define exact paper dimensions and zero out margins */
+    @page {
+      size: ${STICKER_WIDTH} ${STICKER_HEIGHT};
+      margin: 0 !important;
+    }
 
-          /* Hide Web App UI */
-          body * {
-            visibility: hidden !important;
-          }
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: ${STICKER_WIDTH} !important;
+      height: ${STICKER_HEIGHT} !important;
+      overflow: hidden !important;
+    }
 
-          /* Show Print Area */
-          #bulk-barcode-print-wrapper,
-          #bulk-barcode-print-wrapper * {
-            visibility: visible !important;
-          }
+    /* 2. Hide Web UI */
+    body * {
+      visibility: hidden !important;
+    }
 
-          #bulk-barcode-print-wrapper {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: ${STICKER_WIDTH} !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
+    /* 3. Show Print Container */
+    #bulk-barcode-print-wrapper,
+    #bulk-barcode-print-wrapper * {
+      visibility: visible !important;
+    }
 
-          /* Sticker Page Boundaries */
-          .single-sticker {
-            width: ${STICKER_WIDTH} !important;
-            height: ${STICKER_HEIGHT} !important;
-            max-width: ${STICKER_WIDTH} !important;
-            max-height: ${STICKER_HEIGHT} !important;
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: center !important;
-            box-sizing: border-box !important;
-            padding: 2px !important;
-            margin: 0 !important;
-            overflow: hidden !important;
-            page-break-after: always !important;
-            break-after: page !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-          }
+    #bulk-barcode-print-wrapper {
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: ${STICKER_WIDTH} !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
 
-          .product-title {
-            font-family: Arial, sans-serif !important;
-            font-size: 9px !important;
-            font-weight: bold !important;
-            text-align: center !important;
-            white-space: nowrap !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            max-width: 95% !important;
-            margin-bottom: 2px !important;
-            color: #000000 !important;
-          }
+    /* 4. Ensure each sticker matches page size exactly without overflow */
+    .single-sticker {
+      width: ${STICKER_WIDTH} !important;
+      height: ${STICKER_HEIGHT} !important;
+      box-sizing: border-box !important;
+      padding: 1mm !important;
+      margin: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      overflow: hidden !important;
+      page-break-after: always !important;
+      break-after: page !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
 
-          .barcode-container svg {
-            max-width: 95% !important;
-            height: auto !important;
-            max-height: 0.75in !important;
-            display: block !important;
-            margin: 0 auto !important;
-          }
-        }
-      `}</style>
+    .product-title {
+      font-family: Arial, sans-serif !important;
+      font-size: 8pt !important;
+      font-weight: bold !important;
+      text-align: center !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      width: 100% !important;
+      margin-bottom: 1mm !important;
+      color: #000000 !important;
+      line-height: 1 !important;
+    }
 
+    .barcode-container {
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+      width: 100% !important;
+      overflow: hidden !important;
+    }
+
+    .barcode-container svg {
+      max-width: 90% !important;
+      height: auto !important;
+      max-height: 0.8in !important;
+      display: block !important; 
+    }
+  }
+`}</style>
       {/* WEB APP USER INTERFACE */}
       <div className="container p-6">
         <BreadCrum mainfolder="Product" subfolder="Bulk Generate Code" />

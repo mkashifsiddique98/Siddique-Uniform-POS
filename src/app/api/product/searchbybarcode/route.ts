@@ -1,13 +1,14 @@
 import Product from '@/models/Product';
 import { NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
 
 export async function POST(req: Request) {
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
   try {
     const { barcode } = await req.json();
-     console.log("barcode : ",barcode)
     // Query your database for product matching barcode/SKU
     const product = await Product.findOne({ productCode:barcode });
-      console.log("product : ",product)
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }

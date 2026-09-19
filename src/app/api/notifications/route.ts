@@ -2,8 +2,11 @@ import { NextResponse } from "next/server";
 import { checkNotifications } from "@/utils/checkNotification";
 import connectDB from "@/utils/connectDB";
 import Notification from "@/models/notification";
+import { requireAuth } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
   await checkNotifications();
   await connectDB();
    const notifications = await Notification.find().sort({ createdAt: -1 });
@@ -11,7 +14,9 @@ export async function GET() {
   
   return NextResponse.json({ message: "Notifications checked",notifications:notifications });
 }
-export async function DELETE() {
+export async function DELETE(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
   await checkNotifications();
   await connectDB();
 

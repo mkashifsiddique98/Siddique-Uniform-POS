@@ -4,6 +4,13 @@
 import { customer } from "@/types/customer";
 import { ProductDetail } from "@/types/invoice";
 import React, { FC } from "react";
+import { Noto_Nastaliq_Urdu } from "next/font/google";
+
+const nastaliq = Noto_Nastaliq_Urdu({
+  subsets: ["arabic"],
+  weight: ["400", "700"],
+  display: "swap",
+});
 
 type SocialMediaType = {
   facebook: string;
@@ -40,7 +47,6 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   discount,
   disInPercentage,
   grandTotal,
-  dueDate,
   invoiceNo,
   remainingBalance,
   isRePrint,
@@ -49,7 +55,6 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   shopAddress,
   shopPhone,
   messageCustomer,
-  logoUrl,
   isWholesale = false,
   mode = "retail",
   bookedBy,
@@ -87,7 +92,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
     second: "2-digit",
   });
 
-  // Default values pulled directly from retail section
+  // Default values
   const finalShopName = shopName || "صدیق یونیفارم سنٹر";
   const finalShopTagline = shopTagline || "بہترین معیار، مناسب قیمت";
   const finalShopAddress = shopAddress || "پتہ:سراں مارکیٹ کریانوالہ";
@@ -139,14 +144,33 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
 
             {/* SHOP NAME & DETAILS */}
             <div style={{ textAlign: "center", marginBottom: "12px", borderBottom: "1px solid #000", paddingBottom: "6px" }}>
-              <h1 style={{ margin: "0 0 2px 0", fontSize: "20px", fontWeight: "bold", direction: "rtl" }}>
+              <h1
+                className={nastaliq.className}
+                style={{
+                  margin: "0 0 4px 0",
+                  fontSize: "22px",
+                  fontWeight: "bold",
+                  direction: "rtl",
+                  lineHeight: "1.8",
+                }}
+              >
                 {finalShopName}
               </h1>
-              <p style={{ margin: "0 0 4px 0", fontSize: "11px", fontStyle: "italic", direction: "rtl" }}>
+              <p
+                className={nastaliq.className}
+                style={{
+                  margin: "0 0 4px 0",
+                  fontSize: "12px",
+                  direction: "rtl",
+                  lineHeight: "1.6",
+                }}
+              >
                 {finalShopTagline}
               </p>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", marginTop: "4px" }}>
-                <span style={{ direction: "rtl" }}>{finalShopAddress}</span>
+                <span className={nastaliq.className} style={{ direction: "rtl", fontSize: "11px" }}>
+                  {finalShopAddress}
+                </span>
                 <span>WHATSAPP / TEL: {finalShopPhone}</span>
               </div>
             </div>
@@ -266,7 +290,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
             </div>
           </div>
 
-          {/* URDU FOOTER NOTE */}
+          {/* URDU FOOTER NOTE (WHOLESALE) */}
           <div
             style={{
               borderTop: "1px solid #000",
@@ -275,12 +299,13 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
             }}
           >
             <p
+              className={nastaliq.className}
               style={{
                 margin: "0 0 4px 0",
-                fontSize: "12px",
+                fontSize: "13px",
                 fontWeight: "bold",
                 direction: "rtl",
-                fontFamily: "Tahoma, Arial, sans-serif",
+                lineHeight: "1.8",
               }}
             >
               {messageCustomer || "نوٹ: خریدا ہوا مال واپس یا تبدیل نہیں ہوگا۔"}
@@ -307,7 +332,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
             style={{
               margin: "5px 0 2px 0",
               fontWeight: "bold",
-              fontSize: "11px",
+              fontSize: "12px",
               color: "#111",
               textAlign: "center",
               textTransform: "uppercase",
@@ -384,23 +409,30 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
     >
       <div style={{ textAlign: "center", marginBottom: "8px" }}>
         <h2
+          className={nastaliq.className}
           style={{
             margin: "0 0 4px 0",
-            fontSize: "18px",
+            fontSize: "20px",
             fontWeight: "bold",
             borderBottom: "2px solid black",
             paddingBottom: "4px",
+            lineHeight: "1.8",
           }}
         >
           {finalShopName}
         </h2>
-        <p style={{ margin: "2px 0", fontStyle: "italic", fontSize: "10px" }}>
+        <p
+          className={nastaliq.className}
+          style={{ margin: "2px 0", fontSize: "11px", lineHeight: "1.6" }}
+        >
           {finalShopTagline}
         </p>
       </div>
 
       <div style={{ fontSize: "10px", textAlign: "center", marginBottom: "10px", lineHeight: "1.3" }}>
-        <p style={{ margin: "1px 0" }}>{finalShopAddress}</p>
+        <p className={nastaliq.className} style={{ margin: "1px 0", fontSize: "11px", lineHeight: "1.6" }}>
+          {finalShopAddress}
+        </p>
         <p style={{ margin: "1px 0" }}>فون نمبر: {finalShopPhone}</p>
       </div>
 
@@ -520,6 +552,32 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
           )}
         </tbody>
       </table>
+
+      {/* URDU FOOTER NOTE (RETAIL) */}
+      <div
+        style={{
+          borderTop: "1px dashed black",
+          paddingTop: "6px",
+          marginTop: "10px",
+          textAlign: "center",
+        }}
+      >
+        <p
+          className={nastaliq.className}
+          style={{
+            margin: "0 0 4px 0",
+            fontSize: "12px",
+            fontWeight: "bold",
+            direction: "rtl",
+            lineHeight: "1.8",
+          }}
+        >
+          {messageCustomer || "نوٹ: خریدا ہوا مال واپس یا تبدیل نہیں ہوگا۔"}
+        </p>
+        <span style={{ fontSize: "9px", color: "#555" }}>
+          Thank you for your business!
+        </span>
+      </div>
     </div>
   );
 };

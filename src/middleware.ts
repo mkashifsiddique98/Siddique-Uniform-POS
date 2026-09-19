@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
+import { requireAuth } from "@/lib/auth";
 // add some changes
 interface JWTPayload {
   role?: string;
@@ -10,14 +11,22 @@ interface JWTPayload {
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
   const url = req.nextUrl.clone();
+  const pathname = url.pathname.toLowerCase();
 
   // ✅ Allow public pages (like login) without token
   if (url.pathname === "/login") {
     return NextResponse.next();
   }
 
+  if (pathname === "/api/users/login") {
+    return NextResponse.next();
+  }
+
   // 🔒 Redirect to login if no token is found
   if (!token) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
@@ -37,7 +46,21 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
 
-    const pathname = url.pathname.toLowerCase();
+    if (pathname.startsWith("/api/")) {
+
+        const apiAuth = await requireAuth(req);
+        if (!apiAuth.ok) return apiAuth.response;
+
+        if (apiAuth.user.role === "employee") {
+          const employeeApiAreas = ["customer", "invoice", "product", "upload"];
+          const apiArea = pathname.split("/").filter(Boolean)[1] || "";
+          if (!employeeApiAreas.includes(apiArea)) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+          }
+        }
+        return NextResponse.next();
+      }
+
     const pathSegment = pathname.split("/").filter(Boolean)[0] || "";
 
     // 🏠 Home ("/") as dashboard — only allowed if in `dashboard` pages
@@ -59,7 +82,9 @@ export async function middleware(req: NextRequest) {
     // ✅ For other roles: check if user has access to this page
     const isAllowed = userPages?.some(
       (page) => page.toLowerCase() === pathSegment
-    );
+    ) || (pathSegment === "wholesalers" && userPages?.some((page) =>
+      ["purchase", "customer", "invoice"].includes(page.toLowerCase())
+    ));
    
     if (!isAllowed) {
       return NextResponse.redirect(new URL("/unauthorized", req.url));
@@ -88,8 +113,10 @@ export const config = {
     "/pos/:path*",
     "/utilize/:path*",
     "/purchase/:path*",
+    "/wholesalers/:path*",
     "/user/profile",
     "/",
+    "/api/:path*",
     
   ],
 };

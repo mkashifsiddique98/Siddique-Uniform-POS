@@ -1,17 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import fs from "fs/promises";
+import { requireAuth } from "@/lib/auth";
+import { safeUploadFilename } from "@/lib/uploadSecurity";
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+
     const { filename } = await req.json();
 
     if (!filename) {
       return NextResponse.json({ error: "Filename is required" }, { status: 400 });
     }
 
-    // Security check to prevent path traversal
-    const safeFilename = path.basename(filename);
+    const safeFilename = safeUploadFilename(filename);
+    if (!safeFilename) {
+      return NextResponse.json({ error: "Invalid filename" }, { status: 400 });
+    }
 
     const filePath = path.join(process.cwd(), "public/uploads", safeFilename);
 
