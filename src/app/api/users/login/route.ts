@@ -5,59 +5,64 @@ import { compareOrMigratePassword } from "@/lib/password";
 
 import { SignJWT } from "jose";
 
-connectDB();
-
 const failedAttempts = new Map<string, { count: number; blockedUntil: number }>();
 const MAX_ATTEMPTS = 5;
 const BLOCK_MS = 15 * 60 * 1000;
 
 export async function POST(req: Request) {
-  const clientKey = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  const current = failedAttempts.get(clientKey);
-  if (current && current.blockedUntil > Date.now()) {
-    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+  try {
+    await connectDB();
+
+    const clientKey = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const current = failedAttempts.get(clientKey);
+    if (current && current.blockedUntil > Date.now()) {
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    }
+
+    const body = await req.json() as { email?: string; password?: string };
+    const email = body.email?.trim() || "";
+    const password = body.password || "";
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      recordFailure(clientKey);
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    }
+
+    const isMatch = await compareOrMigratePassword(user, password);
+    if (!isMatch) {
+      recordFailure(clientKey);
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    }
+
+    failedAttempts.delete(clientKey);
+
+    const token = await new SignJWT({
+        userId: String(user._id),
+        name: user.name,
+        email: user.email,
+        role: user.role || "employee",
+        pages: user.pages || [],
+      })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime("1d")
+      .sign(new TextEncoder().encode(process.env.JWT_SECRET));
+
+    const response = NextResponse.json({ message: "Login successful" });
+    response.cookies.set("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24,
+    });
+
+    return response;
+  } catch (error) {
+    console.error("Login failed:", error instanceof Error ? error.message : "Unknown error");
+    return NextResponse.json({ error: "Unable to log in" }, { status: 500 });
   }
-
-  const body = await req.json() as { email?: string; password?: string };
-  const email = body.email || "";
-  const password = body.password || "";
-
-  const user = await User.findOne({ email });
-  if (!user) {
-    recordFailure(clientKey);
-    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-  }
-
-  const isMatch = await compareOrMigratePassword(user, password);
-  if (!isMatch) {
-    recordFailure(clientKey);
-    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-  }
-
-  failedAttempts.delete(clientKey);
-
-  const token = await new SignJWT({
-      userId: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role || "employee",
-      pages: user.pages || [],
-    })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("1d")
-    .sign(new TextEncoder().encode(process.env.JWT_SECRET));
-
-  const response = NextResponse.json({ message: "Login successful" });
-  response.cookies.set("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24,
-  });
-
-  return response;
 }
 
 function recordFailure(clientKey: string): void {
