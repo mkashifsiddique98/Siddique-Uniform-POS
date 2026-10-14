@@ -1,14 +1,21 @@
 import connectDB from "@/utils/connectDB";
 import SizeTemplate from "@/models/size-template";
 import { NextResponse } from "next/server";
+<<<<<<< HEAD
 import { requireAuth } from "@/lib/auth";
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 
 connectDB();
 
 // Get all size templates
+<<<<<<< HEAD
 export async function GET(request: Request) {
   const auth = await requireAuth(request);
   if (!auth.ok) return auth.response;
+=======
+export async function GET() {
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   try {
     const sizeTemplates = await SizeTemplate.find();
     return NextResponse.json(sizeTemplates, { status: 200 });
@@ -20,8 +27,11 @@ export async function GET(request: Request) {
 
 // Create a new size template
 export async function POST(request: Request) {
+<<<<<<< HEAD
   const auth = await requireAuth(request, { page: "product" });
   if (!auth.ok) return auth.response;
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   try {
     const res = await request.json();
     const newSizeTemplate = new SizeTemplate(res);
@@ -35,8 +45,11 @@ export async function POST(request: Request) {
 
 // Update a size template
 export async function PUT(request: Request) {
+<<<<<<< HEAD
   const auth = await requireAuth(request, { page: "product" });
   if (!auth.ok) return auth.response;
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   try {
     const res = await request.json();
     const { _id, name, sizes } = res
@@ -61,8 +74,11 @@ export async function PUT(request: Request) {
 
 // Delete a size template
 export async function DELETE(request: Request) {
+<<<<<<< HEAD
   const auth = await requireAuth(request, { page: "product" });
   if (!auth.ok) return auth.response;
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   try {
     const  _id  = await request.json();
     

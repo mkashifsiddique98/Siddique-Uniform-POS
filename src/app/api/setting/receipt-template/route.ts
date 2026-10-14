@@ -2,6 +2,7 @@ import connectDB from "@/utils/connectDB";
 import ReceiptTemplate from "@/models/receipt-template";
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
+<<<<<<< HEAD
 import { requireAuth } from "@/lib/auth";
 
 connectDB();
@@ -10,6 +11,13 @@ export async function GET(request: Request) {
     try {
     const auth = await requireAuth(request);
     if (!auth.ok) return auth.response;
+=======
+
+connectDB();
+
+export async function GET() {
+    try {
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
         const receiptTemplates = await ReceiptTemplate.find({});
         return NextResponse.json({ success: true, data: receiptTemplates }, { status: 200 });
     } catch (error) {
@@ -20,8 +28,11 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
+<<<<<<< HEAD
     const auth = await requireAuth(request, { role: "admin" });
     if (!auth.ok) return auth.response;
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
         const body = await request.json();
         const receiptTemplate = await ReceiptTemplate.create(body);
         return NextResponse.json({ success: true, data: receiptTemplate }, { status: 201 });
@@ -33,8 +44,11 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
     try {
+<<<<<<< HEAD
     const auth = await requireAuth(request, { role: "admin" });
     if (!auth.ok) return auth.response;
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
         const body = await request.json();
           
         if (!body._id || !mongoose.Types.ObjectId.isValid(body._id)) {

@@ -7,9 +7,12 @@ import FilterBtnProduct from "./Filter-btn-product";
 import { Search } from "@/components/custom-components/inputIcon";
 import { cn } from "@/lib/utils";
 import { School } from "@/types/school-name";
+<<<<<<< HEAD
 import { findStockConflicts, Products, syncCartStock, useAppDispatch, useTypedSelector } from "@/lib/store";
 import { useToast } from "@/components/ui/use-toast";
 import { useAutoStockRefresh } from "./useStockSync";
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 
 interface Props {
   schoolList: School[];
@@ -18,6 +21,7 @@ interface Props {
 }
 
 const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
+<<<<<<< HEAD
   const dispatch = useAppDispatch();
   const { toast } = useToast();
   const chartList = useTypedSelector((state) => state.chart.chartList);
@@ -48,6 +52,8 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
     });
   }, [items, dispatch, toast]);
 
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   const [currentPage, setCurrentPage] = useState(1);
   const [query, setQuery] = useState(""); // Search
   // Feature
@@ -177,7 +183,11 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
       <div className="m-2" style={{ maxHeight: "80vh", overflowY: "auto" }}>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 m-2 ">
           {currentItems.map((item, index) => (
+<<<<<<< HEAD
             <ProductCard key={item._id ? String(item._id) : item.productName + index} product={item} />
+=======
+            <ProductCard key={item.productName + index} product={item} />
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
           ))}
         </div>
       </div>

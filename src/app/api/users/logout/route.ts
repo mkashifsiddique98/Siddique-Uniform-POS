@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+<<<<<<< HEAD
 import { requireAuth } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -15,3 +16,11 @@ export async function POST(request: Request) {
   });
   return response;
 }
+=======
+
+export async function POST() {
+  const response = NextResponse.json({ message: "Logged out" });
+  response.cookies.set("token", "", { path: "/", maxAge: 0 });
+  return response;
+}
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07

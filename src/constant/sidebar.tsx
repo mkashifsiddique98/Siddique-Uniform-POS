@@ -78,11 +78,14 @@ export const sidebarItems = [
         icon: <Layers />,
       },
       {
+<<<<<<< HEAD
         title: "Wholesale Customers",
         href: "/wholesalers",
         icon: <Layers />,
       },
       {
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
         title: "Product Adjust",
         href: "/purchase/adjustment",
         icon: <Settings2 />,

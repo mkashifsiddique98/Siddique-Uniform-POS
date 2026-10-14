@@ -22,7 +22,10 @@ const UtilizeSchema: Schema = new Schema(
   { timestamps: true }
 );
 
+<<<<<<< HEAD
 UtilizeSchema.index({ createdAt: -1 });
 
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 export default mongoose.models.Utilize ||
   mongoose.model<IUtilize>("Utilize", UtilizeSchema);

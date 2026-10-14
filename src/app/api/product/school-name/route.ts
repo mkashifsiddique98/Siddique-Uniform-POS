@@ -1,13 +1,19 @@
 import connectDB from "@/utils/connectDB";
 import SCHOOLNAME from "@/models/School-name";
 import { NextResponse } from "next/server";
+<<<<<<< HEAD
 import { requireAuth } from "@/lib/auth";
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 
 connectDB(); // Connect to MongoDB
 // Create New Product
 export async function POST(request: Request) {
+<<<<<<< HEAD
   const auth = await requireAuth(request, { page: "product" });
   if (!auth.ok) return auth.response;
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   try {
     const res = await request.json();
     const newSchoolName = new SCHOOLNAME(res);
@@ -19,9 +25,13 @@ export async function POST(request: Request) {
   }
 }
 // Get All Product
+<<<<<<< HEAD
 export async function GET(request: Request) {
   const auth = await requireAuth(request);
   if (!auth.ok) return auth.response;
+=======
+export async function GET() {
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   try {
     const schoolName = await SCHOOLNAME.find();
     return Response.json({ response: schoolName }, { status: 200 });
@@ -32,8 +42,11 @@ export async function GET(request: Request) {
 }
 //update product
 export async function PUT(request: Request) {
+<<<<<<< HEAD
   const auth = await requireAuth(request, { page: "product" });
   if (!auth.ok) return auth.response;
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   try {
     const updateData = await request.json();
 
@@ -52,8 +65,11 @@ export async function PUT(request: Request) {
 
 // Delete Product by ID
 export async function DELETE(request: Request) {
+<<<<<<< HEAD
   const auth = await requireAuth(request, { page: "product" });
   if (!auth.ok) return auth.response;
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   try {
     const { _id } = await request.json();
 

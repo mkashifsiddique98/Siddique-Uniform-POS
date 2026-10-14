@@ -28,6 +28,7 @@ export function AlertNav() {
 
   useEffect(() => {
     const fetchNotifications = async () => {
+<<<<<<< HEAD
       try {
         const res = await fetch("/api/notifications");
         if (!res.ok) {
@@ -46,6 +47,13 @@ export function AlertNav() {
         setNotifications([]);
         setUnreadCount(0);
       }
+=======
+      const res = await fetch("/api/notifications");
+      const { notifications } = await res.json();
+      setNotifications(notifications);
+      const unread = notifications.filter((n) => !n.read).length;
+      setUnreadCount(unread);
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     };
 
     fetchNotifications();
@@ -82,9 +90,16 @@ export function AlertNav() {
 
           <TabsContent value="low-stock" className="space-y-2">
             {grouped["low-stock"].length > 0 ? (
+<<<<<<< HEAD
               grouped["low-stock"].slice(0, 3).map((n) => (
                 <Link key={n._id} href={"/product/low-stock"}>
                   <DropdownMenuLabel
+=======
+              grouped["low-stock"].splice(0, 3).map((n) => (
+                <Link href={"/product/low-stock"}>
+                  <DropdownMenuLabel
+                    key={n._id}
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
                     className={`border rounded p-2 hover:bg-slate-100 cursor-pointer ${
                       !n.read ? "bg-muted" : ""
                     }`}
@@ -108,9 +123,16 @@ export function AlertNav() {
 
           <TabsContent value="due-date" className="space-y-2">
             {grouped["due-date"].length > 0 ? (
+<<<<<<< HEAD
               grouped["due-date"].slice(0, 3).map((n) => (
                 <Link key={n._id} href={"/invoice/special-order"}>
                   <DropdownMenuLabel
+=======
+              grouped["due-date"].splice(0, 3).map((n) => (
+                <Link href={"/invoice/special-order"}>
+                  <DropdownMenuLabel
+                    key={n._id}
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
                     className={`border rounded p-2 hover:bg-slate-100 cursor-pointer ${
                       !n.read ? "bg-muted" : ""
                     }`}

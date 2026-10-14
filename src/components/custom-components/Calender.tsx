@@ -15,7 +15,11 @@ export default function CalendarForm({
   date,
   handleDateChange,
 }: {
+<<<<<<< HEAD
   date: Date | null;
+=======
+  date: Date;
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   handleDateChange: (newDate: Date) => void;
 }) {
   return (
@@ -38,7 +42,11 @@ export default function CalendarForm({
             <Calendar
             
               mode="single"
+<<<<<<< HEAD
               selected={date ?? undefined}
+=======
+              selected={date}
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
               disabled={(date) =>
                  date < new Date()
               }

@@ -6,15 +6,26 @@ import Fullscreen from "@/utils/fullScreen";
 import BillBook from "./bill-book";
 import { School } from "@/types/school-name";
 import { Metadata } from "next";
+<<<<<<< HEAD
 import { serverFetch } from "@/lib/serverFetch";
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 
 export const metadata: Metadata = {
   title: "POS",
   description: "Point of Sale ",
 };
+<<<<<<< HEAD
 async function fetchData(endpoint: string) {
   try {
     const res = await serverFetch(endpoint,
+=======
+const DOMAIN_NAME = process.env.DOMAIN_NAME;
+export const revalidate = 5
+async function fetchData(endpoint: string) {
+  try {
+    const res = await fetch(`${DOMAIN_NAME}${endpoint}`,
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
       {
         cache: "no-store",
       }

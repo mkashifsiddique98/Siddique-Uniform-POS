@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Invoice, ProductDetail } from "@/types/invoice";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+<<<<<<< HEAD
 import { Badge } from "@/components/ui/badge";
 import { isVoided, resolveReturnStatus, summarizeInvoice } from "@/lib/posHelpers";
 import { toast } from "@/components/ui/use-toast";
@@ -10,6 +11,8 @@ import { useIsAdmin } from "@/lib/useIsAdmin";
 import { useStockSync } from "@/app/pos/useStockSync";
 import ReturnDetailsDialog, { ReturnBadge } from "@/app/pos/ReturnDetailsDialog";
 import { formatReturnTime } from "@/lib/formatTime";
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 import {
   Table,
   TableHeader,
@@ -24,6 +27,7 @@ const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+<<<<<<< HEAD
   const isAdmin = useIsAdmin();
   const { refreshStock } = useStockSync();
   const [returnsOpen, setReturnsOpen] = useState(false);
@@ -77,6 +81,10 @@ const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => 
     );
   };
 
+=======
+  const { viewid } = params;
+
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   const getInvoiceById = async (invoiceId: string) => {
     try {
       const res = await fetch(`/api/invoice/GET_BY_ID/${invoiceId}`);
@@ -123,15 +131,26 @@ const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => 
 
   // Improved Product Table component with grouped headings
   const ProductTable: React.FC<{ products: ProductDetail[] }> = ({ products }) => {
+<<<<<<< HEAD
     // Every number comes from the same helper as the invoice list, receipt and the saved total
     const summary = summarizeInvoice({ items: products, discount: invoice.discount || 0 });
     const { saleRows, returnRows } = summary;
+=======
+    const returnedProducts = products.filter((product) => product.return);
+    // Calculate total amount for returned products
+    const returnedProductsTotalAmount = returnedProducts.reduce((total, product) => {
+      // Multiply sellPrice by quantity for each product
+      return total + product.sellPrice * product.quantity;
+    }, 0);
+    const newProducts = products.filter((product) => !product.return);
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 
     return (
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Product Name</TableHead>
+<<<<<<< HEAD
             <TableHead>Sold</TableHead>
             <TableHead>Returned</TableHead>
             <TableHead>Net Qty</TableHead>
@@ -204,6 +223,70 @@ const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => 
               Net Total
             </TableCell>
             <TableCell className="font-bold">Rs {summary.grandTotal}</TableCell>
+=======
+            <TableHead>Quantity</TableHead>
+            <TableHead>Price</TableHead>
+            <TableHead>Line Total</TableHead>
+            <TableHead>Action</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {returnedProducts.length > 0 && (
+            <>
+              <TableRow className="bg-gray-200">
+                <TableCell colSpan={5} className="font-bold">
+                  Returned Products
+                </TableCell>
+              </TableRow>
+              {returnedProducts.map((product, index) => (
+                <TableRow key={`returned-${index}`}>
+                  <TableCell>{product.productName}</TableCell>
+                  <TableCell>{product.quantity}</TableCell>
+                  <TableCell>Rs {product.sellPrice}</TableCell>
+                  <TableCell>Rs {product.quantity * product.sellPrice}</TableCell>
+                  <TableCell>
+                    {/* Place action buttons here if needed */}
+                  </TableCell>
+
+                </TableRow>
+
+              ))}
+              <TableCell colSpan={3} className="text-right font-semibold">
+                Return Sub-total
+              </TableCell>
+              <TableCell className="font-semibold">-Rs {returnedProductsTotalAmount}</TableCell>
+            </>
+
+          )}
+          {newProducts.length > 0 && (
+            <>
+              {returnedProducts.length > 0 &&
+                <TableRow className="bg-gray-200">
+                  <TableCell colSpan={5} className="font-bold">
+                    New Products
+                  </TableCell>
+                </TableRow>}
+              {newProducts.map((product, index) => (
+                <TableRow key={`new-${index}`}>
+                  <TableCell>{product.productName}</TableCell>
+                  <TableCell>{product.quantity}</TableCell>
+                  <TableCell>Rs {product.sellPrice}</TableCell>
+                  <TableCell>Rs {product.quantity * product.sellPrice}</TableCell>
+                  <TableCell>
+                    {/* Place action buttons here if needed */}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </>
+          )}
+
+          <TableRow>
+            <TableCell colSpan={3} className="text-right font-bold">
+              Grand Total
+            </TableCell>
+            <TableCell className="font-bold">Rs {invoice.grandTotal-returnedProductsTotalAmount}</TableCell>
+            <TableCell />
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
           </TableRow>
         </TableBody>
       </Table>
@@ -212,6 +295,7 @@ const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => 
 
   return (
     <div className="container mx-auto p-6">
+<<<<<<< HEAD
       <h1 className="text-3xl font-bold mb-6">
         Invoice Details
         {isVoided(invoice) && <Badge variant="destructive" className="ml-3">Void</Badge>}
@@ -222,6 +306,9 @@ const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => 
           <Badge variant="outline" className="ml-3">Partially returned</Badge>
         )}
       </h1>
+=======
+      <h1 className="text-3xl font-bold mb-6">Invoice Details</h1>
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 
       {/* Invoice Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -263,6 +350,7 @@ const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => 
         <p className="text-gray-600 mt-4">No products in this invoice.</p>
       )}
 
+<<<<<<< HEAD
       <div className="mt-8 flex gap-3">
         <Button variant="outline" onClick={() => router.back()}>
           Back
@@ -295,6 +383,13 @@ const InvoiceDetail: React.FC<{ params: { viewid: string } }> = ({ params }) => 
         lines={invoice.productDetail || []}
         onCancelReturn={isAdmin && !isVoided(invoice) ? handleCancelReturn : undefined}
       />
+=======
+      <div className="mt-8">
+        <Button variant="outline" onClick={() => router.back()}>
+          Back
+        </Button>
+      </div>
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     </div>
   );
 };

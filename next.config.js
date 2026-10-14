@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 module.exports = (phase, { defaultConfig }) => {
   return {
     ...defaultConfig,
@@ -50,3 +51,32 @@ module.exports = (phase, { defaultConfig }) => {
     },
   };
 };
+=======
+
+module.exports = (phase, { defaultConfig }) => {
+    return {
+      ...defaultConfig,
+      // swcMinify: true, // Enable SWC for faster minification
+      compiler: {
+      removeConsole: process.env.NODE_ENV === "production",
+      },
+      eslint:{
+        ignoreDuringBuilds: true,
+      },
+      typescript: {
+        ignoreBuildErrors: true,
+      },
+      webpack: (config) => {
+        config.resolve = {
+          ...config.resolve,
+          fallback: {
+            "fs": false,
+            "path": false,
+            "os": false,
+          }
+        }
+        return config
+      },
+    }
+  }
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07

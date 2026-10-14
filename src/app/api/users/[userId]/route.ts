@@ -1,5 +1,6 @@
 import connectDB from "@/utils/connectDB";
 import User from "@/models/user";
+<<<<<<< HEAD
 import { hashPassword } from "@/lib/password";
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
@@ -7,13 +8,24 @@ import { updateUserSchema } from "@/validation/user";
 
 connectDB();
 
+=======
+import { NextResponse } from "next/server";
+
+// Ensure DB is connected
+connectDB();
+
+// DELETE a user by ID
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 export async function DELETE(
   req: Request,
   { params }: { params: { userId: string } }
 ) {
   try {
+<<<<<<< HEAD
     const auth = await requireAuth(req, { role: "admin" });
     if (!auth.ok) return auth.response;
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     const { userId } = params;
 
     const deletedUser = await User.findByIdAndDelete(userId);
@@ -29,11 +41,16 @@ export async function DELETE(
   }
 }
 
+<<<<<<< HEAD
+=======
+// UPDATE a user by ID
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 export async function PUT(
   req: Request,
   { params }: { params: { userId: string } }
 ) {
   try {
+<<<<<<< HEAD
     const auth = await requireAuth(req, { role: "admin" });
     if (!auth.ok) return auth.response;
     const { userId } = params;
@@ -56,6 +73,15 @@ export async function PUT(
       new: true,
       runValidators: true,
     }).select("-password");
+=======
+    const { userId } = params;
+    const body = await req.json();
+  
+    const updatedUser = await User.findByIdAndUpdate(userId, body, {
+      new: true,
+      runValidators: true,
+    });
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 
     if (!updatedUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });

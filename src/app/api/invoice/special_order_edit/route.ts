@@ -3,14 +3,20 @@ import Invoice from "@/models/invoice";
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import Customer from "@/models/customer"
+<<<<<<< HEAD
 import { requireAuth } from "@/lib/auth";
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 connectDB();
 
 // *********************************Update Invoice Status ****************************
 export async function PATCH(request: Request) {
   try {
+<<<<<<< HEAD
     const auth = await requireAuth(request);
     if (!auth.ok) return auth.response;
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     const req = await request.json();
     const { id, status } = req;
     

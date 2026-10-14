@@ -1,6 +1,7 @@
 // store.ts
 import { configureStore, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { useDispatch, useSelector, TypedUseSelectorHook } from "react-redux";
+<<<<<<< HEAD
 import { RootState } from "@/types";
 import { ProductFormState } from "@/types/product";
 import { computeReturnedQty, lineMatchKey } from "@/lib/posHelpers";
@@ -87,6 +88,20 @@ const withCartId = (item: Products): Products => {
   return productId ? { ...item, productId } : { ...item, productId, tempId: item.tempId ?? makeTempId() };
 };
 
+=======
+import { RootState } from "@/types"; // Define your RootState type in a separate file
+import { ProductFormState } from "@/types/product";
+
+export interface Products extends ProductFormState {
+  productId: object | undefined;
+  productName: string;
+  quantity: number;
+  sellPrice: number;
+  return?:Boolean;
+  sold?:Boolean;
+}
+
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 interface ChartState {
   chartList: Products[];
 }
@@ -113,6 +128,7 @@ const chartSlice = createSlice({
   reducers: {
     // for single Product
     addToChart: (state, action: PayloadAction<Products>) => {
+<<<<<<< HEAD
       state.chartList = [...state.chartList, withCartId(action.payload)];
     },
     // for multiple product
@@ -211,6 +227,44 @@ const chartSlice = createSlice({
         line.returns = action.payload[index].returns || [];
         line.returnedQty = computeReturnedQty(line);
       });
+=======
+      state.chartList = [...state.chartList, action.payload];
+    },
+    // for multiple product
+    addMultipleToChart: (state, action: PayloadAction<Products[]>) => {
+      state.chartList = [...state.chartList, ...action.payload];
+    },
+    // for update
+    updateChart: (
+      state,
+      action: PayloadAction<{ productName: string; quantity: number; sellPrice?: number }>
+    ) => {
+      const { productName, quantity, sellPrice } = action.payload;
+      const existingProduct = state.chartList.find((product) => product.productName === productName);
+
+      if (existingProduct) {
+        existingProduct.quantity = Math.max(0, existingProduct.quantity + quantity); // Prevent negative quantity
+        if (sellPrice) {
+          existingProduct.sellPrice = sellPrice; // Update price if provided
+        }
+      } else {
+        state.chartList.push({
+          productId: undefined,
+          productName: productName,
+          quantity: Math.max(0, quantity),
+          sellPrice: sellPrice || 0,
+          category: 'special',
+          size: 'N/A',
+          productCost: 0,
+          stockAlert: 0,
+        });
+      }
+    },
+
+    removeItemChart: (state, action: PayloadAction<{ productName: string }>) => {
+      const { productName } = action.payload;
+      state.chartList = state.chartList.filter((product) => product.productName !== productName);
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     },
     handleReturnItemChart :(state, action: PayloadAction<{ productName: string,return:boolean }>) => {
       const { productName,return:isReturn } = action.payload;
@@ -257,7 +311,11 @@ const modeSlice = createSlice({
 });
 
 // Add to chart product
+<<<<<<< HEAD
 export const { addToChart, addMultipleToChart, updateChart, clearChart, removeItemChart, handleReturnItemChart, applyPriceMode, syncCartStock, setCartReturns } = chartSlice.actions;
+=======
+export const { addToChart, addMultipleToChart, updateChart, clearChart, removeItemChart,handleReturnItemChart } = chartSlice.actions;
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 // For mode like wholesaler or retailer
 export const { toggleMode, setMode } = modeSlice.actions;
 // For invoice number and discount

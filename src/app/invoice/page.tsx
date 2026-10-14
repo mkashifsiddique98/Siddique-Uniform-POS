@@ -34,10 +34,13 @@ import BreadCrum from "@/components/custom-components/bread-crum";
 import { Invoice } from "@/types/invoice";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+<<<<<<< HEAD
 import { Badge } from "@/components/ui/badge";
 import { isVoided, resolveReturnStatus, summarizeInvoice } from "@/lib/posHelpers";
 import { useIsAdmin } from "@/lib/useIsAdmin";
 import { useStockSync } from "@/app/pos/useStockSync";
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 
 // *************************************** Search ***********************
 interface SearchProps {
@@ -60,6 +63,7 @@ const Search: React.FC<SearchProps> = ({ searchTerm, onSearchChange }) => {
 // *************************************** Table ***********************
 interface TableDemoProps {
   invoices: Invoice[];
+<<<<<<< HEAD
   onDelete: (id: string, confirmed: boolean) => void;
   onVoid: (id: string) => void;
   isAdmin: boolean;
@@ -70,12 +74,19 @@ const invoiceNumbers = (invoice: Invoice) =>
   summarizeInvoice({ items: invoice.productDetail || [], discount: invoice.discount || 0 });
 
 const TableDemo: React.FC<TableDemoProps> = ({ invoices, onDelete, onVoid, isAdmin }) => {
+=======
+  onDelete: (id: string) => void;
+}
+
+const TableDemo: React.FC<TableDemoProps> = ({ invoices, onDelete }) => {
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   const router = useRouter();
 
   const handleViewClick = (id: string) => {
     router.push(`/invoice/view/${id}`);
   };
 
+<<<<<<< HEAD
   const confirmDelete = (invoice: Invoice) => {
     const hasLines = (invoice.productDetail || []).length > 0;
     const message = hasLines
@@ -89,6 +100,11 @@ const TableDemo: React.FC<TableDemoProps> = ({ invoices, onDelete, onVoid, isAdm
   const confirmVoid = (invoice: Invoice) => {
     if (window.confirm(`Void invoice #${invoice.invoiceNo}? Its stock is restored and it stays on record as void.`)) {
       onVoid(invoice._id as string);
+=======
+  const confirmDelete = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this invoice?")) {
+      onDelete(id);
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     }
   };
 
@@ -105,6 +121,7 @@ const TableDemo: React.FC<TableDemoProps> = ({ invoices, onDelete, onVoid, isAdm
         </TableRow>
       </TableHeader>
       <TableBody>
+<<<<<<< HEAD
         {invoices.map((invoice) => {
           const numbers = invoiceNumbers(invoice);
           const returnStatus = resolveReturnStatus(invoice);
@@ -153,6 +170,27 @@ const TableDemo: React.FC<TableDemoProps> = ({ invoices, onDelete, onVoid, isAdm
             </TableRow>
           );
         })}
+=======
+        {invoices.map((invoice) => (
+          <TableRow key={invoice._id}>
+            <TableCell className="font-medium">{invoice.invoiceNo}</TableCell>
+            <TableCell>{invoice.customer?.customerName || "Unknown"}</TableCell>
+            <TableCell>{invoice.customer?.type || "Unknown"}</TableCell>
+            <TableCell className="whitespace-nowrap">
+              {format(new Date(invoice.invoiceDate), "dd MMM yyyy, hh:mm a")}
+            </TableCell>
+            <TableCell>Rs {invoice.grandTotal.toFixed(2)}</TableCell>
+            <TableCell className="text-center">
+              <Button variant="outline" onClick={() => handleViewClick(invoice._id)}>
+                View
+              </Button>
+              <Button className="ml-2" onClick={() => confirmDelete(invoice._id)}>
+                Delete
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))}
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
       </TableBody>
     </Table>
   );
@@ -179,9 +217,14 @@ const SaleList: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+<<<<<<< HEAD
   const isAdmin = useIsAdmin();
   const { refreshStock } = useStockSync();
   const today = new Date();
+=======
+  const today = new Date();
+
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -242,6 +285,7 @@ const SaleList: React.FC = () => {
 }, [invoices, form.watch("dob"), searchTerm]);
 
 
+<<<<<<< HEAD
   // Calculate total sale: net of returns, void invoices excluded
   const totalDaySale = useMemo(
     () =>
@@ -249,33 +293,54 @@ const SaleList: React.FC = () => {
         (total, sale) => (isVoided(sale) ? total : total + invoiceNumbers(sale).grandTotal),
         0
       ),
+=======
+  // Calculate total sale
+  const totalDaySale = useMemo(
+    () => filteredInvoices.reduce((total, sale) => total + sale.grandTotal, 0),
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     [filteredInvoices]
   );
 
   // Delete handler
+<<<<<<< HEAD
   const handleDeleteClick = async (id: string, confirmed: boolean) => {
+=======
+  const handleDeleteClick = async (id: string) => {
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     try {
       const response = await fetch(`/api/invoice`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
+<<<<<<< HEAD
         body: JSON.stringify({ id, confirm: confirmed }),
+=======
+        body: JSON.stringify({ id }),
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
       });
 
       const data = await response.json();
 
       if (!response.ok) {
+<<<<<<< HEAD
         toast({ description: data?.error || "Failed to delete invoice" });
+=======
+        toast({ description: "Failed to delete invoice" });
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
         return;
       }
 
       setInvoices((prev) => prev.filter((invoice) => invoice._id !== id));
       toast({ description: data.message });
+<<<<<<< HEAD
       refreshStock();
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     } catch (error) {
       console.error("Error deleting invoice:", error);
     }
   };
 
+<<<<<<< HEAD
   const handleVoidClick = async (id: string) => {
     try {
       const response = await fetch(`/api/invoice/void`, {
@@ -298,6 +363,8 @@ const SaleList: React.FC = () => {
     }
   };
 
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   return (
     <div className="container p-6">
       <BreadCrum mainfolder="Sale" subfolder="List Sale" />
@@ -371,12 +438,16 @@ const SaleList: React.FC = () => {
           ))}
         </div>
       ) : filteredInvoices.length > 0 ? (
+<<<<<<< HEAD
         <TableDemo
           invoices={filteredInvoices}
           onDelete={handleDeleteClick}
           onVoid={handleVoidClick}
           isAdmin={isAdmin}
         />
+=======
+        <TableDemo invoices={filteredInvoices} onDelete={handleDeleteClick} />
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
       ) : (
         <p className="font-extrabold text-center">
           No invoices found for the selected date or customer name.

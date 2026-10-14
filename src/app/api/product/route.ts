@@ -1,16 +1,22 @@
 import connectDB from "@/utils/connectDB";
 import Product from "@/models/Product";
 import { NextResponse } from "next/server";
+<<<<<<< HEAD
 import { requireAuth } from "@/lib/auth";
 import { effectiveOversellMode, getGlobalOversellMode } from "@/lib/oversell";
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 
 connectDB(); // Connect to MongoDB
 // Create New Product
 
 export async function POST(request: Request) {
   try {
+<<<<<<< HEAD
     const auth = await requireAuth(request, { page: "product" });
     if (!auth.ok) return auth.response;
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     const res = await request.json();
     const newProduct = new Product(res);
     const savedProduct = await newProduct.save();
@@ -22,6 +28,7 @@ export async function POST(request: Request) {
   }
 }
 // Get All Product
+<<<<<<< HEAD
 export async function GET(request: Request) {
   const auth = await requireAuth(request);
   if (!auth.ok) return auth.response;
@@ -33,6 +40,12 @@ export async function GET(request: Request) {
       oversellMode: effectiveOversellMode(product.oversellMode, globalMode),
     }));
     return Response.json({ response }, { status: 200 });
+=======
+export async function GET() {
+  try {
+    const products = await Product.find();
+    return Response.json({ response: products }, { status: 200 });
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   } catch (error) {
     console.error(error);
     return Response.json({ error: "Server error" }, { status: 500 });
@@ -41,8 +54,11 @@ export async function GET(request: Request) {
 //update product
 export async function PUT(request: Request) {
   try {
+<<<<<<< HEAD
     const auth = await requireAuth(request, { page: "product" });
     if (!auth.ok) return auth.response;
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     const updateData = await request.json();
     const {
       productid,
@@ -59,9 +75,12 @@ export async function PUT(request: Request) {
       images,
     } = updateData;
 
+<<<<<<< HEAD
     if (quantity !== undefined && (!Number.isFinite(Number(quantity)) || Number(quantity) < 0)) {
       return NextResponse.json({ error: "Stock cannot be negative" }, { status: 400 });
     }
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     // Use findByIdAndUpdate to update the document by _id
     const updatedProduct = await Product.findByIdAndUpdate(
       productid,
@@ -100,8 +119,11 @@ export async function PUT(request: Request) {
 // Delete Product by ID
 export async function DELETE(request: Request) {
   try {
+<<<<<<< HEAD
     const auth = await requireAuth(request, { page: "product" });
     if (!auth.ok) return auth.response;
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     const { _id } = await request.json();
 
     // Use findByIdAndDelete to delete the document by _id

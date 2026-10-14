@@ -6,7 +6,11 @@ import { Button } from "../ui/button";
 import { AlertNav } from "../custom-components/alert-nav";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { usePathname, useRouter } from "next/navigation";
+<<<<<<< HEAD
 import { useEffect } from "react";
+=======
+import { useEffect, useState } from "react";
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import ToggleMode from "../custom-components/mode-switch";
@@ -27,6 +31,29 @@ export function Topnav({
   const pathName = usePathname();
   const route = useRouter();
 
+<<<<<<< HEAD
+=======
+  const [loading, setLoading] = useState(false);
+
+  const handleUpdate = async () => {
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/setting", {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+      }
+    } catch (error: any) {
+      console.log("Error", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   return (
     <div className="border-b shadow-md z-50 relative">
       <div className="flex justify-between items-center h-16 px-4 w-full">
@@ -58,6 +85,13 @@ export function Topnav({
               >
                 POS
               </Link>
+<<<<<<< HEAD
+=======
+
+              {/* <Button onClick={handleUpdate} size={"sm"} disabled={loading}>
+                {loading ? "Updating..." : "Update Software"}
+              </Button> */}
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
             </div>
           )}
           {pathName === "/pos" && <ToggleMode />}

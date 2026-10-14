@@ -1,7 +1,10 @@
 import connectDB from "@/utils/connectDB";
 import Product from "@/models/Product";
 import { NextResponse } from "next/server";
+<<<<<<< HEAD
 import { requireAuth } from "@/lib/auth";
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 
 connectDB(); // Connect to MongoDB
 
@@ -28,8 +31,11 @@ async function deleteImageFromServer(filename: string) {
 
 export async function DELETE(request: Request) {
   try {
+<<<<<<< HEAD
     const auth = await requireAuth(request, { page: "product" });
     if (!auth.ok) return auth.response;
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     const productsToDelete = await request.json();
 
     const productIdsToDelete = productsToDelete.map(

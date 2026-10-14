@@ -2,6 +2,7 @@
 
 import mongoose, { Schema } from "mongoose";
 
+<<<<<<< HEAD
 // One return of a sale line. `at` is always set by the server. Cancelled entries stay for audit.
 const ReturnEntrySchema: Schema = new Schema({
   qty: { type: Number, required: true, min: 1 },
@@ -20,10 +21,14 @@ const ProductSchema: Schema = new Schema({
     ref: "Product",
     required: false,
   },
+=======
+const ProductSchema: Schema = new Schema({
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   productName: { type: String },
   quantity: { type: Number },
   sellPrice: { type: Number },
   return: { type: Boolean, default: false },
+<<<<<<< HEAD
   sold: { type: Boolean, default: false },
   // No default: old return lines have no mode, and a default of "sale" hid them as sales when read
   mode: { type: String, enum: ["sale", "return"] },
@@ -42,6 +47,9 @@ const ProductSchema: Schema = new Schema({
   },
 }, {
   _id: true,
+=======
+  sold: { type: Boolean, default: false }
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 });
 // use this method becuase populate is not working
 const customerSchema: Schema = new Schema({
@@ -52,9 +60,13 @@ const customerSchema: Schema = new Schema({
   prevBalance: { type: Number, default: 0 },
 });
 const invoiceSchema: Schema = new Schema({
+<<<<<<< HEAD
   invoiceNo: { type: Number, unique: true, required: true },
   // Sparse unique: only invoices saved with a client attempt key are indexed
   idempotencyKey: { type: String, unique: true, sparse: true },
+=======
+  invoiceNo: { type: Number, unique: true, require: true, },
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   customer: customerSchema, // ref to "Customer"
   productDetail: [ProductSchema],
   prevBalance: { type: Number, default: 0 },
@@ -64,6 +76,7 @@ const invoiceSchema: Schema = new Schema({
   dueDate: { type: Date },
   discount: { type: Number, default: 0 },
   status: { type: String, default: "Clear" },
+<<<<<<< HEAD
   // Return state, recalculated on every save. Missing on legacy invoices, which count as "active".
   returnStatus: { type: String, enum: ["active", "partially_returned", "fully_returned"], default: "active" },
   voided: { type: Boolean, default: false },
@@ -79,6 +92,10 @@ invoiceSchema.index({ status: 1, dueDate: 1 });
 invoiceSchema.index({ "customer._id": 1, invoiceDate: -1 });
 invoiceSchema.index({ "customer.customerName": 1, "customer.schoolName": 1, invoiceDate: -1 });
 
+=======
+});
+
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 const Invoice =
   mongoose.models.Invoice || mongoose.model("Invoice", invoiceSchema);
 

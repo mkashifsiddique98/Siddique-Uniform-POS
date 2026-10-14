@@ -25,9 +25,14 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+<<<<<<< HEAD
 # local env files (never commit; real values live only on the server)
 .env*
 !.env.example
+=======
+# local env files
+.env*.local
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 
 # vercel
 .vercel

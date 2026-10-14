@@ -8,7 +8,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+<<<<<<< HEAD
 
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 import {
   AlertTriangleIcon,
   BadgePlus,
@@ -19,6 +22,7 @@ import {
   RotateCcw,
   XCircle,
 } from "lucide-react";
+<<<<<<< HEAD
 
 import React, { FC, useEffect, useRef, useState } from "react";
 
@@ -39,12 +43,22 @@ import {
   getCartItemKey,
   removeItemChart,
   setCartReturns,
+=======
+import React, { FC, useState } from "react";
+import PayNowChart from "./pay-now";
+import { Label } from "@/components/ui/label";
+import {
+  Products,
+  clearChart,
+  removeItemChart,
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   setDiscount,
   setInvoiceNumber,
   updateChart,
   useAppDispatch,
   useTypedSelector,
 } from "@/lib/store";
+<<<<<<< HEAD
 
 import { customer } from "@/types/customer";
 import { calculateInvoiceTotals, canonicalizeLines } from "@/lib/posHelpers";
@@ -52,6 +66,11 @@ import ReturnDetailsDialog, { ReturnBadge } from "./ReturnDetailsDialog";
 
 import LoadingSpinner from "@/components/custom-components/loadingSpinner";
 
+=======
+import { customer } from "@/types/customer";
+import { handleGenerateNewInvoiceNumber } from "./usePos";
+import LoadingSpinner from "@/components/custom-components/loadingSpinner";
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 import {
   Select,
   SelectContent,
@@ -62,6 +81,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+<<<<<<< HEAD
 import {
   Dialog,
   DialogContent,
@@ -71,12 +91,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 interface BillTableProps {
   selectedCustomer?: customer;
   handleEditInvoice: () => void;
   editInvoice: boolean;
   errorMessage: string;
   loading: boolean;
+<<<<<<< HEAD
   // MongoDB Invoice _id
   invoiceId?: string;
 }
@@ -84,12 +107,17 @@ interface BillTableProps {
 const isReturnLine = (product: Products) =>
   product.mode === "return";
 
+=======
+}
+
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 const BillTable: FC<BillTableProps> = ({
   selectedCustomer,
   handleEditInvoice,
   editInvoice,
   errorMessage,
   loading,
+<<<<<<< HEAD
   invoiceId,
 }) => {
   const [specialProductName, setSpecialProductName] =
@@ -181,10 +209,28 @@ const BillTable: FC<BillTableProps> = ({
     (state) => state.invoice.discount
   );
 
+=======
+}) => {
+  // Local State
+  const [specialProductName, setSpecialProductName] = useState("");
+  const [specialProductPrice, setSpecialProductPrice] = useState<number | "">(
+    ""
+  );
+  const [specialProductQty, setSpecialProductQty] = useState<number | "">("");
+  const [disInPrecentage, setDisInPrecentage] = useState<number>(0);
+
+  // Redux State
+  const dispatch = useAppDispatch();
+  const chartList: Products[] = useTypedSelector(
+    (state) => state.chart.chartList
+  );
+  const discount: number = useTypedSelector((state) => state.invoice.discount);
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   const invoiceNo: number = useTypedSelector(
     (state) => state.invoice.invoiceNumber
   );
 
+<<<<<<< HEAD
   const mode = useTypedSelector(
     (state) => state.mode
   );
@@ -396,11 +442,52 @@ const BillTable: FC<BillTableProps> = ({
         _id: product._id,
         tempId: product.tempId,
         productName: product.productName,
+=======
+  const mode = useTypedSelector((state) => state.mode); // retail / wholesale
+
+  // Calculate subtotal & grand total
+  const calcSubtotal = (items: Products[]) =>
+    items.reduce(
+      (total, product) => total + product.sellPrice * product.quantity,
+      0
+    );
+
+  let grandTotal = calcSubtotal(chartList) - discount;
+  grandTotal = Math.max(0, grandTotal);
+
+  // Discount logic
+  const calculateDiscount = (value: string) => {
+    setDisInPrecentage(parseInt(value, 10));
+    const disInPrecentageTemp = parseInt(value, 10);
+    const discountAmount = (grandTotal * disInPrecentageTemp) / 100;
+    dispatch(setDiscount(Math.max(0, parseInt(discountAmount.toString()))));
+  };
+
+  // Reset
+  const handleReset = () => {
+    if (editInvoice) handleEditInvoice();
+    setDisInPrecentage(0);
+    dispatch(clearChart());
+    dispatch(setDiscount(0));
+
+    // Invoice number accuracy
+    const storedValue = Number(localStorage.getItem("invoiceNo")) || 0;
+    const newInvoiceNumber = Math.max(storedValue, invoiceNo);
+    dispatch(setInvoiceNumber(newInvoiceNumber));
+  };
+
+  // Update qty
+  const handleUpdate = (productName: string, change: number) => {
+    dispatch(
+      updateChart({
+        productName: productName,
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
         quantity: change,
       })
     );
   };
 
+<<<<<<< HEAD
   const handleRemoveItem = (
     product: Products
   ) => {
@@ -583,11 +670,68 @@ const BillTable: FC<BillTableProps> = ({
             ? error.message
             : "Failed to save invoice.",
       });
+=======
+  // Remove item
+  const handleRemoveItem = (productName: string) => {
+    dispatch(removeItemChart({ productName }));
+  };
+
+  // Add special product
+  const handleAddSpecialProduct = () => {
+    if (specialProductName && specialProductPrice && specialProductQty) {
+      const newProduct: Products = {
+        productName: specialProductName,
+        sellPrice: Number(specialProductPrice),
+        quantity: Number(specialProductQty),
+        category: "special",
+        size: "N/A",
+        productCost: 0,
+        stockAlert: 0,
+        productId: Object,
+        schoolName: "special",
+        wholesalePrice: 0,
+        images: [],
+      };
+      dispatch(updateChart(newProduct));
+      setSpecialProductName("");
+      setSpecialProductPrice("");
+      setSpecialProductQty("");
+    }
+  };
+
+  // Save changes
+  const saveChangeInvoice = async () => {
+    if (chartList.length === 0) {
+      handleReset();
+      return;
+    }
+
+    const invoiceDetail = {
+      customer: selectedCustomer,
+      productDetail: chartList,
+      discount,
+      grandTotal,
+      invoiceNo,
+      dueDate: null,
+      anyMessage: "",
+      prevBalance: 0,
+    };
+
+    try {
+      const response = await fetch("/api/invoice/", {
+        method: "POST",
+        body: JSON.stringify(invoiceDetail),
+      });
+      if (response.ok) handleReset();
+    } catch (error) {
+      console.error("Server Error", error);
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     }
   };
 
   return (
     <div className="flex flex-col justify-between h-[75vh] relative">
+<<<<<<< HEAD
       <div className="overflow-auto">
         <Table>
           <TableHeader>
@@ -890,14 +1034,107 @@ const BillTable: FC<BillTableProps> = ({
             </Table>
           </div>
         )}
+=======
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[200px] text-left font-semibold">
+              Product
+            </TableHead>
+            <TableHead className="text-right font-semibold">Price</TableHead>
+            <TableHead className="text-center font-semibold">
+              Quantity
+            </TableHead>
+            <TableHead className="text-center font-semibold">
+              Line Total
+            </TableHead>
+            <TableHead className="text-center font-semibold">Action</TableHead>
+          </TableRow>
+        </TableHeader>
+
+        <TableBody>
+          {chartList.map((product, index) => (
+            <TableRow key={index + product.productName}>
+              <TableCell>{product.productName}</TableCell>
+              <TableCell className="text-right">{product.sellPrice}</TableCell>
+              <TableCell className="text-center">
+                <div className="flex justify-evenly items-center">
+                  <button onClick={() => handleUpdate(product.productName, -1)}>
+                    <MinusSquare />
+                  </button>
+                  <p className="w-6">{product.quantity}</p>
+                  <button onClick={() => handleUpdate(product.productName, 1)}>
+                    <PlusSquare />
+                  </button>
+                </div>
+              </TableCell>
+              <TableCell className="text-right">
+                {product.quantity * product.sellPrice}
+              </TableCell>
+              <TableCell className="text-right">
+                <span
+                  title="remove item"
+                  className="cursor-pointer text-center"
+                  onClick={() => handleRemoveItem(product.productName)}
+                >
+                  <XCircle className="text-red-500" />
+                </span>
+              </TableCell>
+            </TableRow>
+          ))}
+
+          {/* Special Stitching Customer */}
+          {selectedCustomer?.type === "special-sitching" && (
+            <TableRow>
+              <TableCell colSpan={2}>
+                <Input
+                  placeholder="Product Name"
+                  value={specialProductName}
+                  onChange={(e) => setSpecialProductName(e.target.value)}
+                />
+              </TableCell>
+              <TableCell className="text-right">
+                <Input
+                  placeholder="Qty"
+                  type="number"
+                  value={specialProductQty}
+                  onChange={(e) =>
+                    setSpecialProductQty(parseInt(e.target.value, 10))
+                  }
+                />
+              </TableCell>
+              <TableCell className="text-right">
+                <Input
+                  placeholder="Sell Price"
+                  type="number"
+                  value={specialProductPrice}
+                  onChange={(e) =>
+                    setSpecialProductPrice(parseFloat(e.target.value))
+                  }
+                />
+              </TableCell>
+              <TableCell className="text-center">
+                <Button onClick={handleAddSpecialProduct} size={"sm"}>
+                  <BadgePlus />
+                </Button>
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 
       {loading ? (
         <LoadingSpinner />
       ) : (
         chartList.length === 0 && (
           <div className="relative mt-1 text-center text-white capitalize bg-gray-400 text-lg w-full p-2 animate-pulse">
+<<<<<<< HEAD
             {errorMessage ||
               "Empty Product List"}
+=======
+            {errorMessage || "Empty Product List"}
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
           </div>
         )
       )}
@@ -905,6 +1142,7 @@ const BillTable: FC<BillTableProps> = ({
       <div>
         <div
           className={`w-full bg-black p-2 ${
+<<<<<<< HEAD
             editInvoice
               ? "flex justify-between items-center"
               : "text-center"
@@ -933,10 +1171,30 @@ const BillTable: FC<BillTableProps> = ({
             disabled={
               chartList.length <= 0
             }
+=======
+            editInvoice ? "flex justify-between items-center" : "text-center"
+          } text-white`}
+        >
+          <p className="font-semibold">
+            Grand Total : Rs {Number(grandTotal) ? Number(grandTotal) : "0.00"}
+          </p>
+        </div>
+
+        {/* Discount */}
+        <div className="flex justify-end mr-16 mt-2 -mb-2">
+          <Label htmlFor="discount">Discount</Label>
+        </div>
+        <div className="flex justify-end mt-3 relative">
+          <Select
+            value={disInPrecentage.toString()}
+            onValueChange={calculateDiscount}
+            disabled={chartList.length <= 0}
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
           >
             <SelectTrigger className="w-52 rounded-none border-black">
               <SelectValue placeholder="Select a discount" />
             </SelectTrigger>
+<<<<<<< HEAD
 
             <SelectContent>
               <SelectGroup>
@@ -971,11 +1229,26 @@ const BillTable: FC<BillTableProps> = ({
             </SelectContent>
           </Select>
 
+=======
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Discount Value</SelectLabel>
+                <SelectItem value="0">0%</SelectItem>
+                <SelectItem value="5">5%</SelectItem>
+                <SelectItem value="7">7%</SelectItem>
+                <SelectItem value="10">10%</SelectItem>
+                <SelectItem value="15">15%</SelectItem>
+                <SelectItem value="20">20%</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
           <Input
             id="discount"
             placeholder="discount"
             type="number"
             min={0}
+<<<<<<< HEAD
             disabled={
               chartList.length <= 0
             }
@@ -1007,6 +1280,21 @@ const BillTable: FC<BillTableProps> = ({
             variant="destructive"
             onClick={handleReset}
           >
+=======
+            disabled={chartList.length <= 0}
+            value={discount}
+            onChange={(e) =>
+              dispatch(setDiscount(Math.max(0, parseInt(e.target.value, 10))))
+            }
+            className="w-32 rounded-none border-black"
+          />
+          <div className="absolute bg-black text-white p-2 text-center">Rs</div>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex justify-between mt-1 flex-1 gap-2 flex-wrap">
+          <Button size={"default"} variant="destructive" onClick={handleReset}>
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
             {editInvoice ? (
               <>
                 <Delete />
@@ -1019,15 +1307,22 @@ const BillTable: FC<BillTableProps> = ({
               </>
             )}
           </Button>
+<<<<<<< HEAD
 
           {!editInvoice && (
             <Button
               size="default"
+=======
+          {!editInvoice && (
+            <Button
+              size={"default"}
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
               variant="outline"
               onClick={handleEditInvoice}
               className="border-black"
             >
               <FilePenLine className="w-4 h-4 mr-4" />
+<<<<<<< HEAD
               <span className="text-black font-bold">
                 Edit Invoice
               </span>
@@ -1050,10 +1345,29 @@ const BillTable: FC<BillTableProps> = ({
                 ) : (
                   "Save Invoice"
                 )}
+=======
+              <span className=" text-black font-bold">Edit Invoice</span>
+            </Button>
+          )}
+          {editInvoice && (
+            <Button
+              disabled={loading}
+              size={"default"}
+              variant="outline"
+              onClick={saveChangeInvoice}
+              className={`btn border-black ${
+                loading ? "btn-disabled" : "btn-primary"
+              }`}
+            >
+              <FilePenLine className="w-4 h-4 mr-4" />
+              <span className=" text-black font-bold">
+                {loading ? <LoadingSpinner /> : "Save Invoice"}
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
               </span>
             </Button>
           )}
 
+<<<<<<< HEAD
           {mode === "wholesale" &&
             (selectedCustomer?.type?.toLowerCase() ===
             "wholesale" ? (
@@ -1070,6 +1384,18 @@ const BillTable: FC<BillTableProps> = ({
                 selectedCustomer={
                   selectedCustomer
                 }
+=======
+          {/* Pay Now */}
+          {mode === "wholesale" &&
+            (selectedCustomer?.type?.toLocaleLowerCase() === "wholesale" ? (
+              <PayNowChart
+                editInvoice={editInvoice}
+                grandTotal={Number(grandTotal)}
+                discount={discount}
+                productList={chartList}
+                disInPercentage={disInPrecentage}
+                selectedCustomer={selectedCustomer}
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
                 handleReset={handleReset}
               />
             ) : (
@@ -1079,7 +1405,10 @@ const BillTable: FC<BillTableProps> = ({
                 className="px-4 py-2 flex items-center gap-2 animate-bounce bg-yellow-400 cursor-not-allowed"
               >
                 <AlertTriangleIcon className="w-4 h-4 text-white" />
+<<<<<<< HEAD
 
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
                 <p className="text-white text-sm font-medium">
                   Customer is not wholesaler
                 </p>
@@ -1092,17 +1421,23 @@ const BillTable: FC<BillTableProps> = ({
               grandTotal={Number(grandTotal)}
               discount={discount}
               productList={chartList}
+<<<<<<< HEAD
               disInPercentage={
                 disInPrecentage
               }
               selectedCustomer={
                 selectedCustomer
               }
+=======
+              disInPercentage={disInPrecentage}
+              selectedCustomer={selectedCustomer}
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
               handleReset={handleReset}
             />
           )}
         </div>
       </div>
+<<<<<<< HEAD
 
       <Dialog
         open={returnDialogOpen}
@@ -1277,8 +1612,14 @@ const BillTable: FC<BillTableProps> = ({
         highlightFrom={returnsView?.highlightFrom}
         onCancelReturn={returnsView?.canCancel && invoiceId ? cancelSavedReturn : undefined}
       />
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     </div>
   );
 };
 
+<<<<<<< HEAD
 export default BillTable;
+=======
+export default BillTable;
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07

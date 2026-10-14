@@ -2,12 +2,18 @@
 import ExpenseCategory from "@/models/ExpenseCategory";
 import connectDB from "@/utils/connectDB";
 import { NextRequest, NextResponse } from "next/server";
+<<<<<<< HEAD
 import { requireAuth } from "@/lib/auth";
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const auth = await requireAuth(req, { page: "utilize" });
     if (!auth.ok) return auth.response;
+=======
+
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     await connectDB();
     const { name } = await req.json();
 
@@ -32,8 +38,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+<<<<<<< HEAD
     const auth = await requireAuth(req, { page: "utilize" });
     if (!auth.ok) return auth.response;
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     await connectDB();
     const deleted = await ExpenseCategory.findByIdAndDelete(params.id);
 

@@ -1,4 +1,5 @@
 "use client";
+<<<<<<< HEAD
 
 import ProductSelect from "@/app/purchase/ProductSelect";
 import BreadCrum from "@/components/custom-components/bread-crum";
@@ -21,6 +22,18 @@ const BulkGenerateCode = () => {
   // Exact physical size of 1 sticker label
   const STICKER_WIDTH = "2in";   // Change to match your roll (e.g. "50mm" or "2in")
   const STICKER_HEIGHT = "1.2in"; // Change to match your roll (e.g. "30mm" or "1.2in")
+=======
+import ProductSelect from '@/app/purchase/ProductSelect';
+import BreadCrum from '@/components/custom-components/bread-crum';
+import { ProductFormState } from '@/types/product';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import Barcode from 'react-barcode';
+
+const GenerateCode = () => {
+  const [products, setProducts] = useState<ProductFormState[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<ProductFormState | null>(null);
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 
   const fetchProducts = async () => {
     try {
@@ -42,6 +55,7 @@ const BulkGenerateCode = () => {
 
   const handleSelectProduct = (selectedOption: any) => {
     const normalizeString = (str: string) => str.trim().toLowerCase();
+<<<<<<< HEAD
     const product = products.find(
       (p) =>
         p._id === selectedOption.value ||
@@ -274,3 +288,54 @@ const BulkGenerateCode = () => {
 };
 
 export default BulkGenerateCode;
+=======
+
+    const product = products.find(
+      (product) =>
+        product._id === selectedOption.value ||
+        normalizeString(product.productName) === normalizeString(selectedOption.label)
+    );
+
+    if (product) {
+      setSelectedProduct(product);
+    }
+  };
+
+  const handlePrint = () => {
+    // Trigger print for barcode container only
+    const printContent = document.getElementById("barcode-area");
+    const printWindow = window.open("", "", "width=800,height=600");
+    
+    printWindow?.document.write(printContent?.innerHTML || "");
+    printWindow?.document.close();
+    printWindow?.print();
+  };
+
+  return (
+    <div className="container p-6">
+      <BreadCrum mainfolder="Product" subfolder="Generate Code" />
+      <ProductSelect 
+        products={products}
+        handleSelectProduct={handleSelectProduct}
+      />
+
+      {/* Display barcode only if a product is selected */}
+      {selectedProduct && (
+        <div id="barcode-area" className="mt-6">
+          <h3 className="text-xl font-semibold">Product Barcode</h3>
+          <Barcode value={selectedProduct.productName} /> {/* Generate barcode using the product name */}
+        </div>
+      )}
+
+      <button
+        className="mt-4 p-2 bg-blue-500 text-white rounded"
+        onClick={handlePrint}
+      >
+        Print Barcode
+      </button>
+    </div>
+  );
+};
+
+export default GenerateCode;
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07

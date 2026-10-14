@@ -5,10 +5,15 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+<<<<<<< HEAD
     "postbuild": "node scripts/copy-standalone-assets.cjs",
     "start": "node .next/standalone/server.js",
     "lint": "next lint",
     "test": "jest --runInBand"
+=======
+    "start": "next start -p 3000",
+    "lint": "next lint"
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   },
   "dependencies": {
     "@faker-js/faker": "^8.3.1",
@@ -30,7 +35,13 @@
     "@reduxjs/toolkit": "^2.1.0",
     "@tanstack/react-query": "^5.17.19",
     "@tanstack/react-table": "^8.11.7",
+<<<<<<< HEAD
     "axios": "^1.7.2",
+=======
+    "add": "^2.0.6",
+    "axios": "^1.7.2",
+    "badge": "^0.0.0",
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
@@ -39,6 +50,10 @@
     "escpos": "^3.0.0-alpha.6",
     "escpos-network": "^3.0.0-alpha.5",
     "escpos-usb": "^3.0.0-alpha.4",
+<<<<<<< HEAD
+=======
+    "html2pdf.js": "^0.10.2",
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     "jose": "^6.1.0",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^2.5.1",
@@ -47,6 +62,10 @@
     "mongoose": "^8.1.1",
     "next": "^14.2.11",
     "nextjs-toploader": "^1.6.4",
+<<<<<<< HEAD
+=======
+    "pdfkit": "^0.14.0",
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     "qz-tray": "^2.2.4",
     "react": "^18",
     "react-barcode": "^1.5.3",
@@ -65,6 +84,11 @@
     "sharp": "^0.33.5",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
+<<<<<<< HEAD
+=======
+    "toast": "^0.5.4",
+    "tooltip": "^1.6.1",
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     "util": "^0.12.5",
     "uuid": "^9.0.1",
     "xlsx": "^0.18.5",
@@ -75,6 +99,10 @@
     "@types/escpos": "^2.5.5",
     "@types/jest": "^29.5.13",
     "@types/node": "^20.11.6",
+<<<<<<< HEAD
+=======
+    "@types/pdfkit": "^0.13.3",
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     "@types/qz-tray": "^2.2.1",
     "@types/react": "^18",
     "@types/react-dom": "^18",

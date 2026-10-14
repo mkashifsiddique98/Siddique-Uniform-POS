@@ -24,10 +24,14 @@ const ReceiptTemplateForm = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isFirstTime, setIsFirstTime] = useState(false);
+<<<<<<< HEAD
   const [loading, setLoading] = useState(true);
   
   // 🟢 Toggle state for Wholesale vs Retail receipt preview
   const [isWholesale, setIsWholesale] = useState(false);
+=======
+  const [loading, setLoading] = useState(true); // ⬅ Loading state
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,7 +52,11 @@ const ReceiptTemplateForm = () => {
           variant: "destructive",
         });
       } finally {
+<<<<<<< HEAD
         setLoading(false);
+=======
+        setLoading(false); // ⬅ Stop loading
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
       }
     };
 
@@ -202,6 +210,7 @@ const ReceiptTemplateForm = () => {
         )}
 
         {/* Right side receipt preview */}
+<<<<<<< HEAD
         <div className="border min-w-[300px] p-2 flex flex-col items-center gap-3">
           {/* 🟢 Toggle Buttons for Retail vs Wholesale */}
           <div className="flex items-center gap-2 bg-muted p-1 rounded-md w-full justify-center">
@@ -225,6 +234,9 @@ const ReceiptTemplateForm = () => {
             </Button>
           </div>
           <div className="w-full flex overflow-x-auto justify-center">
+=======
+        <div className="border min-w-[300px] p-2">
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
           {loading ? (
             <Skeleton className="h-[500px] w-[280px]" />
           ) : (
@@ -248,16 +260,25 @@ const ReceiptTemplateForm = () => {
                 customerName: "wakeincustomer",
                 type: "wakeincustomer",
               }}
+<<<<<<< HEAD
               mode={isWholesale ? "wholesale" : "retail"}
               /* 🟢 Passing the isWholesale prop */
               isWholesale={isWholesale}
             />
           )}
           </div>
+=======
+            />
+          )}
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
         </div>
       </div>
     </div>
   );
 };
 
+<<<<<<< HEAD
 export default ReceiptTemplateForm;
+=======
+export default ReceiptTemplateForm;
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07

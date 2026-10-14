@@ -3,12 +3,18 @@ import React, { FC, useEffect, useState } from "react";
 import {
   Products,
   addToChart,
+<<<<<<< HEAD
   getCartItemKey,
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   updateChart,
   useAppDispatch,
   useTypedSelector,
 } from "@/lib/store";
+<<<<<<< HEAD
 import { useToast } from "@/components/ui/use-toast";
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 import { ProductFormState } from "@/types/product";
 
 interface ProductCardProps {
@@ -17,7 +23,10 @@ interface ProductCardProps {
 
 const ProductCard: FC<ProductCardProps> = ({ product }) => {
   const dispatch = useAppDispatch();
+<<<<<<< HEAD
   const { toast } = useToast();
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   const chartList = useTypedSelector((state) => state.chart.chartList);
   const mode = useTypedSelector((state) => state.mode); // "retail" | "wholesale"
 
@@ -30,6 +39,7 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
 
   const addOrUpdateToChart = (p: ProductFormState) => {
     const exists = chartList.find(
+<<<<<<< HEAD
       (item: Products) => p._id && getCartItemKey(item) === String(p._id)
     );
     const stock = p.isBundle ? undefined : Math.max(0, Number(p.quantity ?? 0));
@@ -54,15 +64,24 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
           quantity: 1,
         })
       );
+=======
+      (item: { productName: string }) => item.productName === p.productName
+    );
+    if (exists) {
+      dispatch(updateChart({ productName: p.productName, quantity: 1 }));
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
     } else {
       dispatch(
         addToChart({
           productId: p._id,
           productName: p.productName,
           sellPrice: getSellPrice(p),
+<<<<<<< HEAD
           retailPrice: p.sellPrice,
           stock,
           oversellMode: p.oversellMode,
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
           quantity: 1,
           schoolName: p.schoolName,
           category: p.category,
@@ -104,6 +123,7 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
   Array.isArray(product?.images) && product.images.length > 0
     ? product.images[0]
     : "/product/no-image-product.jpg";
+<<<<<<< HEAD
   // Bundles have no stock of their own
   const stockQty = Math.max(0, Number(product.quantity ?? 0));
   const outOfStock = !product.isBundle && stockQty <= 0;
@@ -111,6 +131,8 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
   const addDisabled = outOfStock && product.oversellMode === "block";
   const lowStock =
     !product.isBundle && !outOfStock && Number(product.stockAlert) > 0 && stockQty <= Number(product.stockAlert);
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   const ProductDetails = (
     <>
       <div className="relative">
@@ -122,6 +144,7 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
           src={imageSrc}
         />
         <span className="absolute top-2 left-2 bg-black text-white text-xs px-2 py-0.5 rounded">
+<<<<<<< HEAD
           {product.isBundle ? product.quantity : stockQty} pcs
         </span>
         {(outOfStock || lowStock) && (
@@ -133,6 +156,10 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
             {outOfStock ? "Out of stock" : "Low stock"}
           </span>
         )}
+=======
+          {product.quantity} pcs
+        </span>
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
       </div>
 
       <div className="p-2 text-sm flex flex-col gap-1">
@@ -173,11 +200,16 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
   return (
     <div className="w-32 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer flex flex-col justify-between">
       <div
+<<<<<<< HEAD
         onClick={addDisabled ? undefined : handleMainClick}
         aria-disabled={addDisabled}
         className={`group border hover:border-black rounded-t-md ${
           addDisabled ? "opacity-50 cursor-not-allowed" : ""
         }`}
+=======
+        onClick={handleMainClick}
+        className="group border hover:border-black rounded-t-md"
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
       >
         {ProductDetails}
       </div>

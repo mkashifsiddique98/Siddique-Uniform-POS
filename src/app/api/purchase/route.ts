@@ -4,14 +4,20 @@ import WholeSaler from "@/models/wholesaler";
 import Product from "@/models/Product";
 import { NextResponse } from "next/server";
 import { ProductFormState } from "@/types/product";
+<<<<<<< HEAD
 import { requireAuth } from "@/lib/auth";
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
 
 connectDB();
 
 // Create New WholeSaler
 export async function POST(request: Request) {
+<<<<<<< HEAD
   const auth = await requireAuth(request, { page: "purchase" });
   if (!auth.ok) return auth.response;
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   try {
     const res = await request.json();
     const newPurchase = new Purchase(res);
@@ -37,7 +43,11 @@ export async function POST(request: Request) {
       for (const product of products) {
         const existingProduct = await Product.findById(product._id);
         if (existingProduct) {
+<<<<<<< HEAD
           existingProduct.quantity = Number(existingProduct.quantity || 0) + Number(product.quantity || 0);
+=======
+          existingProduct.quantity += product.quantity;
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
           await existingProduct.save();
         } else {
           return NextResponse.json({ error: `Product with ID ${product._id} not found` }, { status: 404 });
@@ -57,8 +67,11 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
+<<<<<<< HEAD
   const auth = await requireAuth(request);
   if (!auth.ok) return auth.response;
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   try {
     const listPurchase = await Purchase.find();
     return NextResponse.json({response: listPurchase }, { status: 200 });
@@ -69,8 +82,11 @@ export async function GET(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+<<<<<<< HEAD
   const auth = await requireAuth(request, { page: "purchase" });
   if (!auth.ok) return auth.response;
+=======
+>>>>>>> f8a20e95cc4d94a7877f73e654214fd1f0d81e07
   try {
     const { id } = await request.json(); // Assuming the ID is sent in the request body
     
