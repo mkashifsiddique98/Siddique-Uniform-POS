@@ -7,7 +7,7 @@ import { requireAuth } from "@/lib/auth";
 connectDB(); // Connect to MongoDB
 // Create New Bulk Product
 export async function POST(request: Request) {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { page: "product" });
   if (!auth.ok) return auth.response;
     try {
         const products = await request.json();

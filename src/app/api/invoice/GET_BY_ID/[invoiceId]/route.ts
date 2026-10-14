@@ -3,11 +3,15 @@ import connectDB from "@/utils/connectDB";
 import Invoice from "@/models/invoice";
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
+import { requireAuth } from "@/lib/auth";
+import { normalizeInvoiceForRead } from "@/lib/posHelpers";
 connectDB();
 // --- Get Invoice by ID (GET /api/invoice/[id])
 // --- I need to check this one also !
 export async function GET(request: Request, { params }: { params: { invoiceId: string } }) {
     try {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
       const { invoiceId } = params;
        const id = invoiceId
        
@@ -22,7 +26,7 @@ export async function GET(request: Request, { params }: { params: { invoiceId: s
         return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
       }
   
-      return NextResponse.json({ response: invoice }, { status: 200 });
+      return NextResponse.json({ response: normalizeInvoiceForRead(invoice) }, { status: 200 });
     } catch (error) {
       console.error("Error fetching invoice by ID:", error);
       return NextResponse.json({ error: "Server error" }, { status: 500 });

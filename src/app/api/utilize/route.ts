@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 
 export async function POST(req: Request) {
-  const auth = await requireAuth(req);
+  const auth = await requireAuth(req, { page: "utilize" });
   if (!auth.ok) return auth.response;
   await connectDB();
   const data = await req.json();
@@ -22,7 +22,7 @@ export async function GET(req: Request) {
 }
 
 export async function PUT(req: Request) {
-  const auth = await requireAuth(req);
+  const auth = await requireAuth(req, { page: "utilize" });
   if (!auth.ok) return auth.response;
   await connectDB();
   const { data, id } = await req.json();
@@ -30,7 +30,7 @@ export async function PUT(req: Request) {
   return NextResponse.json(updated);
 }
 export async function DELETE(req: Request) {
-  const auth = await requireAuth(req);
+  const auth = await requireAuth(req, { page: "utilize" });
   if (!auth.ok) return auth.response;
   try {
     await connectDB();

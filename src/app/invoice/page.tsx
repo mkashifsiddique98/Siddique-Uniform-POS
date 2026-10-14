@@ -34,6 +34,10 @@ import BreadCrum from "@/components/custom-components/bread-crum";
 import { Invoice } from "@/types/invoice";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { isVoided, resolveReturnStatus, summarizeInvoice } from "@/lib/posHelpers";
+import { useIsAdmin } from "@/lib/useIsAdmin";
+import { useStockSync } from "@/app/pos/useStockSync";
 
 // *************************************** Search ***********************
 interface SearchProps {
@@ -56,19 +60,35 @@ const Search: React.FC<SearchProps> = ({ searchTerm, onSearchChange }) => {
 // *************************************** Table ***********************
 interface TableDemoProps {
   invoices: Invoice[];
-  onDelete: (id: string) => void;
+  onDelete: (id: string, confirmed: boolean) => void;
+  onVoid: (id: string) => void;
+  isAdmin: boolean;
 }
 
-const TableDemo: React.FC<TableDemoProps> = ({ invoices, onDelete }) => {
+// Same numbers as the view page, receipt and the saved total: all come from summarizeInvoice
+const invoiceNumbers = (invoice: Invoice) =>
+  summarizeInvoice({ items: invoice.productDetail || [], discount: invoice.discount || 0 });
+
+const TableDemo: React.FC<TableDemoProps> = ({ invoices, onDelete, onVoid, isAdmin }) => {
   const router = useRouter();
 
   const handleViewClick = (id: string) => {
     router.push(`/invoice/view/${id}`);
   };
 
-  const confirmDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this invoice?")) {
-      onDelete(id);
+  const confirmDelete = (invoice: Invoice) => {
+    const hasLines = (invoice.productDetail || []).length > 0;
+    const message = hasLines
+      ? `Invoice #${invoice.invoiceNo} has items. Deleting it puts sold items back in stock and takes returned items out again. The invoice number stays reserved. Delete it?`
+      : "Are you sure you want to delete this empty invoice?";
+    if (window.confirm(message)) {
+      onDelete(invoice._id as string, hasLines);
+    }
+  };
+
+  const confirmVoid = (invoice: Invoice) => {
+    if (window.confirm(`Void invoice #${invoice.invoiceNo}? Its stock is restored and it stays on record as void.`)) {
+      onVoid(invoice._id as string);
     }
   };
 
@@ -85,25 +105,54 @@ const TableDemo: React.FC<TableDemoProps> = ({ invoices, onDelete }) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {invoices.map((invoice) => (
-          <TableRow key={invoice._id}>
-            <TableCell className="font-medium">{invoice.invoiceNo}</TableCell>
-            <TableCell>{invoice.customer?.customerName || "Unknown"}</TableCell>
-            <TableCell>{invoice.customer?.type || "Unknown"}</TableCell>
-            <TableCell className="whitespace-nowrap">
-              {format(new Date(invoice.invoiceDate), "dd MMM yyyy, hh:mm a")}
-            </TableCell>
-            <TableCell>Rs {invoice.grandTotal.toFixed(2)}</TableCell>
-            <TableCell className="text-center">
-              <Button variant="outline" onClick={() => handleViewClick(invoice._id)}>
-                View
-              </Button>
-              <Button className="ml-2" onClick={() => confirmDelete(invoice._id)}>
-                Delete
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
+        {invoices.map((invoice) => {
+          const numbers = invoiceNumbers(invoice);
+          const returnStatus = resolveReturnStatus(invoice);
+          const voided = isVoided(invoice);
+          const hasLines = (invoice.productDetail || []).length > 0;
+          const canDelete = !hasLines || isAdmin;
+          return (
+            <TableRow key={invoice._id}>
+              <TableCell className="font-medium">{invoice.invoiceNo}</TableCell>
+              <TableCell>{invoice.customer?.customerName || "Unknown"}</TableCell>
+              <TableCell>{invoice.customer?.type || "Unknown"}</TableCell>
+              <TableCell className="whitespace-nowrap">
+                {format(new Date(invoice.invoiceDate), "dd MMM yyyy, hh:mm a")}
+              </TableCell>
+              <TableCell>
+                <span className={voided ? "line-through" : undefined}>Rs {numbers.grandTotal.toFixed(2)}</span>
+                {numbers.refundedAmount > 0 && (
+                  <div className="text-xs text-red-600">Refunded: -Rs {numbers.refundedAmount.toFixed(2)}</div>
+                )}
+                {voided && <Badge variant="destructive" className="ml-2">Void</Badge>}
+                {!voided && returnStatus === "fully_returned" && (
+                  <Badge variant="destructive" className="ml-2">Fully returned</Badge>
+                )}
+                {!voided && returnStatus === "partially_returned" && (
+                  <Badge variant="outline" className="ml-2">Partially returned</Badge>
+                )}
+              </TableCell>
+              <TableCell className="text-center">
+                <Button variant="outline" onClick={() => handleViewClick(invoice._id as string)}>
+                  View
+                </Button>
+                <span
+                  className="ml-2 inline-block"
+                  title={canDelete ? undefined : "Only an admin can delete an invoice that has items"}
+                >
+                  <Button disabled={!canDelete} onClick={() => confirmDelete(invoice)}>
+                    Delete
+                  </Button>
+                </span>
+                {isAdmin && !voided && hasLines && (
+                  <Button variant="outline" className="ml-2" onClick={() => confirmVoid(invoice)}>
+                    Void
+                  </Button>
+                )}
+              </TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );
@@ -130,8 +179,9 @@ const SaleList: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const isAdmin = useIsAdmin();
+  const { refreshStock } = useStockSync();
   const today = new Date();
-
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -192,32 +242,59 @@ const SaleList: React.FC = () => {
 }, [invoices, form.watch("dob"), searchTerm]);
 
 
-  // Calculate total sale
+  // Calculate total sale: net of returns, void invoices excluded
   const totalDaySale = useMemo(
-    () => filteredInvoices.reduce((total, sale) => total + sale.grandTotal, 0),
+    () =>
+      filteredInvoices.reduce(
+        (total, sale) => (isVoided(sale) ? total : total + invoiceNumbers(sale).grandTotal),
+        0
+      ),
     [filteredInvoices]
   );
 
   // Delete handler
-  const handleDeleteClick = async (id: string) => {
+  const handleDeleteClick = async (id: string, confirmed: boolean) => {
     try {
       const response = await fetch(`/api/invoice`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id, confirm: confirmed }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        toast({ description: "Failed to delete invoice" });
+        toast({ description: data?.error || "Failed to delete invoice" });
         return;
       }
 
       setInvoices((prev) => prev.filter((invoice) => invoice._id !== id));
       toast({ description: data.message });
+      refreshStock();
     } catch (error) {
       console.error("Error deleting invoice:", error);
+    }
+  };
+
+  const handleVoidClick = async (id: string) => {
+    try {
+      const response = await fetch(`/api/invoice/void`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast({ description: data?.error || "Failed to void invoice" });
+        return;
+      }
+
+      setInvoices((prev) => prev.map((invoice) => (invoice._id === id ? { ...invoice, voided: true } : invoice)));
+      toast({ description: data.message });
+      refreshStock();
+    } catch (error) {
+      console.error("Error voiding invoice:", error);
     }
   };
 
@@ -294,7 +371,12 @@ const SaleList: React.FC = () => {
           ))}
         </div>
       ) : filteredInvoices.length > 0 ? (
-        <TableDemo invoices={filteredInvoices} onDelete={handleDeleteClick} />
+        <TableDemo
+          invoices={filteredInvoices}
+          onDelete={handleDeleteClick}
+          onVoid={handleVoidClick}
+          isAdmin={isAdmin}
+        />
       ) : (
         <p className="font-extrabold text-center">
           No invoices found for the selected date or customer name.

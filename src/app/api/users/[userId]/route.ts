@@ -3,6 +3,7 @@ import User from "@/models/user";
 import { hashPassword } from "@/lib/password";
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
+import { updateUserSchema } from "@/validation/user";
 
 connectDB();
 
@@ -36,18 +37,25 @@ export async function PUT(
     const auth = await requireAuth(req, { role: "admin" });
     if (!auth.ok) return auth.response;
     const { userId } = params;
-    const body = await req.json();
-
-    if (body.password) {
-      body.password = await hashPassword(body.password);
-    } else {
-      delete body.password;
+    const parsed = updateUserSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message || "Invalid input" },
+        { status: 400 }
+      );
     }
 
-    const updatedUser = await User.findByIdAndUpdate(userId, body, {
+    const update: Record<string, unknown> = { ...parsed.data };
+    if (parsed.data.password) {
+      update.password = await hashPassword(parsed.data.password);
+    } else {
+      delete update.password;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, update, {
       new: true,
       runValidators: true,
-    });
+    }).select("-password");
 
     if (!updatedUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });

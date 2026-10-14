@@ -3,10 +3,12 @@ import React, { FC, useEffect, useState } from "react";
 import {
   Products,
   addToChart,
+  getCartItemKey,
   updateChart,
   useAppDispatch,
   useTypedSelector,
 } from "@/lib/store";
+import { useToast } from "@/components/ui/use-toast";
 import { ProductFormState } from "@/types/product";
 
 interface ProductCardProps {
@@ -15,6 +17,7 @@ interface ProductCardProps {
 
 const ProductCard: FC<ProductCardProps> = ({ product }) => {
   const dispatch = useAppDispatch();
+  const { toast } = useToast();
   const chartList = useTypedSelector((state) => state.chart.chartList);
   const mode = useTypedSelector((state) => state.mode); // "retail" | "wholesale"
 
@@ -27,16 +30,39 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
 
   const addOrUpdateToChart = (p: ProductFormState) => {
     const exists = chartList.find(
-      (item: { productName: string }) => item.productName === p.productName
+      (item: Products) => p._id && getCartItemKey(item) === String(p._id)
     );
+    const stock = p.isBundle ? undefined : Math.max(0, Number(p.quantity ?? 0));
+    const currentQty = exists?.quantity ?? 0;
+
+    // Only "block" products are capped by stock. In "clamp" mode a sale may go beyond stock;
+    // the server takes what is there and records the rest as sold beyond stock.
+    if (p.oversellMode === "block" && stock !== undefined && currentQty + 1 > stock) {
+      toast({
+        variant: "destructive",
+        title: "Not enough stock",
+        description: `Only ${stock} piece(s) of ${p.productName} available.`,
+      });
+      return;
+    }
+
     if (exists) {
-      dispatch(updateChart({ productName: p.productName, quantity: 1 }));
+      dispatch(
+        updateChart({
+          productId: p._id,
+          productName: p.productName,
+          quantity: 1,
+        })
+      );
     } else {
       dispatch(
         addToChart({
           productId: p._id,
           productName: p.productName,
           sellPrice: getSellPrice(p),
+          retailPrice: p.sellPrice,
+          stock,
+          oversellMode: p.oversellMode,
           quantity: 1,
           schoolName: p.schoolName,
           category: p.category,
@@ -78,6 +104,13 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
   Array.isArray(product?.images) && product.images.length > 0
     ? product.images[0]
     : "/product/no-image-product.jpg";
+  // Bundles have no stock of their own
+  const stockQty = Math.max(0, Number(product.quantity ?? 0));
+  const outOfStock = !product.isBundle && stockQty <= 0;
+  // Only "block" products cannot be added when out of stock
+  const addDisabled = outOfStock && product.oversellMode === "block";
+  const lowStock =
+    !product.isBundle && !outOfStock && Number(product.stockAlert) > 0 && stockQty <= Number(product.stockAlert);
   const ProductDetails = (
     <>
       <div className="relative">
@@ -89,8 +122,17 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
           src={imageSrc}
         />
         <span className="absolute top-2 left-2 bg-black text-white text-xs px-2 py-0.5 rounded">
-          {product.quantity} pcs
+          {product.isBundle ? product.quantity : stockQty} pcs
         </span>
+        {(outOfStock || lowStock) && (
+          <span
+            className={`absolute top-5 right-2 text-white text-[10px] px-2 py-0.5 rounded ${
+              outOfStock ? "bg-red-600" : "bg-amber-500"
+            }`}
+          >
+            {outOfStock ? "Out of stock" : "Low stock"}
+          </span>
+        )}
       </div>
 
       <div className="p-2 text-sm flex flex-col gap-1">
@@ -131,8 +173,11 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
   return (
     <div className="w-32 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer flex flex-col justify-between">
       <div
-        onClick={handleMainClick}
-        className="group border hover:border-black rounded-t-md"
+        onClick={addDisabled ? undefined : handleMainClick}
+        aria-disabled={addDisabled}
+        className={`group border hover:border-black rounded-t-md ${
+          addDisabled ? "opacity-50 cursor-not-allowed" : ""
+        }`}
       >
         {ProductDetails}
       </div>

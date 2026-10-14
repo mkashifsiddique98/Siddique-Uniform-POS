@@ -9,6 +9,8 @@ export interface ProductFormState {
   wholesalePrice: number;
   productCost: number;
   isBundle?: boolean;
+  // Effective rule for this product: "clamp" (sell beyond stock, stock stops at 0) or "block"
+  oversellMode?: "clamp" | "block";
   components?: string[];
   images: string[];
   quantity?: number;
@@ -19,4 +21,9 @@ export interface ProductFormState {
 export interface FilterElementProps {
   filterBy: keyof ProductFormState | undefined | string;
   filterValue: string;
+}
+
+
+interface ReturnedProduct extends ProductFormState {
+  returnedQuantity: number;
 }

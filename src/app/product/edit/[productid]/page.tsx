@@ -6,9 +6,8 @@ import { serverFetch } from "@/lib/serverFetch";
 
 // Server-side function to fetch product data by ID
 async function getProductById(productId: string) {
-  const response = await serverFetch("/api/product/edit", {
-    method: "POST",
-    body: JSON.stringify(productId),
+  const response = await serverFetch(`/api/product/${productId}`, {
+    method: "GET",
     cache: "no-store",
   });
   if (!response.ok) return null;
@@ -33,14 +32,14 @@ export default async function ProductEdit({
   // Fetch product and school data server-side
   const product = await getProductById(productid);
   const schoolList = await getSchoolList();
-
+    console.log("Fetched product:", product.response);
   return (
     <div className="container p-6">
       <BreadCrum mainfolder="Product" subfolder="Edit Product" />
       {/* Pass fetched data to client component */}
       <ProductFormClient
         productid={productid}
-        product={product}
+        product={product.response}
         schoolList={schoolList}
         sizeListTemplate={sizeListTemplate}
       />

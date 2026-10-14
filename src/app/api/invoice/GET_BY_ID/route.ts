@@ -3,6 +3,7 @@ import Invoice from "@/models/invoice";
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { requireAuth } from "@/lib/auth";
+import { normalizeInvoiceForRead } from "@/lib/posHelpers";
 connectDB();
 // Get Invoice by ID (GET /api/invoice/[id])
 export async function POST(request: Request) {
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
       }
   
-      return NextResponse.json({ response: invoice }, { status: 200 });
+      return NextResponse.json({ response: normalizeInvoiceForRead(invoice) }, { status: 200 });
     } catch (error) {
       console.error("Error fetching invoice by ID:", error);
       return NextResponse.json({ error: "Server error" }, { status: 500 });

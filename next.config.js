@@ -1,6 +1,12 @@
 module.exports = (phase, { defaultConfig }) => {
   return {
     ...defaultConfig,
+    // Self-contained server build: fewer files to copy/install for offline Windows deployment
+    output: "standalone",
+    // Avoid network calls to collect telemetry on an offline machine
+    experimental: {
+      ...defaultConfig.experimental,
+    },
     // Enable proxying requests from /bridge/* to your local backend on port 8080
     async rewrites() {
       return [

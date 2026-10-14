@@ -29,7 +29,9 @@ import {
 } from "@/lib/store";
 import ReceiptTemplate from "./receipt-template";
 import { customer } from "@/types/customer";
-import { handleGenerateNewInvoiceNumber } from "./usePos";
+import { useToast } from "@/components/ui/use-toast";
+import { useStockSync } from "./useStockSync";
+import { stockRefreshGate } from "@/lib/stockRefresh";
 
 interface PayNowChartProps {
   grandTotal: number;
@@ -38,7 +40,7 @@ interface PayNowChartProps {
   disInPercentage: number;
   selectedCustomer?: customer;
   handleReset: () => void;
-  editInvoice: Boolean;
+  editInvoice: boolean;
 }
 
 const PayNowChart: React.FC<PayNowChartProps> = ({
@@ -57,14 +59,23 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
   const [customerNotes, setCustomerNotes] = useState("");
   const [customerdetail, setCustomerDetail] = useState(selectedCustomer);
   // RePrint State
-  const [isRePrint, setRePrint] = useState<Boolean>(false);
+  const [isRePrint, setRePrint] = useState<boolean>(false);
   const dispatch = useAppDispatch();
+  const { toast } = useToast();
+  const { refreshStock } = useStockSync();
   const invoiceNo = useTypedSelector((state) => state.invoice.invoiceNumber);
   const chartList = useTypedSelector((state) => state.chart.chartList);
   const returnChange = Math.max(receiveAmount - grandTotal, 0);
   const [partialMoneyPay, setPartialMoneyPay] = useState<boolean>(false);
   const componentRef = useRef<HTMLDivElement>(null);
-
+  const [isSaving, setIsSaving] = useState(false);
+  const savingRef = useRef(false);
+  // One UUID per save attempt: reused on retry, discarded after success or when the cart changes
+  const attemptKeyRef = useRef<string | null>(null);
+  const lastSavedCartRef = useRef<Products[] | null>(null);
+  useEffect(() => {
+    attemptKeyRef.current = null;
+  }, [chartList]);
   // Model
   const [isOpen, setIsOpen] = useState(false);
   // ==================== Receipt Template ================
@@ -98,15 +109,30 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
       setCustomerDetail(updatedCustomer);
     }
   }, [receiveAmount]);
-  const handleInvoiceGenerate = async () => {
+  const handleInvoiceGenerate = async (): Promise<boolean> => {
+    // A stale print callback must never re-save a cart that was already saved
+    if (lastSavedCartRef.current === chartList || chartList.length === 0) {
+      return false;
+    }
+    if (!attemptKeyRef.current) {
+      attemptKeyRef.current = crypto.randomUUID();
+    }
+    const idempotencyKey = attemptKeyRef.current;
     const remainingBalance = partialMoneyPay ? payingAmount - receiveAmount : 0;
-    // Mark product as Sold
-    const updateCharList = chartList.map((item: any) => ({
-      ...item,
-      sold: true,
-    }));
+    // Returns are saved as "return" lines; the server applies all stock changes in this one call
+    const updateCharList = chartList.map((item: any) => {
+      const isReturn = item.mode === "return";
+      return {
+        ...item,
+        mode: isReturn ? "return" : "sale",
+        return: isReturn,
+        sold: !isReturn,
+      };
+    });
     const invoiceDetail = {
-      invoiceNo,
+      // The server numbers new invoices; the number is only sent when editing
+      ...(editInvoice && { invoiceNo, isEdit: true }),
+      idempotencyKey,
       discount,
       customer: customerdetail ? customerdetail : selectedCustomer,
       productDetail: updateCharList,
@@ -118,97 +144,71 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
     try {
       const response = await fetch("/api/invoice/", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(invoiceDetail),
       });
 
-      if (response.ok) {
-        dispatch(setInvoiceNumber(0));
+      if (!response.ok) {
+        const result = await response.json().catch(() => null);
+        toast({
+          variant: "destructive",
+          title: "Invoice not saved",
+          description: result?.error || "Failed to save invoice.",
+        });
+        // 409: stock changed or a return was rejected, so show the cashier the real numbers
+        if (response.status === 409) refreshStock();
+        return false;
+      }
+
+      const result = await response.json().catch(() => null);
+      lastSavedCartRef.current = chartList;
+      attemptKeyRef.current = null;
+      refreshStock();
+      {
         dispatch(clearChart());
         setDueDate(null);
         setReceiveAmount(0);
         setCustomerNotes("");
         setPayingAmount(0);
 
-        const storedValue = Number(localStorage.getItem("invoiceNo"));
-
-        // Check if storedValue is a valid number, otherwise set it to 0
-        const validStoredValue = isNaN(storedValue) ? 0 : storedValue;
-
-        // Generate new invoice number asynchronously
-        const invoiceNewNumber = await handleGenerateNewInvoiceNumber();
-
-        // Ensure that invoiceNewNumber is a valid number
-        const validInvoiceNewNumber =
-          typeof invoiceNewNumber === "number" && !isNaN(invoiceNewNumber)
-            ? invoiceNewNumber
-            : 0;
-
-        // Decide which number to use (stored or generated)
-        const newInvoiceNumber = Math.max(
-          validStoredValue,
-          validInvoiceNewNumber,
-        );
-
-        // Update localStorage with the new number
-        localStorage.setItem("invoiceNo", String(newInvoiceNumber + 1));
-
-        // Dispatch the new invoice number to the store
-        dispatch(setInvoiceNumber(newInvoiceNumber + 1));
-
-        console.log("New invoice number:", newInvoiceNumber + 1);
+        // The next number comes from the server response, not localStorage or another counter call
+        const nextNo = Number(result?.nextInvoiceNo);
+        dispatch(setInvoiceNumber(nextNo > 0 ? nextNo : Number(result?.invoiceNo || invoiceNo) + 1));
       }
-    } catch (error) {
-      console.error("Error generating invoice:", error);
-    }
-  };
-
-  // Problem : if someone just return and
-  // second time you return it only show run to minus the
-  // **************************************************
-  // *****************      Solution        **********
-  // **************************************************
-  // i m handle problem by
-  // product qty , how can deal in this situtationjust making
-  // every product as a return product
-
-  const handleProductQtyUpdate = async () => {
-    try {
-      console.log("chartList", chartList);
-
-      await fetch("/api/product/edit", {
-        method: "PUT",
-        body: JSON.stringify({ mode: editInvoice?"return":"sale", products: chartList }),
-      });
-      dispatch(clearChart());
       return true;
     } catch (error) {
-      console.error("Error updating product quantity:", error);
+      console.error("Error generating invoice:", error);
+      toast({
+        variant: "destructive",
+        title: "Invoice not saved",
+        description: "Could not reach the server.",
+      });
       return false;
     }
   };
 
+  // Stock is no longer updated from the UI: POST /api/invoice saves the invoice
+  // and applies all stock changes (sales and returns) in one transaction.
   const handleNoReceipt = async () => {
-  try {
-    // 1️⃣ Update Stock First
-    const stockUpdated = await handleProductQtyUpdate();
+    // Ref-based flag: state would not update in time to block a fast double click
+    if (savingRef.current) return;
+    savingRef.current = true;
+    stockRefreshGate.beginSave();
+    setIsSaving(true);
+    try {
+      const saved = await handleInvoiceGenerate();
+      if (!saved) return;
 
-    if (!stockUpdated) {
-      return; // stop if stock failed
+      handleReset();
+      dispatch(clearChart());
+    } catch (error) {
+      console.error("Error in handling no receipt:", error);
+    } finally {
+      savingRef.current = false;
+      stockRefreshGate.endSave();
+      setIsSaving(false);
     }
-
-    // 2️⃣ Generate Invoice
-    await handleInvoiceGenerate();
-
-    // 3️⃣ Reset UI
-    handleReset();
-
-    // 4️⃣ Clear chart at end
-    dispatch(clearChart());
-
-  } catch (error) {
-    console.error("Error in handling no receipt:", error);
-  }
-};
+  };
   // ---------- For Web Printing -------------
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
@@ -371,12 +371,12 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
         <DialogFooter>
           <div className="flex justify-between items-center w-full">
             <DialogClose>
-              <Button onClick={handleNoReceipt} className="capitalize">
+              <Button onClick={handleNoReceipt} disabled={isSaving} className="capitalize">
                 No Receipt
               </Button>
             </DialogClose>
             <DialogClose>
-              <Button onClick={handlePrint}>Print Receipt</Button>
+              <Button onClick={handlePrint} disabled={isSaving}>Print Receipt</Button>
             </DialogClose>
           </div>
         </DialogFooter>

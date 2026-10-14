@@ -19,9 +19,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    const body = await req.json() as { email?: string; password?: string };
-    const email = body.email?.trim() || "";
-    const password = body.password || "";
+    const body = await req.json() as { email?: unknown; password?: unknown };
+    if (typeof body.email !== "string" || typeof body.password !== "string") {
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    }
+    const email = body.email.trim();
+    const password = body.password;
 
     const user = await User.findOne({ email });
     if (!user) {

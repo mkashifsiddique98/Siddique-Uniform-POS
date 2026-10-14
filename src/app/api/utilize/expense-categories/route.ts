@@ -7,7 +7,7 @@ import { requireAuth } from "@/lib/auth";
  connectDB();
 export async function POST(req: NextRequest) {
   try {
-    const auth = await requireAuth(req);
+    const auth = await requireAuth(req, { page: "utilize" });
     if (!auth.ok) return auth.response;
     
     const { name } = await req.json();

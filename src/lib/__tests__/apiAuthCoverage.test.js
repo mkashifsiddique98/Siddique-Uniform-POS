@@ -9,14 +9,43 @@ function routeFiles(directory) {
   });
 }
 
-test('every API route except login has an explicit auth guard', () => {
+const HANDLER_RE = /export\s+(?:async\s+function|const)\s+(GET|POST|PUT|PATCH|DELETE)\b/g;
+
+function apiRoutes() {
   const apiRoot = path.join(process.cwd(), 'src', 'app', 'api');
-  const unguarded = routeFiles(apiRoot)
-    .filter((filePath) => !filePath.endsWith(path.join('users', 'login', 'route.ts')))
-    .filter((filePath) => {
-      const source = fs.readFileSync(filePath, 'utf8');
-      return !source.includes('requireAuth') && !source.includes('getVerifiedUser');
-    });
+  return routeFiles(apiRoot).filter(
+    (filePath) => !filePath.endsWith(path.join('users', 'login', 'route.ts'))
+  );
+}
+
+test('every API route except login has an explicit auth guard', () => {
+  const unguarded = apiRoutes().filter((filePath) => {
+    const source = fs.readFileSync(filePath, 'utf8');
+    return !source.includes('requireAuth');
+  });
 
   expect(unguarded).toEqual([]);
+});
+
+test('every exported handler calls requireAuth', () => {
+  const missing = apiRoutes().filter((filePath) => {
+    const source = fs.readFileSync(filePath, 'utf8');
+    const handlers = (source.match(HANDLER_RE) || []).length;
+    const guards = (source.match(/await\s+requireAuth\(/g) || []).length;
+    return guards < handlers;
+  });
+
+  expect(missing).toEqual([]);
+});
+
+test('no route uses the legacy getVerifiedUser helper', () => {
+  const legacy = apiRoutes().filter((filePath) =>
+    fs.readFileSync(filePath, 'utf8').includes('getVerifiedUser')
+  );
+
+  expect(legacy).toEqual([]);
+});
+
+test('the web update route (git/npm from HTTP) no longer exists', () => {
+  expect(fs.existsSync(path.join(process.cwd(), 'src', 'app', 'api', 'setting', 'route.ts'))).toBe(false);
 });

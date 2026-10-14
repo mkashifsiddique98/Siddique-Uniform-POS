@@ -20,7 +20,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
-    const auth = await requireAuth(request);
+    const auth = await requireAuth(request, { role: "admin" });
     if (!auth.ok) return auth.response;
         const body = await request.json();
         const receiptTemplate = await ReceiptTemplate.create(body);
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
     try {
-    const auth = await requireAuth(request);
+    const auth = await requireAuth(request, { role: "admin" });
     if (!auth.ok) return auth.response;
         const body = await request.json();
           

@@ -1,42 +1,19 @@
 import connectDB from "@/utils/connectDB";
-import Invoice from "@/models/invoice";
-import InvoiceCounter from "@/models/InvoiceCounter";
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
+import { getNextInvoicePreview } from "@/lib/invoiceService";
 
 connectDB();
 
+// Read-only preview of the next invoice number. It never writes: the real number is
+// assigned by the server when the invoice is saved (POST /api/invoice).
 export async function GET(request: Request) {
   try {
     const auth = await requireAuth(request);
     if (!auth.ok) return auth.response;
-    const counter = await InvoiceCounter.findOneAndUpdate(
-      { _id: "invoiceNo" },
-      [
-        { $set: { seq: { $ifNull: ["$seq", 0] } } },
-        { $set: { seq: { $add: ["$seq", 1] } } },
-      ],
-      {
-        upsert: true,
-        new: true,
-        setDefaultsOnInsert: true,
-      }
-    );
 
-    let nextInvoiceNo = counter?.seq ?? 1;
-
-    const lastInvoice = await Invoice.findOne()
-      .sort({ invoiceNo: -1 })
-      .select({ invoiceNo: 1 })
-      .lean() as { invoiceNo?: number } | null;
-    if (lastInvoice && Number(lastInvoice.invoiceNo || 0) >= nextInvoiceNo) {
-      nextInvoiceNo = Number(lastInvoice.invoiceNo || 0) + 1;
-      await InvoiceCounter.findOneAndUpdate(
-        { _id: "invoiceNo" },
-        { $set: { seq: nextInvoiceNo } },
-        { upsert: true, new: true }
-      );
-    }
+    await connectDB();
+    const nextInvoiceNo = await getNextInvoicePreview();
 
     const response = NextResponse.json({ response: nextInvoiceNo }, { status: 200 });
     response.headers.set(

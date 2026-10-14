@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Customer from "./customer";
 import BillTable from "./bill-table";
 import { customer } from "@/types/customer";
@@ -15,6 +15,7 @@ import {
   useAppDispatch,
   useTypedSelector,
 } from "@/lib/store";
+import { canonicalizeLines } from "@/lib/posHelpers";
 
 interface BillBookProps {
   listCustomer: customer[];
@@ -27,7 +28,6 @@ const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
   const invoicestateno = useTypedSelector(
     (state) => state.invoice.invoiceNumber
   );
-
   const [customerDetailList, setCustomerDetailList] =
     useState<customer[]>(listCustomer);
   const [selectedCustomer, setSelectedCustomer] = useState<customer>();
@@ -38,6 +38,8 @@ const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
   >(invoiceNo);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  // Mongo _id of the invoice loaded for editing (needed to cancel its saved returns)
+  const [loadedInvoiceId, setLoadedInvoiceId] = useState<string>();
 
   // Barcode input state
   const [barcodeInput, setBarcodeInput] = useState<string>("");
@@ -69,6 +71,8 @@ const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
           dispatch(
             updateChart({
               ...product,
+              stock: product.isBundle ? undefined : Math.max(0, product.quantity),
+              retailPrice: product.sellPrice,
               quantity: 1,
             })
           );
@@ -134,9 +138,10 @@ const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
       const data = await response.json();
 
       if (data.response) {
-        const { customer, productDetail, invoiceNo, discount } = data.response;
+        const { customer, productDetail, invoiceNo, discount, _id } = data.response;
+        setLoadedInvoiceId(_id ? String(_id) : undefined);
         setCustomerName(customer.customerName);
-        dispatch(addMultipleToChart(productDetail));
+        dispatch(addMultipleToChart(canonicalizeLines(productDetail)));
         dispatch(setInvoiceNumber(invoiceNo));
         dispatch(setDiscount(discount));
       } else {
@@ -162,15 +167,19 @@ const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
     setSelectedCustomer(filteredCustomer);
   }, [customerName, customerDetailList]);
 
+  const editInvoiceRef = useRef(false);
+  editInvoiceRef.current = editInvoice;
+
   useEffect(() => {
-    const storedValue = Number(localStorage.getItem("invoiceNo")) || 0;
-    const newInvoiceNumber = Math.max(storedValue, invoiceNo);
-    dispatch(setInvoiceNumber(newInvoiceNumber));
-    localStorage.setItem("invoiceNo", String(newInvoiceNumber));
+    // Server-provided preview only; never derived from localStorage.
+    // A stock refresh re-sends this prop, so it must not overwrite the number of an invoice being edited.
+    if (editInvoiceRef.current) return;
+    dispatch(setInvoiceNumber(invoiceNo));
   }, [invoiceNo, dispatch]);
 
   const handleEditInvoice = () => {
     setEditInvoice((prev) => !prev);
+    setLoadedInvoiceId(undefined);
     dispatch(clearChart());
     setLoading(false);
     setErrorMessage("");
@@ -195,7 +204,10 @@ const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
     <div className="container m-2">
       <div className="flex items-center gap-2 flex-wrap">
         {!editInvoice ? (
-          <div className="h-10 w-16 border flex justify-center items-center rounded-md font-extrabold">
+          <div
+            title="Next number (preview)"
+            className="h-10 w-16 border flex justify-center items-center rounded-md font-extrabold"
+          >
             {invoicestateno === 0 ? invoiceNo : invoicestateno}
           </div>
         ) : (
@@ -235,6 +247,7 @@ const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
           selectedCustomer={selectedCustomer}
           errorMessage={errorMessage}
           loading={loading}
+          invoiceId={loadedInvoiceId}
         />
       </div>
     </div>

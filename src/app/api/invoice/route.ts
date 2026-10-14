@@ -1,36 +1,36 @@
 import connectDB from "@/utils/connectDB";
 import Invoice from "@/models/invoice";
+import mongoose from "mongoose";
 import { NextResponse } from "next/server";
-import Customer from "@/models/customer";
-import Product from "@/models/Product";
 import { invoicePayloadSchema } from "@/validation/pos";
-import { getVerifiedUser } from "@/lib/auth";
-import { calculateInvoiceTotals } from "@/lib/posHelpers";
+import { requireAuth } from "@/lib/auth";
+import { normalizeInvoiceForRead } from "@/lib/posHelpers";
+import { InvoiceError, deleteInvoiceWithStock, getNextInvoicePreview, saveInvoiceWithStock } from "@/lib/invoiceService";
 
 connectDB();
 
-function normalizeInvoicePayload(payload: any) {
-  const safeDiscount = Number(payload.discount || 0);
-  const productDetail = Array.isArray(payload.productDetail) ? payload.productDetail : [];
-  const totals = calculateInvoiceTotals({ items: productDetail, discount: safeDiscount });
-
-  return {
-    ...payload,
-    productDetail,
-    grandTotal: Number(payload.grandTotal ?? totals.grandTotal),
-    prevBalance: Number(payload.prevBalance || 0),
-    discount: safeDiscount,
-    status: payload.dueDate == null ? "Clear" : "Pending",
-    invoiceDate: payload.invoiceDate ?? new Date().toISOString(),
-  };
+function invoiceErrorResponse(error: any) {
+  if (error instanceof InvoiceError) {
+    return NextResponse.json({ error: error.message }, { status: error.status });
+  }
+  if (error?.code === 11000) {
+    return NextResponse.json({ error: "Invoice number already exists" }, { status: 409 });
+  }
+  if (/Transaction numbers are only allowed/i.test(String(error?.message))) {
+    return NextResponse.json(
+      { error: "MongoDB must run as a replica set to support transactions. See the README." },
+      { status: 500 }
+    );
+  }
+  console.error(error);
+  return NextResponse.json({ error: "Server error" }, { status: 500 });
 }
 
 export async function POST(request: Request) {
   try {
-    const user = await getVerifiedUser(request);
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (!auth.ok) return auth.response;
+    const user = auth.user;
 
     const req = await request.json();
     const parsed = invoicePayloadSchema.safeParse(req);
@@ -38,71 +38,49 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid invoice payload" }, { status: 400 });
     }
 
-    const calculatedTotals = calculateInvoiceTotals({
-      items: parsed.data.productDetail,
-      discount: parsed.data.discount || 0,
-    });
-    const submittedGrandTotal = Number(parsed.data.grandTotal || 0);
-    if (Math.abs(submittedGrandTotal - calculatedTotals.grandTotal) > 0.01) {
-      return NextResponse.json({ error: "Invoice total does not match product lines and discount" }, { status: 400 });
-    }
+    const { invoiceNo, isEdit, idempotencyKey, customer, productDetail, prevBalance, anyMessage, dueDate, discount, grandTotal } =
+      parsed.data;
 
-    const normalized = normalizeInvoicePayload({
-      ...parsed.data,
-      grandTotal: calculatedTotals.grandTotal,
-    });
-    const { invoiceNo, customer, productDetail, prevBalance, anyMessage, grandTotal, dueDate, discount } = normalized;
-
-    const existingInvoice = await Invoice.findOne({ invoiceNo });
-
-    if (existingInvoice) {
-      existingInvoice.customer = customer;
-      existingInvoice.productDetail = productDetail;
-      existingInvoice.prevBalance = Number(prevBalance || 0);
-      existingInvoice.grandTotal = Number(grandTotal || 0);
-      existingInvoice.anyMessage = anyMessage || "";
-      existingInvoice.dueDate = dueDate || null;
-      existingInvoice.status = dueDate == null ? "Clear" : "Pending";
-      existingInvoice.discount = Number(discount || 0);
-      const updatedInvoice = await existingInvoice.save();
-
-      if (customer && customer._id) {
-        await Customer.findByIdAndUpdate(customer._id, { $set: customer }, { new: true });
-      }
-
-      return NextResponse.json({ response: updatedInvoice, message: "Invoice updated" }, { status: 200 });
-    }
-
-    const newInvoice = new Invoice({
+    await connectDB();
+    const { invoice, created, duplicate } = await saveInvoiceWithStock({
       invoiceNo,
+      isEdit,
+      idempotencyKey,
       customer,
       productDetail,
-      prevBalance: Number(prevBalance || 0),
-      grandTotal: Number(grandTotal || 0),
-      anyMessage: anyMessage || "",
-      invoiceDate: normalized.invoiceDate,
-      dueDate: dueDate || null,
-      status: dueDate == null ? "Clear" : "Pending",
-      discount: Number(discount || 0),
-    });
+      prevBalance,
+      anyMessage,
+      dueDate,
+      discount,
+      grandTotal,
+      invoiceDate: new Date().toISOString(),
+    }, String(user.userId || ""));
 
-    const savedInvoice = await newInvoice.save();
-    return NextResponse.json({ response: savedInvoice, message: "Invoice created" }, { status: 201 });
+    // Read-only preview for the UI; a failure here must not fail an already saved invoice
+    const nextInvoiceNo = await getNextInvoicePreview().catch(() => Number(invoice.invoiceNo) + 1);
+
+    return NextResponse.json(
+      {
+        response: normalizeInvoiceForRead(invoice),
+        invoiceNo: invoice.invoiceNo,
+        nextInvoiceNo,
+        duplicate: Boolean(duplicate),
+        message: duplicate ? "Invoice already saved" : created ? "Invoice created" : "Invoice updated",
+      },
+      { status: created ? 201 : 200 }
+    );
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return invoiceErrorResponse(error);
   }
 }
 
 export async function GET(request: Request) {
   try {
-    const user = await getVerifiedUser(request);
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (!auth.ok) return auth.response;
 
     const invoices = await Invoice.find();
-    return Response.json({ response: invoices }, { status: 200 });
+    return Response.json({ response: invoices.map((invoice) => normalizeInvoiceForRead(invoice)) }, { status: 200 });
   } catch (error) {
     console.error(error);
     console.error("Error populating customer:", error);
@@ -112,21 +90,23 @@ export async function GET(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const user = await getVerifiedUser(request);
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const auth = await requireAuth(request);
+    if (!auth.ok) return auth.response;
+    const user = auth.user;
+
+    const { id, confirm } = await request.json();
+    if (!id || !mongoose.isValidObjectId(id)) {
+      return NextResponse.json({ error: "A valid invoice id is required" }, { status: 400 });
     }
 
-    const { id } = await request.json();
-    const deletedInvoice = await Invoice.findByIdAndDelete(id);
-
-    if (!deletedInvoice) {
-      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
-    }
+    await connectDB();
+    await deleteInvoiceWithStock(String(id), String(user.userId || ""), {
+      isAdmin: user.role?.toLowerCase() === "admin",
+      confirmed: confirm === true,
+    });
 
     return NextResponse.json({ message: "Invoice deleted successfully" }, { status: 200 });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return invoiceErrorResponse(error);
   }
 }

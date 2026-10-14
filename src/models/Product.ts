@@ -14,7 +14,9 @@ const productSchema: Schema = new Schema({
   sellPrice: { type: Number, required: true },
   productCost: { type: Number, required: true },
   wholesalePrice: { type: Number, required: true },
-  quantity: { type: Number, default: 0 },
+  quantity: { type: Number, default: 0, min: [0, "Stock cannot be negative"] },
+  // Optional override of the shop-wide oversellMode setting
+  oversellMode: { type: String, enum: ["clamp", "block"] },
   stockAlert: { type: Number, default: 0 },
   // 
   isBundle: { type: Boolean, default: false }, // full suit?

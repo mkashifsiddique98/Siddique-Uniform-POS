@@ -4,13 +4,9 @@
 import { customer } from "@/types/customer";
 import { ProductDetail } from "@/types/invoice";
 import React, { FC } from "react";
-import { Noto_Nastaliq_Urdu } from "next/font/google";
-
-const nastaliq = Noto_Nastaliq_Urdu({
-  subsets: ["arabic"],
-  weight: ["400", "700"],
-  display: "swap",
-});
+import { resolveMode, summarizeInvoice } from "@/lib/posHelpers";
+import ReceiptDateTime from "./ReceiptDateTime";
+import { formatReturnTime } from "@/lib/formatTime";
 
 type SocialMediaType = {
   facebook: string;
@@ -46,57 +42,46 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   selectedCustomer,
   discount,
   disInPercentage,
-  grandTotal,
+  dueDate,
   invoiceNo,
   remainingBalance,
-  isRePrint,
   shopName,
   shopTagline,
   shopAddress,
   shopPhone,
   messageCustomer,
+  logoUrl,
   isWholesale = false,
   mode = "retail",
   bookedBy,
 }) => {
   const renderWholesale = isWholesale || mode === "wholesale";
 
-  // Calculations
-  const returnItems = productList.filter((product) => product.return);
-  const alreadyBoughtItems = productList.filter(
-    (product) => product.sold && !product.return
-  );
-  const newItems = isRePrint
-    ? []
-    : productList.filter((product) => !product.sold && !product.return);
+  // Same helper as save, view page and list, so every screen and the print show the same numbers
+  const isReturnItem = (product: ProductDetail) => resolveMode(product) === "return";
+  const summary = summarizeInvoice({ items: productList, discount });
+  const { saleRows, returnRows } = summary;
+  const displayGrandTotal = summary.grandTotal;
+  const hasReturns = returnRows.length > 0;
+  const returnNotes = hasReturns ? (
+    <div style={{ fontSize: "10px", margin: "4px 0" }}>
+      {returnRows.map((row: any, i: number) => (
+        <div key={`return-note-${i}`}>
+          Returned on {formatReturnTime(row.at)}: {row.quantity} pcs
+        </div>
+      ))}
+    </div>
+  ) : null;
+  const money = (value: number) => value.toLocaleString("en-PK");
 
-  const calcSubtotal = (items: ProductDetail[]) =>
-    items.reduce(
-      (total, product) => total + product.sellPrice * product.quantity,
-      0
-    );
-
-  const newTotalAmount = calcSubtotal(newItems);
-  const returnTotalAmount = calcSubtotal(returnItems);
-  const alreadyBoughtTotalAmount = calcSubtotal(alreadyBoughtItems);
-
-  const computedGrandTotal = isRePrint
-    ? alreadyBoughtTotalAmount - returnTotalAmount - discount
-    : newTotalAmount + alreadyBoughtTotalAmount - returnTotalAmount - discount;
-
-  const displayGrandTotal = isRePrint ? computedGrandTotal : grandTotal;
-  const formattedDate = new Date().toLocaleDateString("en-PK");
-  const formattedTime = new Date().toLocaleTimeString("en-PK", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-
-  // Default values
+  // Default values pulled directly from retail section
   const finalShopName = shopName || "صدیق یونیفارم سنٹر";
   const finalShopTagline = shopTagline || "بہترین معیار، مناسب قیمت";
   const finalShopAddress = shopAddress || "پتہ:سراں مارکیٹ کریانوالہ";
   const finalShopPhone = shopPhone || "03086139401";
+
+  // Shared Urdu Nastaleeq font stack
+  const urduFontFamily = '"Nafees Nastaleeq", "Jameel Noori Nastaleeq", "Noto Nastaliq Urdu", serif';
 
   // =========================================================
   // VIEW MODE 1: WHOLESALE INVOICE (CLEAN PRINT LAYOUT)
@@ -105,6 +90,8 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
     return (
       <>
         <style jsx global>{`
+          @import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
+
           @media print {
             @page {
               size: A5 portrait;
@@ -144,33 +131,14 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
 
             {/* SHOP NAME & DETAILS */}
             <div style={{ textAlign: "center", marginBottom: "12px", borderBottom: "1px solid #000", paddingBottom: "6px" }}>
-              <h1
-                className={nastaliq.className}
-                style={{
-                  margin: "0 0 4px 0",
-                  fontSize: "22px",
-                  fontWeight: "bold",
-                  direction: "rtl",
-                  lineHeight: "1.8",
-                }}
-              >
+              <h1 style={{ margin: "0 0 2px 0", fontSize: "22px", fontWeight: "bold", direction: "rtl", fontFamily: urduFontFamily }}>
                 {finalShopName}
               </h1>
-              <p
-                className={nastaliq.className}
-                style={{
-                  margin: "0 0 4px 0",
-                  fontSize: "12px",
-                  direction: "rtl",
-                  lineHeight: "1.6",
-                }}
-              >
+              <p style={{ margin: "0 0 4px 0", fontSize: "13px", direction: "rtl", fontFamily: urduFontFamily }}>
                 {finalShopTagline}
               </p>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", marginTop: "4px" }}>
-                <span className={nastaliq.className} style={{ direction: "rtl", fontSize: "11px" }}>
-                  {finalShopAddress}
-                </span>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", marginTop: "4px" }}>
+                <span style={{ direction: "rtl", fontFamily: urduFontFamily }}>{finalShopAddress}</span>
                 <span>WHATSAPP / TEL: {finalShopPhone}</span>
               </div>
             </div>
@@ -208,7 +176,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
                   Bill # {invoiceNo}
                 </div>
                 <div style={{ margin: "2px 0", fontSize: "10px" }}>
-                  {formattedDate} {formattedTime}
+                  <ReceiptDateTime />
                 </div>
                 {bookedBy && (
                   <div style={{ margin: "2px 0", fontSize: "10px" }}>
@@ -237,7 +205,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {productList.map((product, idx) => (
+                {saleRows.concat(returnRows as any).map((product: any, idx) => (
                   <tr
                     key={`ws-item-${product.productName}-${idx}`}
                     style={{ borderBottom: "1px solid #eee" }}
@@ -245,24 +213,41 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
                     <td style={{ padding: "4px", textAlign: "center", borderRight: "1px solid #ccc" }}>{idx + 1}</td>
                     <td style={{ padding: "4px", borderRight: "1px solid #ccc" }}>
                       {product.productName}
-                      {product.return && <span style={{ color: "red", marginLeft: "4px" }}>(RETURN)</span>}
+                      {isReturnItem(product) && <span style={{ color: "red", marginLeft: "4px" }}>(RETURN)</span>}
+                      {!isReturnItem(product) && product.returnedQty > 0 && (
+                        <span style={{ marginLeft: "4px", fontSize: "9px" }}>
+                          (Sold {product.soldQty}, Returned {product.returnedQty}, Net {product.netQty})
+                        </span>
+                      )}
                     </td>
-                    <td style={{ padding: "4px", textAlign: "center", borderRight: "1px solid #ccc" }}>{product.quantity}</td>
+                    <td style={{ padding: "4px", textAlign: "center", borderRight: "1px solid #ccc" }}>
+                      {isReturnItem(product) ? `-${product.quantity}` : product.quantity}
+                    </td>
                     <td style={{ padding: "4px", textAlign: "right", borderRight: "1px solid #ccc" }}>
                       {product.sellPrice.toLocaleString("en-PK", { minimumFractionDigits: 2 })}
                     </td>
                     <td style={{ padding: "4px", textAlign: "right" }}>
+                      {isReturnItem(product) ? "-" : ""}
                       {(product.sellPrice * product.quantity).toLocaleString("en-PK", { minimumFractionDigits: 2 })}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            {returnNotes}
 
             {/* TOTALS */}
             <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "12px" }}>
               <table style={{ width: "45%", fontSize: "11px", borderCollapse: "collapse" }}>
                 <tbody>
+                  {hasReturns && (
+                    <tr>
+                      <td style={{ padding: "3px 0" }}>Refunded:</td>
+                      <td style={{ padding: "3px 0", textAlign: "right" }}>
+                        - {summary.refundedAmount.toLocaleString("en-PK", { minimumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  )}
                   {discount > 0 && (
                     <tr>
                       <td style={{ padding: "3px 0" }}>Discount ({disInPercentage}%):</td>
@@ -285,12 +270,21 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
                       </td>
                     </tr>
                   )}
+
+                  {dueDate && (
+                    <tr>
+                      <td style={{ fontWeight: "bold" }}>Due Date:</td>
+                      <td style={{ textAlign: "right" }}>
+                        {new Date(dueDate).toLocaleDateString("en-PK")}
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
 
-          {/* URDU FOOTER NOTE (WHOLESALE) */}
+          {/* URDU FOOTER NOTE */}
           <div
             style={{
               borderTop: "1px solid #000",
@@ -299,13 +293,12 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
             }}
           >
             <p
-              className={nastaliq.className}
               style={{
                 margin: "0 0 4px 0",
-                fontSize: "13px",
+                fontSize: "14px",
                 fontWeight: "bold",
                 direction: "rtl",
-                lineHeight: "1.8",
+                fontFamily: urduFontFamily,
               }}
             >
               {messageCustomer || "نوٹ: خریدا ہوا مال واپس یا تبدیل نہیں ہوگا۔"}
@@ -320,9 +313,10 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   // ==========================================
   // VIEW MODE 2: RETAIL FORM (70mm THERMAL)
   // ==========================================
-  const ThermalProductTable: FC<{ title: string; products: ProductDetail[] }> = ({
+  const ThermalProductTable: FC<{ title: string; products: any[]; negative?: boolean }> = ({
     title,
     products,
+    negative = false,
   }) => {
     if (!products.length) return null;
     return (
@@ -332,7 +326,7 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
             style={{
               margin: "5px 0 2px 0",
               fontWeight: "bold",
-              fontSize: "12px",
+              fontSize: "11px",
               color: "#111",
               textAlign: "center",
               textTransform: "uppercase",
@@ -377,14 +371,23 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
                 </td>
                 <td style={{ padding: "3px 2px", border: "1px solid #000" }}>
                   {product.productName}
+                  {!negative && product.returnedQty > 0 && (
+                    <div style={{ fontSize: "9px" }}>
+                      Sold {product.soldQty} | Returned {product.returnedQty} | Net {product.netQty}
+                    </div>
+                  )}
+                  {negative && product.returnReason && (
+                    <div style={{ fontSize: "9px" }}>{product.returnReason}</div>
+                  )}
                 </td>
                 <td style={{ textAlign: "center", padding: "3px 2px", border: "1px solid #000" }}>
-                  {product.quantity}
+                  {negative ? `-${product.quantity}` : product.quantity}
                 </td>
                 <td style={{ textAlign: "right", padding: "3px 2px", border: "1px solid #000", whiteSpace: "nowrap" }}>
                   {product.sellPrice.toLocaleString("en-PK")}
                 </td>
                 <td style={{ textAlign: "right", padding: "3px 2px", border: "1px solid #000", whiteSpace: "nowrap" }}>
+                  {negative ? "-" : ""}
                   {(product.sellPrice * product.quantity).toLocaleString("en-PK")}
                 </td>
               </tr>
@@ -396,189 +399,153 @@ const ReceiptTemplate: FC<ReceiptTemplateProps> = ({
   };
 
   return (
-    <div
-      style={{
-        width: "70mm",
-        fontFamily: "monospace",
-        padding: "4px",
-        margin: "0 auto",
-        color: "#000",
-        backgroundColor: "#fff",
-        boxSizing: "border-box",
-      }}
-    >
-      <div style={{ textAlign: "center", marginBottom: "8px" }}>
-        <h2
-          className={nastaliq.className}
-          style={{
-            margin: "0 0 4px 0",
-            fontSize: "20px",
-            fontWeight: "bold",
-            borderBottom: "2px solid black",
-            paddingBottom: "4px",
-            lineHeight: "1.8",
-          }}
-        >
-          {finalShopName}
-        </h2>
-        <p
-          className={nastaliq.className}
-          style={{ margin: "2px 0", fontSize: "11px", lineHeight: "1.6" }}
-        >
-          {finalShopTagline}
-        </p>
-      </div>
-
-      <div style={{ fontSize: "10px", textAlign: "center", marginBottom: "10px", lineHeight: "1.3" }}>
-        <p className={nastaliq.className} style={{ margin: "1px 0", fontSize: "11px", lineHeight: "1.6" }}>
-          {finalShopAddress}
-        </p>
-        <p style={{ margin: "1px 0" }}>فون نمبر: {finalShopPhone}</p>
-      </div>
-
-      <div style={{ fontSize: "10px", marginBottom: "8px" }}>
-        <div style={{ border: "1px solid black", padding: "4px" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <tbody>
-              <tr>
-                <td style={{ fontWeight: "bold" }}>Invoice:</td>
-                <td style={{ textAlign: "right", fontWeight: "bold" }}>#{invoiceNo}</td>
-              </tr>
-              <tr>
-                <td style={{ fontWeight: "bold" }}>Date:</td>
-                <td style={{ textAlign: "right" }}>{formattedDate} {formattedTime}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {selectedCustomer && selectedCustomer.type !== "wake-in-customer" && (
-        <div style={{ fontSize: "10px", marginBottom: "6px", borderBottom: "1px dashed black", paddingBottom: "4px" }}>
-          <p style={{ margin: "1px 0" }}>
-            <strong>Customer:</strong> {selectedCustomer.customerName || "N/A"}
-          </p>
-          <p style={{ margin: "1px 0" }}>
-            <strong>Type:</strong> {selectedCustomer.type || "N/A"}
-          </p>
-        </div>
-      )}
-
-      {returnItems.length > 0 && (
-        <>
-          <ThermalProductTable title="Return Items" products={returnItems} />
-          <table style={{ width: "100%", fontSize: "11px", marginBottom: "4px" }}>
-            <tbody>
-              <tr>
-                <td>Return Sub-Total</td>
-                <td style={{ textAlign: "right", fontWeight: "bold" }}>
-                  -Rs {returnTotalAmount.toLocaleString("en-PK")}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </>
-      )}
-
-      {alreadyBoughtItems.length > 0 && (
-        <>
-          <ThermalProductTable
-            title={isRePrint ? "" : "Already Bought Items"}
-            products={alreadyBoughtItems}
-          />
-          <table style={{ width: "100%", fontSize: "11px", marginBottom: "4px" }}>
-            <tbody>
-              <tr>
-                <td>Bought Sub-Total</td>
-                <td style={{ textAlign: "right", fontWeight: "bold" }}>
-                  Rs {alreadyBoughtTotalAmount.toLocaleString("en-PK")}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </>
-      )}
-
-      {newItems.length > 0 && (
-        <>
-          <ThermalProductTable
-            title={returnItems.length > 0 || alreadyBoughtItems.length > 0 ? "New Items" : ""}
-            products={newItems}
-          />
-          <table style={{ width: "100%", fontSize: "11px", marginBottom: "4px" }}>
-            <tbody>
-              <tr>
-                <td>New Sub-Total</td>
-                <td style={{ textAlign: "right", fontWeight: "bold" }}>
-                  Rs {newTotalAmount.toLocaleString("en-PK")}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </>
-      )}
-
-      <table
-        style={{
-          width: "100%",
-          fontSize: "11px",
-          borderTop: "1px dotted black",
-          paddingTop: "4px",
-          marginTop: "6px",
-        }}
-      >
-        <tbody>
-          {discount > 0 && (
-            <tr>
-              <td>Discount ({disInPercentage}%)</td>
-              <td style={{ textAlign: "right" }}>
-                Rs {discount.toLocaleString("en-PK")}
-              </td>
-            </tr>
-          )}
-          <tr style={{ fontWeight: "bold" }}>
-            <td style={{ paddingTop: "2px" }}>Grand Total</td>
-            <td style={{ textAlign: "right", paddingTop: "2px" }}>
-              Rs {displayGrandTotal.toLocaleString("en-PK")}
-            </td>
-          </tr>
-          {remainingBalance !== 0 && (
-            <tr style={{ fontWeight: "bold" }}>
-              <td>Ledger Balance</td>
-              <td style={{ textAlign: "right" }}>
-                Rs {remainingBalance.toLocaleString("en-PK")}
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-
-      {/* URDU FOOTER NOTE (RETAIL) */}
+    <>
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
+      `}</style>
       <div
         style={{
-          borderTop: "1px dashed black",
-          paddingTop: "6px",
-          marginTop: "10px",
-          textAlign: "center",
+          width: "70mm",
+          fontFamily: "monospace",
+          padding: "4px",
+          margin: "0 auto",
+          color: "#000",
+          backgroundColor: "#fff",
+          boxSizing: "border-box",
         }}
       >
-        <p
-          className={nastaliq.className}
+        <div style={{ textAlign: "center", marginBottom: "8px" }}>
+          <h2
+            style={{
+              margin: "0 0 4px 0",
+              fontSize: "20px",
+              fontWeight: "bold",
+              borderBottom: "2px solid black",
+              paddingBottom: "4px",
+              fontFamily: urduFontFamily,
+              direction: "rtl",
+            }}
+          >
+            {finalShopName}
+          </h2>
+          <p style={{ margin: "2px 0", fontSize: "12px", fontFamily: urduFontFamily, direction: "rtl" }}>
+            {finalShopTagline}
+          </p>
+        </div>
+
+        <div style={{ fontSize: "11px", textAlign: "center", marginBottom: "10px", lineHeight: "1.4", fontFamily: urduFontFamily, direction: "rtl" }}>
+          <p style={{ margin: "1px 0" }}>{finalShopAddress}</p>
+          <p style={{ margin: "1px 0" }}>فون نمبر: {finalShopPhone}</p>
+        </div>
+
+        <div style={{ fontSize: "10px", marginBottom: "8px" }}>
+          <div style={{ border: "1px solid black", padding: "4px" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <tbody>
+                <tr>
+                  <td style={{ fontWeight: "bold" }}>Invoice:</td>
+                  <td style={{ textAlign: "right", fontWeight: "bold" }}>#{invoiceNo}</td>
+                </tr>
+                <tr>
+                  <td style={{ fontWeight: "bold" }}>Date:</td>
+                  <td style={{ textAlign: "right" }}><ReceiptDateTime /></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {selectedCustomer && selectedCustomer.type !== "wake-in-customer" && (
+          <div style={{ fontSize: "10px", marginBottom: "6px", borderBottom: "1px dashed black", paddingBottom: "4px" }}>
+            <p style={{ margin: "1px 0" }}>
+              <strong>Customer:</strong> {selectedCustomer.customerName || "N/A"}
+            </p>
+            <p style={{ margin: "1px 0" }}>
+              <strong>Type:</strong> {selectedCustomer.type || "N/A"}
+            </p>
+          </div>
+        )}
+
+        <ThermalProductTable title={hasReturns ? "Sold Items" : ""} products={saleRows} />
+        {hasReturns && (
+          <table style={{ width: "100%", fontSize: "11px", marginBottom: "4px" }}>
+            <tbody>
+              <tr>
+                <td>Sold Sub-Total</td>
+                <td style={{ textAlign: "right", fontWeight: "bold" }}>Rs {money(summary.soldTotal)}</td>
+              </tr>
+            </tbody>
+          </table>
+        )}
+
+        {hasReturns && (
+          <>
+            <ThermalProductTable title="Returned Items" products={returnRows} negative />
+            <table style={{ width: "100%", fontSize: "11px", marginBottom: "4px" }}>
+              <tbody>
+                <tr>
+                  <td>Refunded</td>
+                  <td style={{ textAlign: "right", fontWeight: "bold" }}>
+                    -Rs {money(summary.refundedAmount)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            {returnNotes}
+          </>
+        )}
+
+        <table
           style={{
-            margin: "0 0 4px 0",
-            fontSize: "12px",
-            fontWeight: "bold",
-            direction: "rtl",
-            lineHeight: "1.8",
+            width: "100%",
+            fontSize: "11px",
+            borderTop: "1px dotted black",
+            paddingTop: "4px",
+            marginTop: "6px",
           }}
         >
-          {messageCustomer || "نوٹ: خریدا ہوا مال واپس یا تبدیل نہیں ہوگا۔"}
-        </p>
-        <span style={{ fontSize: "9px", color: "#555" }}>
-          Thank you for your business!
-        </span>
+          <tbody>
+            {discount > 0 && (
+              <tr>
+                <td>Discount ({disInPercentage}%)</td>
+                <td style={{ textAlign: "right" }}>
+                  -Rs {discount.toLocaleString("en-PK")}
+                </td>
+              </tr>
+            )}
+            <tr style={{ fontWeight: "bold" }}>
+              <td style={{ paddingTop: "2px" }}>Net Total</td>
+              <td style={{ textAlign: "right", paddingTop: "2px" }}>
+                Rs {displayGrandTotal.toLocaleString("en-PK")}
+              </td>
+            </tr>
+            {remainingBalance !== 0 && (
+              <tr style={{ fontWeight: "bold" }}>
+                <td>Ledger Balance</td>
+                <td style={{ textAlign: "right" }}>
+                  Rs {remainingBalance.toLocaleString("en-PK")}
+                </td>
+              </tr>
+            )}
+
+            {dueDate && (
+              <tr className="due-date-row" style={{ fontWeight: "bold", borderTop: "1px dotted black", paddingTop: "4px" }}>
+                <td style={{ fontWeight: "bold" }}>Due Date:</td>
+                <td style={{ textAlign: "right" }}>
+                  {new Date(dueDate).toLocaleDateString("en-PK")}
+                </td>
+              </tr>
+            )}
+
+            <tr>
+              <td colSpan={2} style={{ textAlign: "center", paddingTop: "6px", fontSize: "10px", fontFamily: urduFontFamily, direction: "rtl" }}>
+                {messageCustomer || "نوٹ: خریدا ہوا مال واپس یا تبدیل نہیں ہوگا۔"}
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-    </div>
+    </>
   );
 };
 

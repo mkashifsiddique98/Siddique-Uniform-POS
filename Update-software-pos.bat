@@ -3,7 +3,7 @@ echo Stopping all PM2 processes...
 pm2 stop all
 
 echo Fetching latest code from Git...
-cd /d "D:\Dd\MYSHOP\my-shop"  REM Change this to your actual project path
+cd /d "%~dp0"
 git fetch origin main
 git reset --hard origin/main
 

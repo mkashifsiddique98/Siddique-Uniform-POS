@@ -20,6 +20,23 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
+## MongoDB: replica set recommended
+
+Saving, returning and deleting invoices update stock and the invoice atomically. On a replica set this uses a MongoDB transaction. On a standalone `mongod` (which rejects transactions with "Transaction numbers are only allowed on a replica set member") the app automatically falls back to guarded stock updates (`quantity >= qty`) and manually reverses the changes already made if a later step fails. The fallback is not isolated from concurrent edits of the same invoice and cannot recover if the server crashes mid-request, so a replica set is still recommended. A single-node replica set is enough:
+
+1. Start `mongod` with a replica set name (or add `replication:\n  replSetName: rs0` to `mongod.cfg` and restart the MongoDB service):
+   ```bash
+   mongod --replSet rs0 --dbpath <your-data-dir>
+   ```
+2. Initiate it once from `mongosh`:
+   ```js
+   rs.initiate({ _id: "rs0", members: [{ _id: 0, host: "127.0.0.1:27017" }] })
+   ```
+3. Point the app at it in `.env.development` / `.env.production`:
+   ```
+   MONGODB_URI="mongodb://127.0.0.1:27017/mypos?replicaSet=rs0"
+   ```
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

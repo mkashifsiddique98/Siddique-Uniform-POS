@@ -28,7 +28,7 @@ async function deleteImageFromServer(filename: string) {
 
 export async function DELETE(request: Request) {
   try {
-    const auth = await requireAuth(request);
+    const auth = await requireAuth(request, { page: "product" });
     if (!auth.ok) return auth.response;
     const productsToDelete = await request.json();
 

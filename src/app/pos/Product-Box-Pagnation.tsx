@@ -7,6 +7,9 @@ import FilterBtnProduct from "./Filter-btn-product";
 import { Search } from "@/components/custom-components/inputIcon";
 import { cn } from "@/lib/utils";
 import { School } from "@/types/school-name";
+import { findStockConflicts, Products, syncCartStock, useAppDispatch, useTypedSelector } from "@/lib/store";
+import { useToast } from "@/components/ui/use-toast";
+import { useAutoStockRefresh } from "./useStockSync";
 
 interface Props {
   schoolList: School[];
@@ -15,6 +18,36 @@ interface Props {
 }
 
 const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
+  const dispatch = useAppDispatch();
+  const { toast } = useToast();
+  const chartList = useTypedSelector((state) => state.chart.chartList);
+  const chartListRef = useRef(chartList);
+  chartListRef.current = chartList;
+
+  // Multi-cashier freshness: refresh on tab focus and every 30s while visible
+  useAutoStockRefresh();
+
+  // New items arrived (page load or a refresh): re-sync the cart's stock snapshots
+  useEffect(() => {
+    if (!items.length) return;
+    const alreadyFlagged = new Set(
+      chartListRef.current
+        .filter((line: Products) => line.stockShort)
+        .map((line: Products) => `${line.productId}:${line.stock}`)
+    );
+    const conflicts = findStockConflicts(chartListRef.current, items);
+    dispatch(syncCartStock(items));
+    conflicts.forEach(({ line, available }) => {
+      // Warn once per change, not on every refresh
+      if (alreadyFlagged.has(`${line.productId}:${available}`)) return;
+      toast({
+        variant: "destructive",
+        title: "Stock changed",
+        description: `Only ${available} left for ${line.productName}.`,
+      });
+    });
+  }, [items, dispatch, toast]);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [query, setQuery] = useState(""); // Search
   // Feature
@@ -144,7 +177,7 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
       <div className="m-2" style={{ maxHeight: "80vh", overflowY: "auto" }}>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 m-2 ">
           {currentItems.map((item, index) => (
-            <ProductCard key={item.productName + index} product={item} />
+            <ProductCard key={item._id ? String(item._id) : item.productName + index} product={item} />
           ))}
         </div>
       </div>

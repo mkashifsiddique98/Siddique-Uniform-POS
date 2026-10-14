@@ -3,14 +3,18 @@ import path from "path";
 import fs from "fs/promises";
 import { randomUUID } from "crypto";
 import { requireAuth } from "@/lib/auth";
-import { extensionForMimeType, hasValidMagicBytes, MAX_UPLOAD_BYTES } from "@/lib/uploadSecurity";
+import { extensionForMimeType, hasValidMagicBytes, MAX_UPLOAD_BYTES, MAX_UPLOAD_FILES } from "@/lib/uploadSecurity";
 
 export async function POST(req: NextRequest) {
-  const auth = await requireAuth(req);
+  const auth = await requireAuth(req, { page: "product" });
   if (!auth.ok) return auth.response;
 
   const formData = await req.formData();
   const files = formData.getAll("files").filter((value): value is File => value instanceof File);
+
+  if (files.length === 0 || files.length > MAX_UPLOAD_FILES) {
+    return NextResponse.json({ error: `Upload between 1 and ${MAX_UPLOAD_FILES} images` }, { status: 400 });
+  }
 
   const uploadDir = path.join(process.cwd(), "public/uploads");
 

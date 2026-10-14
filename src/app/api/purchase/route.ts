@@ -10,7 +10,7 @@ connectDB();
 
 // Create New WholeSaler
 export async function POST(request: Request) {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { page: "purchase" });
   if (!auth.ok) return auth.response;
   try {
     const res = await request.json();
@@ -69,7 +69,7 @@ export async function GET(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { page: "purchase" });
   if (!auth.ok) return auth.response;
   try {
     const { id } = await request.json(); // Assuming the ID is sent in the request body

@@ -12,7 +12,6 @@ export const metadata: Metadata = {
   title: "POS",
   description: "Point of Sale ",
 };
-export const revalidate = 5
 async function fetchData(endpoint: string) {
   try {
     const res = await serverFetch(endpoint,

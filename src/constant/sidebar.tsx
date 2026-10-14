@@ -78,6 +78,11 @@ export const sidebarItems = [
         icon: <Layers />,
       },
       {
+        title: "Wholesale Customers",
+        href: "/wholesalers",
+        icon: <Layers />,
+      },
+      {
         title: "Product Adjust",
         href: "/purchase/adjustment",
         icon: <Settings2 />,

@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useState } from "react";
+import { formatShopDateTime } from "@/lib/formatTime";
 
 // Date and Time for on Top bar 
 const DateTimeDisplay: React.FC = () => {
@@ -15,8 +16,8 @@ const DateTimeDisplay: React.FC = () => {
   return (
     
       <div className="absolute inset-1/2 flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2 font-extrabold -ml-10">
-        <p className="text-sm font-extrabold whitespace-nowrap">
-          {dateTime?.toLocaleDateString()} {dateTime?.toLocaleTimeString()}
+        <p className="text-sm font-extrabold whitespace-nowrap min-w-[20ch] text-center">
+          {dateTime ? formatShopDateTime(dateTime) : ""}
         </p>
       </div>
   

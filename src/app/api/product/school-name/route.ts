@@ -6,7 +6,7 @@ import { requireAuth } from "@/lib/auth";
 connectDB(); // Connect to MongoDB
 // Create New Product
 export async function POST(request: Request) {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { page: "product" });
   if (!auth.ok) return auth.response;
   try {
     const res = await request.json();
@@ -32,7 +32,7 @@ export async function GET(request: Request) {
 }
 //update product
 export async function PUT(request: Request) {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { page: "product" });
   if (!auth.ok) return auth.response;
   try {
     const updateData = await request.json();
@@ -52,7 +52,7 @@ export async function PUT(request: Request) {
 
 // Delete Product by ID
 export async function DELETE(request: Request) {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { page: "product" });
   if (!auth.ok) return auth.response;
   try {
     const { _id } = await request.json();

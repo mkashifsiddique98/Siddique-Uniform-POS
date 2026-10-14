@@ -2,13 +2,14 @@ import connectDB from "@/utils/connectDB";
 import Product from "@/models/Product";
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
+import { effectiveOversellMode, getGlobalOversellMode } from "@/lib/oversell";
 
 connectDB(); // Connect to MongoDB
 // Create New Product
 
 export async function POST(request: Request) {
   try {
-    const auth = await requireAuth(request);
+    const auth = await requireAuth(request, { page: "product" });
     if (!auth.ok) return auth.response;
     const res = await request.json();
     const newProduct = new Product(res);
@@ -25,8 +26,13 @@ export async function GET(request: Request) {
   const auth = await requireAuth(request);
   if (!auth.ok) return auth.response;
   try {
-    const products = await Product.find();
-    return Response.json({ response: products }, { status: 200 });
+    const [products, globalMode] = await Promise.all([Product.find().lean(), getGlobalOversellMode()]);
+    // Every product carries the rule that applies to it, so the POS needs no separate setting call
+    const response = products.map((product: any) => ({
+      ...product,
+      oversellMode: effectiveOversellMode(product.oversellMode, globalMode),
+    }));
+    return Response.json({ response }, { status: 200 });
   } catch (error) {
     console.error(error);
     return Response.json({ error: "Server error" }, { status: 500 });
@@ -35,7 +41,7 @@ export async function GET(request: Request) {
 //update product
 export async function PUT(request: Request) {
   try {
-    const auth = await requireAuth(request);
+    const auth = await requireAuth(request, { page: "product" });
     if (!auth.ok) return auth.response;
     const updateData = await request.json();
     const {
@@ -53,6 +59,9 @@ export async function PUT(request: Request) {
       images,
     } = updateData;
 
+    if (quantity !== undefined && (!Number.isFinite(Number(quantity)) || Number(quantity) < 0)) {
+      return NextResponse.json({ error: "Stock cannot be negative" }, { status: 400 });
+    }
     // Use findByIdAndUpdate to update the document by _id
     const updatedProduct = await Product.findByIdAndUpdate(
       productid,
@@ -91,7 +100,7 @@ export async function PUT(request: Request) {
 // Delete Product by ID
 export async function DELETE(request: Request) {
   try {
-    const auth = await requireAuth(request);
+    const auth = await requireAuth(request, { page: "product" });
     if (!auth.ok) return auth.response;
     const { _id } = await request.json();
 

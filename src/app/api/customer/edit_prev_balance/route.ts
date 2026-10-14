@@ -5,7 +5,7 @@ import { requireAuth } from "@/lib/auth";
 connectDB();
 export async function PUT(request: Request) {
     try {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { page: "customer" });
   if (!auth.ok) return auth.response;
       
       const updatedData = await request.json();

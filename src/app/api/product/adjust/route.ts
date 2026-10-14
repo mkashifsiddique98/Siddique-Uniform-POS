@@ -6,10 +6,16 @@ import { requireAuth } from "@/lib/auth";
 connectDB();
 
 export async function POST(request: Request) {
-    const auth = await requireAuth(request);
+    const auth = await requireAuth(request, { page: "product" });
     if (!auth.ok) return auth.response;
     try {
         const adjustments = await request.json();
+        const invalid = (Array.isArray(adjustments) ? adjustments : []).find(
+            ({ quantity }: { quantity: number }) => !Number.isFinite(Number(quantity)) || Number(quantity) < 0
+        );
+        if (invalid) {
+            return NextResponse.json({ error: "Stock cannot be negative" }, { status: 400 });
+        }
         const updatedProducts = adjustments.map(async (
             { _id, productCost, quantity }: { _id: object, productCost: number, quantity: number }
         ) => {

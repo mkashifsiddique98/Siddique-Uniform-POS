@@ -1,17 +1,17 @@
-import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 import connectDB from "@/utils/connectDB";
 import Product from "@/models/Product";
+import { requireAuth } from "@/lib/auth";
 
+// Legacy route: moves stock outside the invoice service. Kept admin-only until it is removed in the data-integrity phase.
 export async function PUT(request: Request) {
   await connectDB();
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  const auth = await requireAuth(request, { role: "admin" });
+  if (!auth.ok) return auth.response;
 
   try {
-    const { mode, products } = await request.json();
-    const isReturn = mode === "return";
+    const { products } = await request.json();
 
     if (!Array.isArray(products)) {
       throw new Error("Invalid request format. Expected array.");
@@ -20,54 +20,37 @@ export async function PUT(request: Request) {
     const results = [];
 
     for (const productData of products) {
-      const { productId, quantity } = productData;
+      const { productId, quantity, mode } = productData;
+      const normalizedQuantity = Number(quantity || 0);
+      const actionMode = String(mode || "sale").toLowerCase();
 
-      if (!productId || typeof quantity !== "number") {
+      if (!productId || !Number.isFinite(normalizedQuantity)) {
         throw new Error(`Invalid product data for ${productId}`);
       }
 
-      const product = await Product.findById(productId).session(session);
+      const product = await Product.findById(productId);
+
       if (!product) {
         throw new Error(`Product not found: ${productId}`);
       }
 
-      // -----------------------
-      // RETURN CASE
-      // -----------------------
+      const delta = actionMode === "return" ? Math.abs(normalizedQuantity) : -Math.abs(normalizedQuantity);
 
-      if (isReturn) {
-        const updated = await Product.findByIdAndUpdate(
-          productId,
-          { $inc: { quantity: quantity } },
-          { new: true, session },
-        );
-
-        results.push(updated);
-        continue;
-      }
-
-      // -----------------------
-      // BUNDLE PRODUCT
-      // -----------------------
-      
       if (product.isBundle && Array.isArray(product.components)) {
         for (const componentId of product.components) {
-          const component = await Product.findById(componentId).session(
-            session,
-          );
+          const component = await Product.findById(componentId);
 
           if (!component) {
             throw new Error(`Component not found: ${componentId}`);
           }
 
-          // Atomic stock check
           const updatedComponent = await Product.findOneAndUpdate(
             {
               _id: componentId,
-              quantity: { $gte: quantity }, // prevents negative stock
+              quantity: { $gte: Math.abs(delta) },
             },
-            { $inc: { quantity: -quantity } },
-            { new: true, session },
+            { $inc: { quantity: delta } },
+            { new: true }
           );
 
           if (!updatedComponent) {
@@ -75,42 +58,31 @@ export async function PUT(request: Request) {
           }
         }
 
-        results.push({ bundleProduct: productId });
+        results.push({ bundleProduct: productId, mode: actionMode, quantity: normalizedQuantity });
         continue;
       }
 
-      // -----------------------
-      // NORMAL PRODUCT
-      // -----------------------
       const updatedProduct = await Product.findOneAndUpdate(
         {
           _id: productId,
-          quantity: { $gte: quantity }, // atomic condition
+          quantity: { $gte: actionMode === "return" ? 0 : Math.abs(normalizedQuantity) },
         },
-        { $inc: { quantity: -quantity } },
-        { new: true, session },
+        { $inc: { quantity: delta } },
+        { new: true }
       );
 
       if (!updatedProduct) {
         throw new Error(`Insufficient stock for ${productId}`);
       }
 
-      results.push(updatedProduct);
+      results.push({ productId, mode: actionMode, quantity: normalizedQuantity });
     }
-
-    // If all success → commit
-    await session.commitTransaction();
-    session.endSession();
 
     return NextResponse.json({ success: true, data: results }, { status: 200 });
   } catch (error: any) {
-    // If any error → rollback
-    await session.abortTransaction();
-    session.endSession();
-
     return NextResponse.json(
       { success: false, error: error.message },
-      { status: 400 },
+      { status: 400 }
     );
   }
 }

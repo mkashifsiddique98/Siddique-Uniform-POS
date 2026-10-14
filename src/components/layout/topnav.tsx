@@ -6,7 +6,7 @@ import { Button } from "../ui/button";
 import { AlertNav } from "../custom-components/alert-nav";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import ToggleMode from "../custom-components/mode-switch";
@@ -26,26 +26,6 @@ export function Topnav({
   };
   const pathName = usePathname();
   const route = useRouter();
-
-  const [loading, setLoading] = useState(false);
-
-  const handleUpdate = async () => {
-    setLoading(true);
-
-    try {
-      const response = await fetch("/api/setting", {
-        method: "POST",
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-      }
-    } catch (error: any) {
-      console.log("Error", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="border-b shadow-md z-50 relative">
@@ -78,10 +58,6 @@ export function Topnav({
               >
                 POS
               </Link>
-
-              {/* <Button onClick={handleUpdate} size={"sm"} disabled={loading}>
-                {loading ? "Updating..." : "Update Software"}
-              </Button> */}
             </div>
           )}
           {pathName === "/pos" && <ToggleMode />}

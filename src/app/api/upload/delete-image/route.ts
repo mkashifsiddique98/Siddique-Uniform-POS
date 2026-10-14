@@ -6,7 +6,7 @@ import { safeUploadFilename } from "@/lib/uploadSecurity";
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await requireAuth(req);
+    const auth = await requireAuth(req, { page: "product" });
     if (!auth.ok) return auth.response;
 
     const { filename } = await req.json();

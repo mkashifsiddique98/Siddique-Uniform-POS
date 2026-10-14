@@ -20,7 +20,7 @@ export async function GET(request: Request) {
 
 // Create a new size template
 export async function POST(request: Request) {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { page: "product" });
   if (!auth.ok) return auth.response;
   try {
     const res = await request.json();
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
 // Update a size template
 export async function PUT(request: Request) {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { page: "product" });
   if (!auth.ok) return auth.response;
   try {
     const res = await request.json();
@@ -61,7 +61,7 @@ export async function PUT(request: Request) {
 
 // Delete a size template
 export async function DELETE(request: Request) {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { page: "product" });
   if (!auth.ok) return auth.response;
   try {
     const  _id  = await request.json();
