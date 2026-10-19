@@ -13,7 +13,7 @@ module.exports = {
         },
         watch: false, // Set to true if you want to auto-restart on changes
         autorestart: true, // Ensure app restarts on failure
-        max_memory_restart: "512M", // Restart if memory exceeds 512MB
+        max_memory_restart: "1GB", // Restart if memory exceeds 512MB
         merge_logs: true, // Merge logs for better performance
         log_date_format: "YYYY-MM-DD HH:mm Z", // Better log readability
       },

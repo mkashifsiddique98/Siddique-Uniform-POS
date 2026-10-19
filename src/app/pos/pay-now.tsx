@@ -5,13 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,7 +49,6 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
   selectedCustomer,
   handleReset,
   editInvoice,
-
 }) => {
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [payingAmount, setPayingAmount] = useState<number>(grandTotal);
@@ -76,7 +73,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
   useEffect(() => {
     attemptKeyRef.current = null;
   }, [chartList]);
-  // Model
+  // Dialog open state (controlled)
   const [isOpen, setIsOpen] = useState(false);
   // ==================== Receipt Template ================
   const [formData, setFormData] = useState({
@@ -91,10 +88,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
     },
   });
   const mode = useTypedSelector((state) => state.mode); // "retail" | "wholesale"
-  // --------      ---- --------------------
-  const modelManage = () => {
-    setIsOpen(!isOpen);
-  };
+
   useEffect(() => {
     setPayingAmount(grandTotal);
   }, [grandTotal]);
@@ -109,6 +103,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
       setCustomerDetail(updatedCustomer);
     }
   }, [receiveAmount]);
+
   const handleInvoiceGenerate = async (): Promise<boolean> => {
     // A stale print callback must never re-save a cart that was already saved
     if (lastSavedCartRef.current === chartList || chartList.length === 0) {
@@ -173,7 +168,11 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
 
         // The next number comes from the server response, not localStorage or another counter call
         const nextNo = Number(result?.nextInvoiceNo);
-        dispatch(setInvoiceNumber(nextNo > 0 ? nextNo : Number(result?.invoiceNo || invoiceNo) + 1));
+        dispatch(
+          setInvoiceNumber(
+            nextNo > 0 ? nextNo : Number(result?.invoiceNo || invoiceNo) + 1
+          )
+        );
       }
       return true;
     } catch (error) {
@@ -197,10 +196,11 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
     setIsSaving(true);
     try {
       const saved = await handleInvoiceGenerate();
-      if (!saved) return;
+      if (!saved) return; // keep dialog open so the cashier can retry
 
       handleReset();
       dispatch(clearChart());
+      setIsOpen(false); // close the dialog after a successful save
     } catch (error) {
       console.error("Error in handling no receipt:", error);
     } finally {
@@ -209,6 +209,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
       setIsSaving(false);
     }
   };
+
   // ---------- For Web Printing -------------
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
@@ -225,6 +226,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
   //   // Send to main process to print silently
   //   ipcRenderer.send('print-silent', contentHTML);
   // };
+
   // ---Handle Re-Print Functionality ---
   const rePrintFunctionality = () => {
     setRePrint(true);
@@ -235,8 +237,8 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
       setRePrint(false);
     }
   }, [isRePrint]);
-  // ======================== Template From Backend ==================
 
+  // ======================== Template From Backend ==================
   useEffect(() => {
     // Fetch existing data to populate the form for editing
     const fetchData = async () => {
@@ -253,35 +255,32 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
 
     fetchData();
   }, []);
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      {/*  Dont Render  */}
-      <DialogTrigger asChild>
-        <>
-          {/* For Re-Print Receipt  */}
-          {editInvoice && (
-            <Button
-              title="Please only use to Print Re-Receipt"
-              variant="secondary"
-              className={`btn border-black font-bold disabled:cursor-not-allowed`}
-              disabled={productList.length === 0 || !editInvoice}
-              onClick={rePrintFunctionality}
-            >
-              <Printer className="w-4 h-4 mr-4" />
-              Re-Print Recipt
-            </Button>
-          )}
-          {/* Perform direct */}
-          <Button
-            className="bg-green-500 hover:bg-green-600 disabled:cursor-not-allowed"
-            disabled={grandTotal === 0 || productList.length === 0}
-            onClick={modelManage}
-          >
-            <ShoppingCart className="w-4 h-4 mr-4" aria-hidden="true" />
-            Pay Now
-          </Button>
-        </>
-      </DialogTrigger>
+      {/* For Re-Print Receipt  */}
+      {editInvoice && (
+        <Button
+          title="Please only use to Print Re-Receipt"
+          variant="secondary"
+          className={`btn border-black font-bold disabled:cursor-not-allowed`}
+          disabled={productList.length === 0 || !editInvoice}
+          onClick={rePrintFunctionality}
+        >
+          <Printer className="w-4 h-4 mr-4" />
+          Re-Print Recipt
+        </Button>
+      )}
+
+      {/* Open the dialog directly; no DialogTrigger needed */}
+      <Button
+        className="bg-green-500 hover:bg-green-600 disabled:cursor-not-allowed"
+        disabled={grandTotal === 0 || productList.length === 0}
+        onClick={() => setIsOpen(true)}
+      >
+        <ShoppingCart className="w-4 h-4 mr-4" aria-hidden="true" />
+        Pay Now
+      </Button>
 
       <DialogContent>
         <DialogHeader>
@@ -296,7 +295,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
               type="checkbox"
               id="partial-Money"
               className="cursor-pointer"
-              onChange={(e) => setPartialMoneyPay(!partialMoneyPay)}
+              onChange={() => setPartialMoneyPay(!partialMoneyPay)}
             />
             <Label htmlFor="receive-Money">Receive Money</Label>
             <Input
@@ -370,14 +369,16 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
 
         <DialogFooter>
           <div className="flex justify-between items-center w-full">
-            <DialogClose>
-              <Button onClick={handleNoReceipt} disabled={isSaving} className="capitalize">
-                No Receipt
-              </Button>
-            </DialogClose>
-            <DialogClose>
-              <Button onClick={handlePrint} disabled={isSaving}>Print Receipt</Button>
-            </DialogClose>
+            <Button
+              onClick={handleNoReceipt}
+              disabled={isSaving}
+              className="capitalize"
+            >
+              No Receipt
+            </Button>
+            <Button onClick={handlePrint} disabled={isSaving}>
+              Print Receipt
+            </Button>
           </div>
         </DialogFooter>
       </DialogContent>
@@ -413,8 +414,6 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
             messageCustomer={formData.messageCustomer}
             shopPhone={formData.shopPhone}
             socialMedia={formData.socialMedia}
-           
-
           />
         </div>
       </div>
