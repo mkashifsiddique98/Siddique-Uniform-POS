@@ -13,6 +13,10 @@ export async function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
   const pathname = url.pathname.toLowerCase();
 
+  // ✅ Check API Health endpoint
+  if (pathname === "/api/health") {
+    return NextResponse.next();
+  }
   // ✅ Allow public pages (like login) without token
   if (url.pathname === "/login") {
     return NextResponse.next();

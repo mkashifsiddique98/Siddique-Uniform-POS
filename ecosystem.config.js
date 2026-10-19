@@ -1,7 +1,7 @@
 module.exports = {
     apps: [
       {
-        name: "pos",
+        name: "pos-uniform",
         script: ".next/standalone/server.js", // Standalone server: starts faster, needs no full node_modules
         cwd: __dirname, // Uses the folder this file lives in, no hardcoded path
         instances: 1, // A single local POS terminal doesn't need multi-core clustering

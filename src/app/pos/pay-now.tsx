@@ -329,7 +329,6 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
               onChange={(e) => setCustomerNotes(e.target.value)}
             />
           </div>
-
           <div>
             <Card className="shadow-xl w-full hover:border-black border-2 cursor-pointer">
               <CardContent className="capitalize flex justify-between items-center">

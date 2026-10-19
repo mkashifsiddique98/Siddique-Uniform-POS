@@ -1,3 +1,8 @@
+## for Running System   
+# This Command is to Install the System (POS Startup, POS Watchdog, POS Mongo Backup)
+
+powershell -ExecutionPolicy Bypass -File .\install-pos-system.ps1
+
 # Security hardening notes
 
 ## Web updates

@@ -1,15 +1,14 @@
 "use client";
-import { Bell, BellRing, Expand, Menu, Search } from "lucide-react";
+import { Bell, Expand, Menu } from "lucide-react";
 import { UserNav } from "../dashboard/user-nav";
 import { toggleFullScreen } from "@/utils/screenUtils";
-import { Button } from "../ui/button";
 import { AlertNav } from "../custom-components/alert-nav";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import ToggleMode from "../custom-components/mode-switch";
+import HealthButton from "../custom-components/System-health";
 
 const DateTimeDisplay = dynamic(() => import("./DateTimeDisplay"), {
   ssr: false, // Disable server-side rendering for this component
@@ -36,8 +35,9 @@ export function Topnav({
               <AvatarImage src="/73804159Siddique.png" alt="@Siddique" />
               <AvatarFallback>SU</AvatarFallback>
             </Avatar>
+
           </Link>
-          {pathName !== "/pos" && (
+         {pathName !== "/pos" && (
             <div>
               <div onClick={handleToggleSidebar}>
                 <Menu className="ml-4 cursor-pointer" />
@@ -45,11 +45,17 @@ export function Topnav({
             </div>
           )}
         </div>
-
-        {/* Centered Date and Time */}
-        <DateTimeDisplay />
-
-        <div className="ml-auto flex items-center space-x-4">
+        {/* Health status buttons */}
+       <div>
+        <HealthButton compact />
+        <HealthButton compact hideWhenOk />
+         {/* Centered Date and Time */}
+          {pathName !== "/pos" && (
+            <DateTimeDisplay />
+          )}
+       </div>
+      
+    <div className="ml-auto flex items-center space-x-4">
           {pathName !== "/pos" && (
             <div className="flex items-center gap-2">
               <Link
@@ -68,7 +74,7 @@ export function Topnav({
             <Expand />
           </div>
           <AlertNav />
-
+          
           <UserNav />
         </div>
       </div>
