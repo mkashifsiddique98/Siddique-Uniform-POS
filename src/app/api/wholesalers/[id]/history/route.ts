@@ -3,10 +3,11 @@ import mongoose from "mongoose";
 import connectDB from "@/utils/connectDB";
 import Wholesaler from "@/models/wholesaler";
 import Purchase from "@/models/purchase";
+import WholesalerPayment from "@/models/wholesalerPayment";
 import { requireAuth } from "@/lib/auth";
 import { wholesalerHistoryQuerySchema } from "@/validation/wholesalers";
 import { buildSupplierLedger } from "@/lib/wholesalerLedger";
-import { toSupplierLedgerInput, PurchaseRecord } from "@/lib/wholesalerData";
+import { toSupplierLedgerInput, purchasesOfWholesaler, PurchaseRecord } from "@/lib/wholesalerData";
 
 connectDB();
 
@@ -32,13 +33,20 @@ export async function GET(
     if (!wholesaler) return NextResponse.json({ error: "Wholesaler not found" }, { status: 404 });
 
     const { from, to, type, page, limit } = parsedQuery.data;
-    const purchaseQuery: Record<string, unknown> = { "wholesaler._id": params.id };
+    const purchaseQuery: Record<string, unknown> = purchasesOfWholesaler(params.id);
     if (to) purchaseQuery.createdAt = { $lte: new Date(to) };
-    const purchases = (await Purchase.find(purchaseQuery)
-      .sort({ createdAt: 1, _id: 1 })
-      .lean()) as unknown as PurchaseRecord[];
+    const paymentQuery: Record<string, unknown> = { wholesalerId: params.id };
+    if (to) paymentQuery.date = { $lte: new Date(to) };
+    const [purchases, payments] = await Promise.all([
+      Purchase.find(purchaseQuery).sort({ createdAt: 1, _id: 1 }).lean() as unknown as Promise<PurchaseRecord[]>,
+      WholesalerPayment.find(paymentQuery).sort({ date: 1, _id: 1 }).lean(),
+    ]);
 
-    const fullLedger = buildSupplierLedger(purchases.map(toSupplierLedgerInput), 0);
+    const fullLedger = buildSupplierLedger(
+      purchases.map(toSupplierLedgerInput),
+      0,
+      payments.map((payment) => ({ id: String(payment._id), date: payment.date, amount: payment.amount, note: payment.note }))
+    );
     const filteredRows = fullLedger.rows.filter((row) => {
       const timestamp = new Date(row.date).getTime();
       const afterFrom = !from || timestamp >= new Date(from).getTime();
@@ -59,7 +67,7 @@ export async function GET(
       totals: fullLedger.totals,
       openingBalance: previousRow?.balance ?? 0,
       pagination: { page, limit, total: filteredRows.length, pages: Math.ceil(filteredRows.length / limit) },
-      dataGaps: ["No separate sale or return records exist for wholesalers", "Payment rows are derived only from purchase isPaid"],
+      dataGaps: ["Ledger is built from purchases and payments to this supplier only"],
     });
   } catch (error) {
     console.error("Wholesaler history error:", error);

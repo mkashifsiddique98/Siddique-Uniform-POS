@@ -3,12 +3,14 @@ import mongoose from "mongoose";
 import connectDB from "@/utils/connectDB";
 import Wholesaler from "@/models/wholesaler";
 import Purchase from "@/models/purchase";
+import WholesalerPayment from "@/models/wholesalerPayment";
 import { requireAuth } from "@/lib/auth";
-import { buildSupplierLedger } from "@/lib/wholesalerLedger";
-import { toSupplierLedgerInput, PurchaseRecord } from "@/lib/wholesalerData";
+import { buildSupplierLedger, purchaseTotal } from "@/lib/wholesalerLedger";
+import { toSupplierLedgerInput, purchasesOfWholesaler, PurchaseRecord } from "@/lib/wholesalerData";
 
 connectDB();
 
+// Supplier (Wholesaler) detail: contact, purchases, payments we made, totals. No invoice/sale data.
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
@@ -23,64 +25,58 @@ export async function GET(
     const wholesaler = await Wholesaler.findById(params.id).lean();
     if (!wholesaler) return NextResponse.json({ error: "Wholesaler not found" }, { status: 404 });
 
-    const purchases = (await Purchase.find({ "wholesaler._id": params.id })
-      .sort({ createdAt: 1, _id: 1 })
-      .lean()) as unknown as PurchaseRecord[];
-    const ledger = buildSupplierLedger(purchases.map(toSupplierLedgerInput), 0);
-    const orderCount = purchases.length;
-    const firstPurchaseDate = purchases[0]?.createdAt || null;
-    const lastPurchaseDate = purchases.at(-1)?.createdAt || null;
-
-    const topProducts = await Purchase.aggregate([
-      { $match: { "wholesaler._id": new mongoose.Types.ObjectId(params.id) } },
-      { $unwind: { path: "$products", preserveNullAndEmptyArrays: true } },
-      {
-        $group: {
-          _id: {
-            productId: "$products._id",
-            productName: "$products.productName",
-          },
-          quantity: { $sum: { $ifNull: ["$products.quantity", 0] } },
-          value: {
-            $sum: {
-              $multiply: [
-                { $ifNull: ["$products.productCost", 0] },
-                { $ifNull: ["$products.quantity", 0] },
-              ],
-            },
-          },
-        },
-      },
-      { $sort: { value: -1 } },
-      { $limit: 10 },
+    const [purchases, payments] = await Promise.all([
+      Purchase.find(purchasesOfWholesaler(params.id)).sort({ createdAt: -1, _id: -1 }).lean() as unknown as Promise<PurchaseRecord[]>,
+      WholesalerPayment.find({ wholesalerId: params.id }).sort({ date: -1, _id: -1 }).lean(),
     ]);
+
+    const ledger = buildSupplierLedger(
+      [...purchases].reverse().map(toSupplierLedgerInput),
+      0,
+      payments.map((payment) => ({ id: String(payment._id), date: payment.date, amount: payment.amount, note: payment.note }))
+    );
+
+    const purchaseRows = purchases.map((purchase) => {
+      const input = toSupplierLedgerInput(purchase);
+      const total = purchaseTotal(input);
+      return {
+        id: input.id,
+        date: input.date,
+        isPaid: input.isPaid,
+        paidAtPurchase: input.isPaid ? total : Math.min(total, input.paidAmount),
+        total,
+        products: input.products.map((product) => ({
+          productName: product.productName || "Archived product",
+          quantity: Number(product.quantity || 0),
+          cost: Number(product.productCost || 0),
+          lineTotal: Math.round(Number(product.productCost || 0) * Number(product.quantity || 0) * 100) / 100,
+        })),
+      };
+    });
 
     return NextResponse.json({
       profile: {
         id: String(wholesaler._id),
         name: wholesaler.name,
-        contact: wholesaler.phone,
-        shop: wholesaler.location,
+        phone: wholesaler.phone,
+        location: wholesaler.location,
         paymentStatus: wholesaler.paymentStatus,
-        outstandingBalance: Number(wholesaler.pendingBalance || ledger.totals.outstanding),
+        pendingBalance: Number(wholesaler.pendingBalance || 0),
       },
-      kpis: {
-        lifetimeNetSales: 0,
-        lifetimeNetPurchases: ledger.totals.purchased,
-        orderCount,
-        averageOrderValue: orderCount ? ledger.totals.purchased / orderCount : 0,
-        returnRate: 0,
-        outstandingBalance: Number(wholesaler.pendingBalance || ledger.totals.outstanding),
-        firstPurchaseDate,
-        lastPurchaseDate,
+      totals: {
+        purchased: ledger.totals.purchased,
+        paid: ledger.totals.paid,
+        paymentsMade: Math.round(payments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0) * 100) / 100,
+        pendingBalance: Number(wholesaler.pendingBalance || 0),
+        purchaseCount: purchases.length,
       },
-      topProducts: topProducts.map((product) => ({
-        productId: product._id?.productId ? String(product._id.productId) : null,
-        productName: product._id?.productName || "Archived product",
-        quantity: Number(product.quantity || 0),
-        value: Number(product.value || 0),
+      purchases: purchaseRows,
+      payments: payments.map((payment) => ({
+        id: String(payment._id),
+        date: payment.date,
+        amount: payment.amount,
+        note: payment.note || "",
       })),
-      dataGaps: ["Sales and returns are not linked to wholesalers", "Payments are represented only by purchase isPaid flags"],
     });
   } catch (error) {
     console.error("Wholesaler detail error:", error);

@@ -17,7 +17,7 @@ import { ChangeEvent, useState, useCallback, useEffect } from "react";
 
 const customerTypes = [
   { value: "special-sitching", label: "Special-Sitching" },
-  { value: "wholesale", label: "Wholesale" },
+  { value: "wholesaler", label: "Wholesale Customer" },
   { value: "walk-in-customer", label: "Walk-in-Customer" },
 ];
 

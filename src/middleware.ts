@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
-import { requireAuth } from "@/lib/auth";
 // add some changes
 interface JWTPayload {
   role?: string;
@@ -51,11 +50,12 @@ export async function middleware(req: NextRequest) {
     }
 
     if (pathname.startsWith("/api/")) {
+        // The token is already verified above; route handlers still call requireAuth for their own checks
+        if (!(payload as { userId?: string }).userId) {
+          return NextResponse.json({ error: "Invalid session" }, { status: 401 });
+        }
 
-        const apiAuth = await requireAuth(req);
-        if (!apiAuth.ok) return apiAuth.response;
-
-        if (apiAuth.user.role?.toLowerCase() === "employee") {
+        if (userRole.toLowerCase() === "employee") {
           const employeeApiAreas = ["customer", "invoice", "product", "upload"];
           const apiArea = pathname.split("/").filter(Boolean)[1] || "";
           if (!employeeApiAreas.includes(apiArea)) {

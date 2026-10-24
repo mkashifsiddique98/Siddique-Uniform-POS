@@ -4,6 +4,7 @@ import connectDB from "@/utils/connectDB";
 import Wholesaler from "@/models/wholesaler";
 import Purchase from "@/models/purchase";
 import { requireAuth } from "@/lib/auth";
+import { purchasesOfWholesaler } from "@/lib/wholesalerData";
 
 connectDB();
 
@@ -22,7 +23,7 @@ export async function GET(
     if (!wholesaler) return NextResponse.json({ error: "Wholesaler not found" }, { status: 404 });
 
     const rows = await Purchase.aggregate([
-      { $match: { "wholesaler._id": new mongoose.Types.ObjectId(params.id) } },
+      { $match: purchasesOfWholesaler(params.id) },
       { $unwind: { path: "$products", preserveNullAndEmptyArrays: false } },
       {
         $group: {

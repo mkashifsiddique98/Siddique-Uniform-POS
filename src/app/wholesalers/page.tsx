@@ -69,15 +69,15 @@ export default function WholesalersPage() {
 
   return (
     <main className="container mx-auto space-y-6 p-4 sm:p-6">
-      <BreadCrum mainfolder="Wholesalers" subfolder="Overview" />
+      <BreadCrum mainfolder="Suppliers (Wholesalers)" subfolder="Overview" />
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Wholesale customers</h1>
-        <p className="text-sm text-muted-foreground">Existing records are supplier purchases. Customer sales and payment ledgers are not linked yet.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Suppliers (Wholesalers)</h1>
+        <p className="text-sm text-muted-foreground">Shops you buy stock from. Purchases and payments to suppliers only. Wholesale customers are under Customers.</p>
       </div>
 
       <section className="grid gap-4 sm:grid-cols-3" aria-label="Wholesaler summary">
         {[
-          ["Wholesalers", data?.summary.totalWholesalers ?? 0],
+          ["Suppliers", data?.summary.totalWholesalers ?? 0],
           ["Outstanding supplier balance", money(data?.summary.totalOutstanding ?? 0)],
           ["This month purchases", money(data?.summary.monthPurchases ?? 0)],
         ].map(([label, value]) => (
@@ -91,7 +91,7 @@ export default function WholesalersPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:max-w-sm">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input aria-label="Search wholesalers" className="pl-9" placeholder="Search name, phone, or shop" value={search} onChange={(event) => { setPage(1); setSearch(event.target.value); }} />
+          <Input aria-label="Search suppliers" className="pl-9" placeholder="Search name, phone, or shop" value={search} onChange={(event) => { setPage(1); setSearch(event.target.value); }} />
         </div>
         <p className="text-sm text-muted-foreground">{data?.pagination.total ?? 0} records</p>
       </div>
@@ -111,7 +111,7 @@ export default function WholesalersPage() {
           </TableHeader>
           <TableBody>
             {loading && Array.from({ length: 5 }).map((_, index) => <TableRow key={index}><TableCell colSpan={6}><Skeleton className="h-5 w-full" /></TableCell></TableRow>)}
-            {!loading && !error && data?.rows.length === 0 && <TableRow><TableCell colSpan={6} className="h-24 text-center text-muted-foreground">No wholesalers found.</TableCell></TableRow>}
+            {!loading && !error && data?.rows.length === 0 && <TableRow><TableCell colSpan={6} className="h-24 text-center text-muted-foreground">No suppliers found.</TableCell></TableRow>}
             {!loading && data?.rows.map((row) => <TableRow key={row.id} className={row.outstandingBalance > 0 ? "bg-amber-50/60" : undefined}>
               <TableCell><Link className="font-medium underline-offset-4 hover:underline" href={`/wholesalers/${row.id}`}>{row.name}</Link></TableCell>
               <TableCell>{row.contact}</TableCell>

@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 export type SupplierLedgerInput = {
   id: string;
   date: Date | string;
@@ -8,6 +10,7 @@ export type SupplierLedgerInput = {
     productCost?: number;
   }>;
   isPaid: boolean;
+  paidAmount: number;
 };
 
 export type PurchaseRecord = {
@@ -15,6 +18,8 @@ export type PurchaseRecord = {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   isPaid?: boolean;
+  paidAmount?: number;
+  wholesalerId?: unknown;
   wholesaler?: {
     _id?: unknown;
     name?: string;
@@ -37,6 +42,7 @@ export function toSupplierLedgerInput(record: PurchaseRecord): SupplierLedgerInp
     date: record.createdAt || new Date(0),
     reference: String(record._id || "Purchase"),
     isPaid: Boolean(record.isPaid),
+    paidAmount: Number(record.paidAmount || 0),
     products: (record.products || []).map((product) => ({
       productName: product.productName,
       quantity: Number(product.quantity || 0),
@@ -52,24 +58,14 @@ export function purchaseValue(record: PurchaseRecord): number {
   );
 }
 
-export type InvoiceIdentity = {
-  customerName?: string;
-  schoolName?: string;
-  phone?: number;
-};
-
-export function normalizeIdentity(value: string | number | undefined): string {
-  return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-}
-
-export function sameInvoiceCustomer(
-  invoiceCustomer: InvoiceIdentity | undefined,
-  wholesaler: { name: string; phone: string }
-): "phone" | "name" | "none" {
-  if (!invoiceCustomer) return "none";
-  const wholesalerPhone = normalizeIdentity(wholesaler.phone);
-  const invoicePhone = normalizeIdentity(invoiceCustomer.phone);
-  if (wholesalerPhone && invoicePhone && wholesalerPhone === invoicePhone) return "phone";
-  if (normalizeIdentity(invoiceCustomer.customerName) === normalizeIdentity(wholesaler.name)) return "name";
-  return "none";
+// Purchases of one supplier (Wholesaler). Falls back to the embedded copy only for
+// purchases that the migration script has not linked yet.
+export function purchasesOfWholesaler(wholesalerId: string | { toString(): string }) {
+  const id = new mongoose.Types.ObjectId(String(wholesalerId));
+  return {
+    $or: [
+      { wholesalerId: id },
+      { wholesalerId: { $exists: false }, "wholesaler._id": id },
+    ],
+  };
 }

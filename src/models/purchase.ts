@@ -1,9 +1,11 @@
-// models/wholesaler.ts
-import mongoose, { Schema, Document, Model } from 'mongoose';
+// models/purchase.ts - stock bought FROM a supplier (Wholesaler)
+import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 import { IWholesaler } from './wholesaler';
 
 export interface Ipurchase extends Document {
+  wholesalerId: Types.ObjectId;
   wholesaler: IWholesaler;
+  paidAmount: number;
   products: [];
   isPaid: boolean;
   createdAt: Date;
@@ -30,10 +32,12 @@ const wholesalerSchema: Schema<IWholesaler> = new Schema({
     stockAlert: { type: Number, default: 0 },
   });
 const purchaseSchema: Schema<Ipurchase> = new Schema({
+  // Authoritative link used by the ledger; `wholesaler` below is a snapshot copy
+  wholesalerId: { type: Schema.Types.ObjectId, ref: 'Wholesaler', index: true },
   wholesaler: wholesalerSchema,
   products: [productSchema],
   isPaid: { type: Boolean, required: true },
-  
+  paidAmount: { type: Number, default: 0 },
 },{ timestamps: true });
 
 const purchase: Model<Ipurchase> = mongoose.models.purchase || mongoose.model<Ipurchase>('purchase', purchaseSchema);

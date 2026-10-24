@@ -34,14 +34,14 @@ const WholesalerSelect: React.FC<WholesalerSelectProps> = ({ onSelect,wholesaler
         className='py-4 flex-1 mr-2'
         options={options}
         onChange={handleChange}
-        placeholder="Select or search wholesaler..."
+        placeholder="Select or search supplier (wholesaler)..."
         isLoading={!options.length}
         isClearable
         isSearchable
       />
       <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" className='p-6'>Add New WholeSaler</Button>
+        <Button variant="outline" className='p-6'>Add New Supplier (Wholesaler)</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
       <DialogTitle>Create WholeSaler</DialogTitle>

@@ -1,8 +1,9 @@
-const { buildCustomerInvoiceLedger } = require('../wholesalerLedger');
+const { buildCustomerInvoiceLedger, deriveReceivedPayments } = require('../customerLedger');
 
-describe('buildCustomerInvoiceLedger', () => {
+describe('buildCustomerInvoiceLedger (wholesale customer)', () => {
   const sale = {
     id: 'invoice-1',
+    customerType: 'wholesaler',
     date: '2026-02-01T10:00:00.000Z',
     reference: '1001',
     grandTotal: 100,
@@ -46,5 +47,37 @@ describe('buildCustomerInvoiceLedger', () => {
     const result = buildCustomerInvoiceLedger([]);
     expect(result.rows).toEqual([]);
     expect(result.totals).toEqual({ sales: 0, returns: 0, netSales: 0, outstanding: 0, payments: 0 });
+  });
+
+  it('derives received payments only between consecutive invoices', () => {
+    const payments = deriveReceivedPayments([
+      { ...sale, id: 'i1', date: '2026-02-01T10:00:00.000Z', grandTotal: 100, prevBalance: 100 },
+      { ...sale, id: 'i2', date: '2026-02-05T10:00:00.000Z', grandTotal: 50, prevBalance: 90 },
+    ]);
+    expect(payments).toHaveLength(1);
+    expect(payments[0]).toMatchObject({ sourceId: 'i2', amount: 60, estimated: true });
+  });
+
+  it('includes only invoices with the exact wholesale customer type', () => {
+    const result = buildCustomerInvoiceLedger([
+      sale,
+      { ...sale, id: 'retail-invoice', customerType: 'retail' },
+      { ...sale, id: 'legacy-alias', customerType: 'wholesale' },
+    ]);
+
+    expect(result.rows.map((row) => row.sourceId)).toEqual(['invoice-1']);
+  });
+
+  it('does not treat a supplier purchase as wholesale customer activity', () => {
+    const purchase = {
+      id: 'purchase-1',
+      date: '2026-02-01T10:00:00.000Z',
+      reference: 'purchase-1',
+      products: [{ productName: 'Shirt', quantity: 2, productCost: 50 }],
+      isPaid: false,
+      paidAmount: 0,
+    };
+
+    expect(buildCustomerInvoiceLedger([purchase]).rows).toEqual([]);
   });
 });

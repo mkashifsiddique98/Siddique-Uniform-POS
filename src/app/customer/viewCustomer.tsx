@@ -25,6 +25,8 @@ interface Customer {
 }
 
 // CustomerTable Component
+const typeLabel = (type?: string) =>
+  /^wholesale(r)?$/i.test(type || "") ? "Wholesale Customer" : type || "N/A";
 interface CustomerTableProps {
   customers: Customer[];
   setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
@@ -95,7 +97,7 @@ const CustomerTable: FC<CustomerTableProps> = ({
             <TableCell>{index + 1}</TableCell>
             <TableCell>{customer.customerName}</TableCell>
             <TableCell>{customer.schoolName || "N/A"}</TableCell>
-            <TableCell>{customer.type || "N/A"}</TableCell>
+            <TableCell>{typeLabel(customer.type)}</TableCell>
             <TableCell>{customer.phone}</TableCell>
             <TableCell>Rs {customer.prevBalance.toFixed(2)}</TableCell>
             <TableCell className="text-center">

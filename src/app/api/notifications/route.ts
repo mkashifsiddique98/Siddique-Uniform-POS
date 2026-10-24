@@ -9,15 +9,13 @@ export async function GET(request: Request) {
   if (!auth.ok) return auth.response;
   await checkNotifications();
   await connectDB();
-   const notifications = await Notification.find().sort({ createdAt: -1 });
-   
-  
+  const notifications = await Notification.find().sort({ createdAt: -1 }).limit(200).lean();
+
   return NextResponse.json({ message: "Notifications checked",notifications:notifications });
 }
 export async function DELETE(request: Request) {
   const auth = await requireAuth(request);
   if (!auth.ok) return auth.response;
-  await checkNotifications();
   await connectDB();
 
   // Delete all notifications

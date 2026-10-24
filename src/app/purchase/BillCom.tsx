@@ -73,7 +73,7 @@ const Bill: FC<BillProps> = ({
   return (
     <div className="my-4 p-4">
       <div className="border-b pb-1 mb-1 text-gray-800">
-        <h2 className="text-xl font-semibold">Wholesaler Detail</h2>
+        <h2 className="text-xl font-semibold">Supplier (Wholesaler) Detail</h2>
         <div className="my-2">
           <p><strong>Name: </strong> {wholesaler.name}</p>
           <p><strong>Location: </strong> {wholesaler.location}</p>

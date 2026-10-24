@@ -48,7 +48,6 @@ export function Topnav({
         {/* Health status buttons */}
        <div>
         <HealthButton compact />
-        <HealthButton compact hideWhenOk />
          {/* Centered Date and Time */}
           {pathName !== "/pos" && (
             <DateTimeDisplay />

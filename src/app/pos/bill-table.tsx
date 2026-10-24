@@ -1081,7 +1081,7 @@ const BillTable: FC<BillTableProps> = ({
                 <AlertTriangleIcon className="w-4 h-4 text-white" />
 
                 <p className="text-white text-sm font-medium">
-                  Customer is not wholesaler
+                  Customer is not a Wholesale Customer
                 </p>
               </Button>
             ))}

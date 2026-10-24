@@ -57,7 +57,12 @@ export async function GET(request: Request) {
       .lean()) as unknown as WholesalerSummary[];
 
     const ids = wholesalers.map((wholesaler) => new mongoose.Types.ObjectId(String(wholesaler._id)));
-    const purchaseMatch: Record<string, unknown> = { "wholesaler._id": { $in: ids } };
+    const purchaseMatch: Record<string, unknown> = {
+      $or: [
+        { wholesalerId: { $in: ids } },
+        { wholesalerId: { $exists: false }, "wholesaler._id": { $in: ids } },
+      ],
+    };
     if (from || to) {
       const createdAt: Record<string, Date> = {};
       if (from) createdAt.$gte = new Date(from);
@@ -69,7 +74,7 @@ export async function GET(request: Request) {
       { $match: purchaseMatch },
       {
         $project: {
-          wholesalerId: "$wholesaler._id",
+          wholesalerId: { $ifNull: ["$wholesalerId", "$wholesaler._id"] },
           total: {
             $reduce: {
               input: { $ifNull: ["$products", []] },
@@ -113,11 +118,8 @@ export async function GET(request: Request) {
         contact: wholesaler.phone,
         shop: wholesaler.location,
         totalPurchased,
-        totalReturned: 0,
-        netSales: 0,
-        netPurchases: totalPurchased,
         totalPaid,
-        outstandingBalance: Number(wholesaler.pendingBalance || totalPurchased - totalPaid),
+        outstandingBalance: Number(wholesaler.pendingBalance || 0),
         orderCount: Number(aggregate?.orderCount || 0),
         lastPurchaseDate: aggregate?.lastPurchaseDate || null,
         dataMode: "supplier-purchases",
@@ -157,7 +159,7 @@ export async function GET(request: Request) {
         totalOutstanding: Number(balanceSummary[0]?.totalOutstanding || 0),
         monthPurchases: Number(monthSummary[0]?.total || 0),
       },
-      dataGaps: ["No wholesale-customer sale/return relationship exists", "No payment collection exists", "No active flag exists"],
+      dataGaps: [],
     });
   } catch (error) {
     console.error("Wholesaler summary error:", error);

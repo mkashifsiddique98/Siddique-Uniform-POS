@@ -14,7 +14,10 @@ const HANDLER_RE = /export\s+(?:async\s+function|const)\s+(GET|POST|PUT|PATCH|DE
 function apiRoutes() {
   const apiRoot = path.join(process.cwd(), 'src', 'app', 'api');
   return routeFiles(apiRoot).filter(
-    (filePath) => !filePath.endsWith(path.join('users', 'login', 'route.ts'))
+    (filePath) =>
+      !filePath.endsWith(path.join('users', 'login', 'route.ts')) &&
+      // public liveness probe: no auth, no DB (middleware also lets it through)
+      !filePath.endsWith(path.join('health', 'route.ts'))
   );
 }
 

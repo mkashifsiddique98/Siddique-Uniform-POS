@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 
 type Status = "checking" | "ok" | "down";
 
-const CHECK_EVERY_MS = 30_000; // re-check every 30 seconds
 const TIMEOUT_MS = 5_000;      // treat no answer in 5 s as down
 
 export default function HealthButton({
@@ -45,8 +44,6 @@ export default function HealthButton({
 
   useEffect(() => {
     check();
-    const id = setInterval(check, CHECK_EVERY_MS);
-    return () => clearInterval(id);
   }, [check]);
 
   const color =

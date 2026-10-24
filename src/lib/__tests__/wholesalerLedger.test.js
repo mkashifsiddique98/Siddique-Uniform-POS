@@ -24,6 +24,23 @@ describe('buildSupplierLedger', () => {
     expect(result.totals).toEqual({ purchased: 80.6, paid: 50.3, outstanding: 30.3 });
   });
 
+  it('shows a purchase in the ledger as a debit with its products', () => {
+    const result = buildSupplierLedger([records[1]]);
+    expect(result.rows).toHaveLength(1);
+    expect(result.rows[0]).toMatchObject({ type: 'purchase', sourceId: 'a', debit: 30.3, summary: 'Shirt x3' });
+  });
+
+  it('reduces the balance with partial paid amounts and later payments to the supplier', () => {
+    const result = buildSupplierLedger(
+      [{ ...records[1], paidAmount: 10 }],
+      0,
+      [{ id: 'pay1', date: '2026-01-05T10:00:00.000Z', amount: 5.3, note: 'cash' }]
+    );
+    expect(result.rows.map((row) => row.type)).toEqual(['purchase', 'payment', 'payment']);
+    expect(result.rows.at(-1)).toMatchObject({ summary: 'cash', credit: 5.3 });
+    expect(result.totals).toEqual({ purchased: 30.3, paid: 15.3, outstanding: 15 });
+  });
+
   it('preserves an opening balance and running balance', () => {
     const result = buildSupplierLedger(records, 10);
     expect(result.rows[0].balance).toBe(40.3);

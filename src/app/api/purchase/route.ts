@@ -18,10 +18,14 @@ export async function POST(request: Request) {
     const { wholesaler, products, isPaid } = newPurchase;
 
     // Check if wholesaler exists
-    const existingWholesaler = await WholeSaler.findById(wholesaler._id);
+    const existingWholesaler = await WholeSaler.findById(wholesaler?._id);
     if (!existingWholesaler) {
       return NextResponse.json({ error: "Wholesaler not found" }, { status: 404 });
     }
+
+    // Link by ID (never trust a client-supplied wholesalerId) and keep the amount paid
+    newPurchase.wholesalerId = existingWholesaler._id as typeof newPurchase.wholesalerId;
+    newPurchase.paidAmount = Math.max(0, Number(res.paidAmount) || 0);
 
     // Update wholesaler information
   const updateWholesaler =  await WholeSaler.findByIdAndUpdate(

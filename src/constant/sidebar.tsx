@@ -73,12 +73,12 @@ export const sidebarItems = [
         icon: <ListCollapse />,
       },
       {
-        title: "Whole Saler",
+        title: "Suppliers (Wholesalers)",
         href: "/purchase/wholesaler",
         icon: <Layers />,
       },
       {
-        title: "Wholesale Customers",
+        title: "Supplier Ledger",
         href: "/wholesalers",
         icon: <Layers />,
       },
@@ -104,6 +104,11 @@ export const sidebarItems = [
         title: "Special Order",
         href: "/invoice/special-order",
         icon: <ScrollText />,
+      },
+      {
+        title: "Wholesale Customers",
+        href: "/customer/wholesale",
+        icon: <Layers />,
       },
     ]
   },

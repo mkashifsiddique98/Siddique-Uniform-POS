@@ -94,7 +94,7 @@ export const AddWholesalerForm: React.FC<WholesalerFormProps> = ({ onAdd }) => {
         placeholder="Phone"
         required
       />
-      <Button type="submit">Add Wholesaler</Button>
+      <Button type="submit">Add Supplier (Wholesaler)</Button>
     </form>
   );
 };
@@ -367,7 +367,7 @@ const MainWholeSaler: React.FC = () => {
 
   return (
     <div className="container p-6">
-      <BreadCrum mainfolder="Purchase" subfolder="Whole Saler" />
+      <BreadCrum mainfolder="Purchase" subfolder="Suppliers (Wholesalers)" />
       <div className="flex justify-end gap-2 mb-4">
         <Button
           onClick={() => ShowAdd("list")}
@@ -375,7 +375,7 @@ const MainWholeSaler: React.FC = () => {
             showlistAdd == "list" ? "bg-green-500 hover:bg-green-500" : ""
           }`}
         >
-          List of WholeSaler
+          List of Suppliers (Wholesalers)
         </Button>
         <Button
           onClick={() => ShowAdd("add")}

@@ -1,3 +1,5 @@
+// Supplier (Wholesaler) ledger. Built ONLY from Purchase records and payments we make to the supplier.
+// Customer invoices, sales and returns belong to customerLedger.js.
 const cents = (value) => Math.round((Number.isFinite(value) ? value : 0) * 100);
 const rupees = (value) => cents(value) / 100;
 
@@ -10,10 +12,21 @@ function purchaseTotal(purchase) {
   );
 }
 
-function buildSupplierLedger(records, openingBalance = 0) {
-  const sorted = [...records].sort((left, right) => {
+// Amount settled at purchase time: everything when flagged paid, otherwise the recorded partial amount
+function purchasePaidCents(purchase, totalCents) {
+  if (purchase.isPaid) return totalCents;
+  return Math.min(totalCents, Math.max(0, cents(Number(purchase.paidAmount || 0))));
+}
+
+function buildSupplierLedger(records, openingBalance = 0, payments = []) {
+  const events = [
+    ...records.map((purchase) => ({ kind: "purchase", date: purchase.date, id: purchase.id, purchase })),
+    ...payments.map((payment) => ({ kind: "supplierPayment", date: payment.date, id: payment.id, payment })),
+  ].sort((left, right) => {
     const dateDifference = new Date(left.date).getTime() - new Date(right.date).getTime();
-    return dateDifference || left.id.localeCompare(right.id);
+    if (dateDifference) return dateDifference;
+    if (left.kind !== right.kind) return left.kind === "purchase" ? -1 : 1;
+    return String(left.id).localeCompare(String(right.id));
   });
 
   let balanceCents = cents(openingBalance);
@@ -21,7 +34,25 @@ function buildSupplierLedger(records, openingBalance = 0) {
   let paidCents = 0;
   const rows = [];
 
-  for (const purchase of sorted) {
+  for (const event of events) {
+    if (event.kind === "supplierPayment") {
+      const credit = rupees(event.payment.amount);
+      balanceCents -= cents(credit);
+      paidCents += cents(credit);
+      rows.push({
+        date: new Date(event.payment.date).toISOString(),
+        type: "payment",
+        reference: event.payment.reference || `PAY-${String(event.id).slice(-6)}`,
+        summary: event.payment.note || "Payment to supplier",
+        debit: 0,
+        credit,
+        balance: rupees(balanceCents / 100),
+        sourceId: String(event.id),
+      });
+      continue;
+    }
+
+    const purchase = event.purchase;
     const total = purchaseTotal(purchase);
     const totalCents = cents(total);
     const summary = purchase.products
@@ -42,16 +73,17 @@ function buildSupplierLedger(records, openingBalance = 0) {
       sourceId: purchase.id,
     });
 
-    if (purchase.isPaid && totalCents > 0) {
-      balanceCents -= totalCents;
-      paidCents += totalCents;
+    const settledCents = purchasePaidCents(purchase, totalCents);
+    if (settledCents > 0) {
+      balanceCents -= settledCents;
+      paidCents += settledCents;
       rows.push({
         date: new Date(purchase.date).toISOString(),
         type: "payment",
         reference: purchase.reference,
-        summary: "Recorded as paid on the purchase",
+        summary: purchase.isPaid ? "Recorded as paid on the purchase" : "Paid at purchase time",
         debit: 0,
-        credit: total,
+        credit: rupees(settledCents / 100),
         balance: rupees(balanceCents / 100),
         sourceId: purchase.id,
       });
@@ -69,74 +101,3 @@ function buildSupplierLedger(records, openingBalance = 0) {
 }
 
 module.exports = { buildSupplierLedger, purchaseTotal };
-
-function invoiceLineValue(line) {
-  return Math.round(Number(line.sellPrice || 0) * Number(line.quantity || 0) * 100) / 100;
-}
-
-function buildCustomerInvoiceLedger(records, openingBalance = 0) {
-  const sorted = [...records].sort((left, right) => {
-    const dateDifference = new Date(left.date).getTime() - new Date(right.date).getTime();
-    return dateDifference || left.id.localeCompare(right.id);
-  });
-  let balanceCents = cents(openingBalance);
-  let salesCents = 0;
-  let returnsCents = 0;
-  const rows = [];
-
-  for (const invoice of sorted) {
-    const returnLines = invoice.lines.filter((line) => line.return === true);
-    const saleLines = invoice.lines.filter((line) => line.return !== true);
-    const lineTotal = (lines) => lines.reduce((sum, line) => sum + invoiceLineValue(line), 0);
-    const saleValue = returnLines.length === 0 ? Number(invoice.grandTotal || 0) : lineTotal(saleLines);
-    const returnValue = lineTotal(returnLines);
-    const summary = invoice.lines.slice(0, 3)
-      .map((line) => `${line.productName || "Archived product"} x${Number(line.quantity || 0)}`)
-      .join(", ");
-
-    if (saleValue > 0) {
-      const debit = rupees(saleValue);
-      balanceCents += cents(debit);
-      salesCents += cents(debit);
-      rows.push({
-        date: new Date(invoice.date).toISOString(),
-        type: "sale",
-        reference: String(invoice.reference),
-        summary: summary || "No product details",
-        debit,
-        credit: 0,
-        balance: rupees(balanceCents / 100),
-        sourceId: String(invoice.id),
-      });
-    }
-
-    if (returnValue > 0) {
-      const credit = rupees(returnValue);
-      balanceCents -= cents(credit);
-      returnsCents += cents(credit);
-      rows.push({
-        date: new Date(invoice.date).toISOString(),
-        type: "return",
-        reference: String(invoice.reference),
-        summary: `Return: ${summary || "No product details"}`,
-        debit: 0,
-        credit,
-        balance: rupees(balanceCents / 100),
-        sourceId: String(invoice.id),
-      });
-    }
-  }
-
-  return {
-    rows,
-    totals: {
-      sales: rupees(salesCents / 100),
-      returns: rupees(returnsCents / 100),
-      netSales: rupees((salesCents - returnsCents) / 100),
-      outstanding: rupees(balanceCents / 100),
-      payments: 0,
-    },
-  };
-}
-
-module.exports.buildCustomerInvoiceLedger = buildCustomerInvoiceLedger;
