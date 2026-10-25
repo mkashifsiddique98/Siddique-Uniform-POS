@@ -2,15 +2,23 @@ import connectDB from "@/utils/connectDB";
 import SizeTemplate from "@/models/size-template";
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
+import { TtlCache } from "@/lib/ttlCache";
 
 connectDB();
+
+// Rarely changes; every write in this file clears it
+const sizeCache = new TtlCache<any[]>(5 * 60 * 1000, 1);
 
 // Get all size templates
 export async function GET(request: Request) {
   const auth = await requireAuth(request);
   if (!auth.ok) return auth.response;
   try {
-    const sizeTemplates = await SizeTemplate.find();
+    let sizeTemplates = sizeCache.get("all");
+    if (!sizeTemplates) {
+      sizeTemplates = await SizeTemplate.find();
+      sizeCache.set("all", sizeTemplates);
+    }
     return NextResponse.json(sizeTemplates, { status: 200 });
   } catch (error) {
     console.error(error);
@@ -26,6 +34,7 @@ export async function POST(request: Request) {
     const res = await request.json();
     const newSizeTemplate = new SizeTemplate(res);
     const savedTemplate = await newSizeTemplate.save();
+    sizeCache.clear();
     return NextResponse.json({ response: savedTemplate }, { status: 201 });
   } catch (error) {
     console.error(error);
@@ -48,6 +57,7 @@ export async function PUT(request: Request) {
     const updatedTemplate = await SizeTemplate.findByIdAndUpdate(
       _id,
       { name, sizes });
+    sizeCache.clear();
     if (!updatedTemplate) {
       return NextResponse.json({ message: "SizeTemplate not found" }, { status: 404 });
     }
@@ -71,6 +81,7 @@ export async function DELETE(request: Request) {
     }
 
     const result = await SizeTemplate.deleteOne({_id:_id});
+    sizeCache.clear();
     if (result.deletedCount === 0) {
       return NextResponse.json({ message: "SizeTemplate not found" }, { status: 404 });
     }
