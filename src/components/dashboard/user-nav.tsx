@@ -14,12 +14,14 @@ import {  UserRoundCog } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { clearUserInfoCache, fetchUserInfo } from "@/lib/userInfo";
 
 export function UserNav() {
   const Router = useRouter()
   const logout = async () => {
     try {
       const res = await fetch("/api/users/logout", { method: "POST" });
+      clearUserInfoCache();
       if (res.ok) {
         Router.push("/login");
       } else {
@@ -33,15 +35,13 @@ export function UserNav() {
   const [name,setName] = useState("User")
 
   useEffect(() => {
-    async function fetchUser() {
-      const res = await fetch("/api/users/user-info");
-      if (res.ok) {
-        const data = await res.json();
-        
-        setName(data.name);
-      }
-    }
-    fetchUser();
+    let active = true;
+    fetchUserInfo().then((data) => {
+      if (active && data) setName(data.name);
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   return (

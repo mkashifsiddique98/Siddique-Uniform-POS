@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { clearUserInfoCache } from "@/lib/userInfo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -53,7 +54,7 @@ export default function LoginPage() {
     const response = await res.json();
       setIsLoading(false)
     if (res.ok) {
-    
+      clearUserInfoCache();
       router.push("/pos");
       console.log("login")
     } else {
