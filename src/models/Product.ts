@@ -27,6 +27,8 @@ const productSchema: Schema = new Schema({
 
 productSchema.index({ productCode: 1 });
 productSchema.index({ schoolName: 1, category: 1 });
+// Low-stock and stock-value queries filter on quantity
+productSchema.index({ quantity: 1 });
 
 const Product =
   (mongoose.models.Product as mongoose.Model<IProduct>) ||
