@@ -24,8 +24,7 @@ export async function GET(
       );
     }
 
-    const product = await Product.findOne({ _id: productId });
-    console.log("Fetched product by ID:", product);
+    const product = await Product.findOne({ _id: productId }).lean();
     if (!product) {
       return NextResponse.json(
         { status: 404 }
