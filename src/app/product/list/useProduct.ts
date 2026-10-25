@@ -47,11 +47,11 @@ export const handleBulkRowDataFn = async (rowList: Product[]) => {
   }
 };
 // components/PdfGenerator.ts
-import jsPDF, { jsPDFOptions } from "jspdf";
-import "jspdf-autotable";
+import type { jsPDFOptions } from "jspdf";
 import { ProductFormState as Product } from "@/types/product";
-import * as XLSX from "xlsx";
-export const generatePDF = (data: Product[]) => {
+// jspdf and xlsx are large and only needed on click, so they load on demand
+export const generatePDF = async (data: Product[]) => {
+  const [{ default: jsPDF }] = await Promise.all([import("jspdf"), import("jspdf-autotable")]);
   const options: jsPDFOptions = {
     orientation: "portrait",
     unit: "mm",
@@ -102,7 +102,8 @@ export const generatePDF = (data: Product[]) => {
 };
 
 // Generate Excel file
-export const generateExcel = (data: Product[]) => {
+export const generateExcel = async (data: Product[]) => {
+  const XLSX = await import("xlsx");
   // remove feild
   const modifiedData = data.map(({ _id, __v, ...rest }) => rest);
   // Define the order of fields in the Excel sheet
@@ -156,8 +157,9 @@ export const readExcelFile = (
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
+        const XLSX = await import("xlsx");
         const result = event.target?.result as string;
         const workbook = XLSX.read(result, { type: "binary" });
         const sheetName = workbook.SheetNames[0];
