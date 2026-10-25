@@ -382,7 +382,8 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
         </DialogFooter>
       </DialogContent>
 
-      {/* Receipt content for printing */}
+      {/* Receipt content for printing; only mounted while the dialog is open or when re-printing an edited invoice */}
+      {(isOpen || editInvoice) && (
       <div
         style={{
           display: "none",
@@ -416,6 +417,7 @@ const PayNowChart: React.FC<PayNowChartProps> = ({
           />
         </div>
       </div>
+      )}
     </Dialog>
   );
 };
