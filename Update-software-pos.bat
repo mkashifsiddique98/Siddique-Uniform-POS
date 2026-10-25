@@ -8,7 +8,7 @@ git fetch origin main
 git reset --hard origin/main
 
 echo Installing dependencies...
-npm install
+npm ci
 
 echo Building the project...
 npm run build
