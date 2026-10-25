@@ -13,8 +13,6 @@ import dynamic from "next/dynamic";
 import { RecentSales } from "@/components/dashboard/recent-sales";
 import LOWSTOCK from "@/components/dashboard/low-stock";
 import Link from "next/link";
-import { Purchase } from "@/types/purchase";
-import { Invoice } from "@/types/invoice";
 
 // recharts-based widgets are split into their own chunks
 const Overview = dynamic(() =>
@@ -37,6 +35,7 @@ const ZakatOverview = dynamic(
 );
 import { calculateZakat } from "@/lib/zikat";
 import { serverFetch } from "@/lib/serverFetch";
+import { getDashboardKpis } from "@/lib/dashboardKpis";
 
 interface DateRange {
   from?: Date;
@@ -61,11 +60,6 @@ async function getAllProductData() {
 
 async function getAllInvoiceDetail() {
   return await fetchData("/api/invoice");
-}
-
-async function getAllPurchaseDetail() {
-  const res = await fetchData("/api/purchase");
-  return res?.response || [];
 }
 
 export async function getAllExpenseDetail() {
@@ -99,109 +93,6 @@ export async function getAllExpenseDetail() {
   }
 }
 
-function calculateSalesForRange(invoices: Invoice[], dateRange?: DateRange) {
-  const { from, to } = dateRange || {};
-
-  const now = new Date();
-  const startDate = from ?? new Date(now.getFullYear(), now.getMonth(), 1);
-  const endDate = to ?? new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-
-  const currentPeriodInvoices = invoices.filter(({ invoiceDate }) => {
-    const date = new Date(invoiceDate);
-    return date >= startDate && date <= endDate;
-  });
-
-  const currentMonthSales = currentPeriodInvoices.reduce(
-    (acc, { grandTotal }) => acc + grandTotal,
-    0
-  );
-
-  const durationInMs = endDate.getTime() - startDate.getTime();
-  const prevEndDate = new Date(startDate.getTime() - 1);
-  const prevStartDate = new Date(prevEndDate.getTime() - durationInMs);
-
-  const previousPeriodInvoices = invoices.filter(({ invoiceDate }) => {
-    const date = new Date(invoiceDate);
-    return date >= prevStartDate && date <= prevEndDate;
-  });
-
-  const previousMonthSales = previousPeriodInvoices.reduce(
-    (acc, { grandTotal }) => acc + grandTotal,
-    0
-  );
-
-  const percentageChange =
-    previousMonthSales > 0
-      ? ((currentMonthSales - previousMonthSales) / previousMonthSales) * 100
-      : 0;
-
-  return { currentMonthSales, previousMonthSales, percentageChange };
-}
-
-function calculateMonthlyPurchases(purchases: Purchase[]) {
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
-
-  const calculateTotal = (month: number, year: number) =>
-    purchases.reduce((total, purchase) => {
-      const date = new Date(purchase.createdAt);
-      if (date.getMonth() === month && date.getFullYear() === year) {
-        return (
-          total +
-          purchase.products.reduce(
-            (sum, product) => sum + product.productCost * (product.quantity || 1),
-            0
-          )
-        );
-      }
-      return total;
-    }, 0);
-
-  const totalCurrentMonth = calculateTotal(currentMonth, currentYear);
-  const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-  const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-  const totalPreviousMonth = calculateTotal(previousMonth, previousYear);
-
-  const percentageChangePurchase =
-    totalPreviousMonth > 0
-      ? ((totalCurrentMonth - totalPreviousMonth) / totalPreviousMonth) * 100
-      : 0;
-
-  return { totalCurrentMonth, totalPreviousMonth, percentageChangePurchase };
-}
-
-function calculateRevenuePercentageChange(invoices: Invoice[]) {
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
-
-  const calculateTotalRevenue = (month: number, year: number) =>
-    invoices.reduce((total, invoice) => {
-      const date = new Date(invoice.invoiceDate);
-      if (date.getMonth() === month && date.getFullYear() === year) {
-        return (
-          total +
-          invoice.productDetail.reduce(
-            (sum, product) => sum + product.sellPrice * product.quantity,
-            0
-          )
-        );
-      }
-      return total;
-    }, 0);
-
-  const totalCurrentMonthRevenue = calculateTotalRevenue(currentMonth, currentYear);
-  const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-  const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-  const totalPreviousMonth = calculateTotalRevenue(previousMonth, previousYear);
-
-  const percentageChangeRevenue =
-    totalPreviousMonth > 0
-      ? ((totalCurrentMonthRevenue - totalPreviousMonth) / totalPreviousMonth) * 100
-      : 0;
-
-  return { totalCurrentMonthRevenue, totalPreviousMonth, percentageChangeRevenue };
-}
-
 export const metadata: Metadata = {
   title: "Dashboard",
   description: "Dashboard app.",
@@ -219,21 +110,33 @@ export default async function DashboardPage({
     to: to ? new Date(to) : undefined,
   };
 
-  const { response: InvoiceData } = (await getAllInvoiceDetail()) || { response: [] };
-  const { response: productResponse } = (await getAllProductData()) || { response: [] };
-  const purchaseData = await getAllPurchaseDetail();
-  const expenses = await getAllExpenseDetail();
+  const [invoiceRes, productRes, kpis, expenses] = await Promise.all([
+    getAllInvoiceDetail(),
+    getAllProductData(),
+    getDashboardKpis(dateRange),
+    getAllExpenseDetail(),
+  ]);
+  const { response: InvoiceData } = invoiceRes || { response: [] };
+  const { response: productResponse } = productRes || { response: [] };
 
-  const { currentMonthSales, percentageChange } = calculateSalesForRange(
-    InvoiceData,
-    dateRange
-  );
-  const { totalCurrentMonth, percentageChangePurchase } =
-    calculateMonthlyPurchases(purchaseData);
-  const { totalCurrentMonthRevenue, percentageChangeRevenue } =
-    calculateRevenuePercentageChange(InvoiceData);
+  const {
+    currentMonthSales,
+    percentageChange,
+    totalCurrentMonth,
+    percentageChangePurchase,
+    totalCurrentMonthRevenue,
+    percentageChangeRevenue,
+    totalReceivables,
+  } = kpis;
 
-  const zakatMetrics = calculateZakat(productResponse, InvoiceData, 0);
+  const inventoryOnly = calculateZakat(productResponse, [], 0);
+  const zakatBase = inventoryOnly.totalInventoryValue + totalReceivables;
+  const zakatMetrics = {
+    ...inventoryOnly,
+    totalReceivables,
+    zakatBase,
+    zakatPayable: Math.max(0, zakatBase * 0.025),
+  };
 
   return (
     <div className="hidden flex-col md:flex">
