@@ -14,8 +14,11 @@ const wholesalerSchema: Schema<IWholesaler> = new Schema({
   location: { type: String, required: true },
   phone: { type: String, required: true },
   paymentStatus: { type: String, default: 'Clear' },
-  pendingBalance: { type: Number, default: 0 },
 });
+
+wholesalerSchema.index({ name: 1 });
+wholesalerSchema.index({ phone: 1 });
+wholesalerSchema.index({ pendingBalance: 1 });
 
 const Wholesaler: Model<IWholesaler> = mongoose.models.Wholesaler || mongoose.model<IWholesaler>('Wholesaler', wholesalerSchema);
 

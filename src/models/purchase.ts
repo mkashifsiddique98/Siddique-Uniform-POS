@@ -40,6 +40,11 @@ const purchaseSchema: Schema<Ipurchase> = new Schema({
   paidAmount: { type: Number, default: 0 },
 },{ timestamps: true });
 
+// Ledger by wholesaler over a date range, and date-range reports
+purchaseSchema.index({ wholesalerId: 1, createdAt: 1 });
+purchaseSchema.index({ createdAt: 1 });
+purchaseSchema.index({ "wholesaler._id": 1 });
+
 const purchase: Model<Ipurchase> = mongoose.models.purchase || mongoose.model<Ipurchase>('purchase', purchaseSchema);
 
 export default purchase;
