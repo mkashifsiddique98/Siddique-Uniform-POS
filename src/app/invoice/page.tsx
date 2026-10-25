@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
@@ -189,22 +189,37 @@ const SaleList: React.FC = () => {
     },
   });
 
+  // Only the selected day is requested; the day is the local calendar day, as shown in the date picker
+  const selectedDob = form.watch("dob");
+  const dayKey = selectedDob
+    ? `${selectedDob.getFullYear()}-${selectedDob.getMonth()}-${selectedDob.getDate()}`
+    : "";
+  const latestRequest = useRef(0);
+
   // Fetch invoices
   const loadData = useCallback(async () => {
+    const requestId = ++latestRequest.current;
     setLoading(true);
     try {
-      const data = await fetchJson<{ response: Invoice[] }>(
-        `${DOMAIN_NAME}/api/invoice/`
-      );
+      let url = `${DOMAIN_NAME}/api/invoice/`;
+      if (selectedDob) {
+        const from = new Date(selectedDob.getFullYear(), selectedDob.getMonth(), selectedDob.getDate());
+        const to = new Date(selectedDob.getFullYear(), selectedDob.getMonth(), selectedDob.getDate() + 1);
+        url = `${DOMAIN_NAME}/api/invoice?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`;
+      }
+      const data = await fetchJson<{ response: Invoice[] }>(url);
+      // Ignore a slow response for a day the user has already moved away from
+      if (requestId !== latestRequest.current) return;
       setInvoices(data.response || []);
       // toast({ description: "Invoices updated!" });
     } catch (error: any) {
       console.error("Failed to fetch invoices:", error.message);
       toast({ description: "Failed to fetch invoices" });
     } finally {
-      setLoading(false);
+      if (requestId === latestRequest.current) setLoading(false);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dayKey]);
 
   useEffect(() => {
     loadData();

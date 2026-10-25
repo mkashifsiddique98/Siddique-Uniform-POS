@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { invoicePayloadSchema } from "@/validation/pos";
 import { requireAuth } from "@/lib/auth";
 import { normalizeInvoiceForRead } from "@/lib/posHelpers";
+import { buildInvoiceListQuery } from "@/lib/invoiceListQuery";
 import { InvoiceError, deleteInvoiceWithStock, getNextInvoicePreview, saveInvoiceWithStock } from "@/lib/invoiceService";
 
 connectDB();
@@ -79,8 +80,23 @@ export async function GET(request: Request) {
     const auth = await requireAuth(request);
     if (!auth.ok) return auth.response;
 
-    const invoices = await Invoice.find();
-    return Response.json({ response: invoices.map((invoice) => normalizeInvoiceForRead(invoice)) }, { status: 200 });
+    const query = buildInvoiceListQuery(new URL(request.url).searchParams);
+    if (!query.ok) return NextResponse.json({ error: query.error }, { status: 400 });
+
+    let find = Invoice.find(query.filter);
+    if (query.sort) find = find.sort(query.sort);
+    if (query.paging) find = find.skip(query.paging.skip).limit(query.paging.limit);
+    const invoices = await find.lean();
+    const response = invoices.map((invoice: any) => normalizeInvoiceForRead(invoice));
+
+    if (query.paging) {
+      const total = await Invoice.countDocuments(query.filter);
+      return Response.json(
+        { response, total, page: query.paging.page, limit: query.paging.limit },
+        { status: 200 }
+      );
+    }
+    return Response.json({ response }, { status: 200 });
   } catch (error) {
     console.error(error);
     console.error("Error populating customer:", error);
