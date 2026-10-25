@@ -29,7 +29,11 @@ module.exports = (phase, { defaultConfig }) => {
       ];
     },
     compiler: {
-      removeConsole: process.env.NODE_ENV === "production",
+      // Keep console.error/warn in production so real errors reach the PM2 logs
+      removeConsole:
+        process.env.NODE_ENV === "production"
+          ? { exclude: ["error", "warn"] }
+          : false,
     },
     eslint: {
       ignoreDuringBuilds: true,
