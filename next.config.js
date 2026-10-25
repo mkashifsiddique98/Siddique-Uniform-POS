@@ -6,6 +6,8 @@ module.exports = (phase, { defaultConfig }) => {
     // Avoid network calls to collect telemetry on an offline machine
     experimental: {
       ...defaultConfig.experimental,
+      // Loads src/instrumentation.ts (the opt-in slow-request logger)
+      instrumentationHook: true,
     },
     // Enable proxying requests from /bridge/* to your local backend on port 8080
     async rewrites() {
