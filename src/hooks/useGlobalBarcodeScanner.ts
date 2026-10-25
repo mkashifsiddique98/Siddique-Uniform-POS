@@ -15,6 +15,9 @@ export function useGlobalBarcodeScanner({
 }: Options) {
   const bufferRef = useRef<string>('');
   const lastKeyTimeRef = useRef<number>(0);
+  // Keep the latest callback in a ref so the listener is not re-attached on every render
+  const onScanRef = useRef(onScan);
+  onScanRef.current = onScan;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -54,7 +57,7 @@ export function useGlobalBarcodeScanner({
             }
           }
 
-          onScan(scannedCode);
+          onScanRef.current(scannedCode);
         }
         bufferRef.current = '';
         return;
@@ -73,5 +76,5 @@ export function useGlobalBarcodeScanner({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onScan, inputId, minChars, maxIntervalMs]);
+  }, [inputId, minChars, maxIntervalMs]);
 }
