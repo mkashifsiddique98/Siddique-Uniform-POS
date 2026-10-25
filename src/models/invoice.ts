@@ -78,6 +78,13 @@ invoiceSchema.index({ "customer.phone": 1, invoiceDate: -1 });
 invoiceSchema.index({ status: 1, dueDate: 1 });
 invoiceSchema.index({ "customer._id": 1, invoiceDate: -1 });
 invoiceSchema.index({ "customer.customerName": 1, "customer.schoolName": 1, invoiceDate: -1 });
+// Wholesale customer ledger: filter by customer.type, optionally one customer
+invoiceSchema.index({ "customer.type": 1, "customer._id": 1, invoiceDate: -1 });
+// Sold-beyond-stock report: only lines that were sold beyond stock are indexed
+invoiceSchema.index(
+  { "productDetail.unstockedQty": 1 },
+  { partialFilterExpression: { "productDetail.unstockedQty": { $gt: 0 } } }
+);
 
 const Invoice =
   mongoose.models.Invoice || mongoose.model("Invoice", invoiceSchema);
