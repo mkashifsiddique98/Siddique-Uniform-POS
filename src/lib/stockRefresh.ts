@@ -4,6 +4,8 @@
 export const MIN_REFRESH_INTERVAL_MS = 3000;
 export const AUTO_REFRESH_MIN_GAP_MS = 10000;
 export const AUTO_REFRESH_INTERVAL_MS = 30000;
+// How often the automatic refresh does a full product reload instead of the stock-only call
+export const FULL_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 // A refresh that never reports completion must not block the gate forever
 const IN_FLIGHT_TIMEOUT_MS = 10000;
 

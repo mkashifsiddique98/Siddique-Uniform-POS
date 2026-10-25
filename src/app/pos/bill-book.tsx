@@ -18,11 +18,12 @@ import {
 import { canonicalizeLines } from "@/lib/posHelpers";
 
 interface BillBookProps {
-  listCustomer: customer[];
+  // Optional seed. When omitted the list is loaded once on mount.
+  listCustomer?: customer[];
   invoiceNo: number;
 }
 
-const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
+const BillBook: React.FC<BillBookProps> = ({ listCustomer = [], invoiceNo }) => {
   const dispatch = useAppDispatch();
 
   const invoicestateno = useTypedSelector(
@@ -117,6 +118,11 @@ const BillBook: React.FC<BillBookProps> = ({ listCustomer, invoiceNo }) => {
       console.error("Error fetching customer data:", error);
     }
   }, []);
+
+  // Customers are loaded once here, so a stock refresh of the page no longer re-reads them
+  useEffect(() => {
+    handleGetAllCustomer();
+  }, [handleGetAllCustomer]);
 
   const getInvoiceDetailbyNo = useCallback(async () => {
     dispatch(clearChart());

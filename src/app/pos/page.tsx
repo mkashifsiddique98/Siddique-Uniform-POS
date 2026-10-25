@@ -31,11 +31,6 @@ async function fetchData(endpoint: string) {
   }
 }
 
-async function getAllCustomerDetail() {
-  const customerData = await fetchData("/api/customer");
-  return customerData ? customerData : { listCustomer: [] }; // Return an empty array if null
-}
-
 async function getAllProductData() {
   const productData = await fetchData("/api/product/");
   return productData ? productData : { response: [] }; // Return an empty array if null
@@ -50,17 +45,16 @@ async function createInvoiceNo() {
 }
   // ************************************* Main ******************************************
 const PointOfSale = async () => {
-  // All Product
-  const data = await getAllProductData();
-  //  All customer
-  const customer = await getAllCustomerDetail();
+  // Products, schools and the invoice number are independent, so they load in parallel.
+  // Customers are loaded once by BillBook on the client.
+  const [data, SchoolArray, invoice] = await Promise.all([
+    getAllProductData(),
+    getAllSchoolData(),
+    createInvoiceNo(),
+  ]);
 
-  const listCustomer = customer?.listCustomer || []; // Ensure it's an empty array if undefined or null
   const response = data?.response || []; // Ensure it's an empty array if undefined or null
-  // School List
-  const SchoolArray = await getAllSchoolData()
   const SchoolList: School[] = SchoolArray.response || []
-  const invoice = await createInvoiceNo()
   const invoiceNo = invoice.response || 0
   
   return (
@@ -69,7 +63,7 @@ const PointOfSale = async () => {
       {/* Left Side */}
       <div className="h-screen w-6/12 border-r-2 border-black">
         <Topnav />
-        <BillBook listCustomer={listCustomer} invoiceNo={invoiceNo} />
+        <BillBook invoiceNo={invoiceNo} />
       </div>
       {/* Right Side */}
       <div className="h-screen w-6/12">

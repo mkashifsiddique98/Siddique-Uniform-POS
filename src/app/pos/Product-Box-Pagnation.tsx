@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ProductCard from "./product-card";
 import { FilterElementProps, ProductFormState } from "@/types/product";
 import FilterBtnProduct from "./Filter-btn-product";
@@ -11,6 +11,7 @@ import { findStockConflicts, Products, store, syncCartStock, useAppDispatch } fr
 import { useStore } from "react-redux";
 import { useToast } from "@/components/ui/use-toast";
 import { useAutoStockRefresh } from "./useStockSync";
+import { applyStockRows, StockRow } from "@/lib/stockMerge";
 
 interface Props {
   schoolList: School[];
@@ -18,13 +19,31 @@ interface Props {
   perPage: number;
 }
 
-const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
+const ProductBox: React.FC<Props> = ({ schoolList, items: serverItems, perPage }) => {
   const dispatch = useAppDispatch();
   const { toast } = useToast();
   const reduxStore = useStore<ReturnType<typeof store.getState>>();
 
-  // Multi-cashier freshness: refresh on tab focus and every 30s while visible
-  useAutoStockRefresh();
+  // The server list, with stock updated in place between full page refreshes
+  const [items, setItems] = useState(serverItems);
+  const [lastServerItems, setLastServerItems] = useState(serverItems);
+  if (serverItems !== lastServerItems) {
+    setLastServerItems(serverItems);
+    setItems(serverItems);
+  }
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+
+  // Returns false when products were added or removed, so the caller does a full refresh instead
+  const applyStock = useCallback((rows: StockRow[]) => {
+    const result = applyStockRows(itemsRef.current, rows);
+    if (result.structureChanged) return false;
+    if (result.items !== itemsRef.current) setItems(result.items);
+    return true;
+  }, []);
+
+  // Multi-cashier freshness: stock-only refresh on tab focus and every 30s while visible
+  useAutoStockRefresh(applyStock);
 
   // New items arrived (page load or a refresh): re-sync the cart's stock snapshots
   useEffect(() => {
