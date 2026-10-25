@@ -9,17 +9,32 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalendarDateRangePicker } from "@/components/dashboard/date-range-picker";
 import { DownloadButton } from "@/components/dashboard/download-button";
-import { Overview } from "@/components/dashboard/overview";
+import dynamic from "next/dynamic";
 import { RecentSales } from "@/components/dashboard/recent-sales";
 import LOWSTOCK from "@/components/dashboard/low-stock";
 import Link from "next/link";
 import { Purchase } from "@/types/purchase";
 import { Invoice } from "@/types/invoice";
-import HorizontalBarChart from "@/components/dashboard/horizontal-bar-chart";
-import { MonthlyOverview } from "@/components/dashboard/month-overview";
-import ExpenseOverview from "@/components/dashboard/expense-overview";
-import LiveTrackProduct from "@/components/dashboard/live-track-product";
-import ZakatOverview from "@/components/dashboard/zakat-overview";
+
+// recharts-based widgets are split into their own chunks
+const Overview = dynamic(() =>
+  import("@/components/dashboard/overview").then((m) => m.Overview)
+);
+const HorizontalBarChart = dynamic(
+  () => import("@/components/dashboard/horizontal-bar-chart")
+);
+const MonthlyOverview = dynamic(() =>
+  import("@/components/dashboard/month-overview").then((m) => m.MonthlyOverview)
+);
+const ExpenseOverview = dynamic(
+  () => import("@/components/dashboard/expense-overview")
+);
+const LiveTrackProduct = dynamic(
+  () => import("@/components/dashboard/live-track-product")
+);
+const ZakatOverview = dynamic(
+  () => import("@/components/dashboard/zakat-overview")
+);
 import { calculateZakat } from "@/lib/zikat";
 import { serverFetch } from "@/lib/serverFetch";
 
