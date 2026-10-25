@@ -4,11 +4,13 @@ import {
   Products,
   addToChart,
   getCartItemKey,
+  store,
   updateChart,
   useAppDispatch,
   useTypedSelector,
 } from "@/lib/store";
-import { useToast } from "@/components/ui/use-toast";
+import { useStore } from "react-redux";
+import { toast } from "@/components/ui/use-toast";
 import { ProductFormState } from "@/types/product";
 
 interface ProductCardProps {
@@ -36,8 +38,7 @@ function getComponentName(id: string): Promise<string | undefined> {
 
 const ProductCard: FC<ProductCardProps> = ({ product }) => {
   const dispatch = useAppDispatch();
-  const { toast } = useToast();
-  const chartList = useTypedSelector((state) => state.chart.chartList);
+  const reduxStore = useStore<ReturnType<typeof store.getState>>();
   const mode = useTypedSelector((state) => state.mode); // "retail" | "wholesale"
 
   const [subProductNames, setSubProductNames] = useState<
@@ -48,6 +49,8 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
     mode === "wholesale" ? p.wholesalePrice : p.sellPrice;
 
   const addOrUpdateToChart = (p: ProductFormState) => {
+    // Read the cart when clicked, so the card does not re-render on every cart change
+    const chartList = reduxStore.getState().chart.chartList;
     const exists = chartList.find(
       (item: Products) => p._id && getCartItemKey(item) === String(p._id)
     );
@@ -218,4 +221,4 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
   );
 };
 
-export default ProductCard;
+export default React.memo(ProductCard);

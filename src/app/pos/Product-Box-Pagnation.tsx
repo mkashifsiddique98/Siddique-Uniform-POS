@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import ProductCard from "./product-card";
 import { FilterElementProps, ProductFormState } from "@/types/product";
 import FilterBtnProduct from "./Filter-btn-product";
 import { Search } from "@/components/custom-components/inputIcon";
 import { cn } from "@/lib/utils";
 import { School } from "@/types/school-name";
-import { findStockConflicts, Products, syncCartStock, useAppDispatch, useTypedSelector } from "@/lib/store";
+import { findStockConflicts, Products, store, syncCartStock, useAppDispatch } from "@/lib/store";
+import { useStore } from "react-redux";
 import { useToast } from "@/components/ui/use-toast";
 import { useAutoStockRefresh } from "./useStockSync";
 
@@ -20,9 +21,7 @@ interface Props {
 const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
   const dispatch = useAppDispatch();
   const { toast } = useToast();
-  const chartList = useTypedSelector((state) => state.chart.chartList);
-  const chartListRef = useRef(chartList);
-  chartListRef.current = chartList;
+  const reduxStore = useStore<ReturnType<typeof store.getState>>();
 
   // Multi-cashier freshness: refresh on tab focus and every 30s while visible
   useAutoStockRefresh();
@@ -30,12 +29,13 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
   // New items arrived (page load or a refresh): re-sync the cart's stock snapshots
   useEffect(() => {
     if (!items.length) return;
+    const cart = reduxStore.getState().chart.chartList;
     const alreadyFlagged = new Set(
-      chartListRef.current
+      cart
         .filter((line: Products) => line.stockShort)
         .map((line: Products) => `${line.productId}:${line.stock}`)
     );
-    const conflicts = findStockConflicts(chartListRef.current, items);
+    const conflicts = findStockConflicts(cart, items);
     dispatch(syncCartStock(items));
     conflicts.forEach(({ line, available }) => {
       // Warn once per change, not on every refresh
@@ -46,7 +46,7 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
         description: `Only ${available} left for ${line.productName}.`,
       });
     });
-  }, [items, dispatch, toast]);
+  }, [items, dispatch, toast, reduxStore]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [query, setQuery] = useState(""); // Search
@@ -70,30 +70,26 @@ const ProductBox: React.FC<Props> = ({ schoolList, items, perPage }) => {
 
   const { indexOfFirstItem, indexOfLastItem } = calculateIndexRange();
 
-  // Combined filter function for search and filter
-  const combinedFilter = (item: ProductFormState) => {
-    const matchesSearch = query
-      ? item.productName
-          .toLowerCase()
-          .replace(/\s+/g, "")
-          .includes(query.toLowerCase().replace(/\s+/g, ""))
-      : true;
-    const matchesFilter = filterElement.filterValue
-      ? item[filterElement.filterBy]
-          ?.toLowerCase()
-          .trim()
-          .includes(filterElement.filterValue.toLowerCase().trim())
-      : true;
-
-    return matchesSearch && matchesFilter;
-  };
-
-  const filteredItems = items.filter(combinedFilter);
+  // Combined filter for search and filter button; computed once per change, not on every render
+  const filteredItems = useMemo(() => {
+    const normalizedQuery = query.toLowerCase().replace(/\s+/g, "");
+    const filterValue = filterElement.filterValue.toLowerCase().trim();
+    return items.filter((item) => {
+      const matchesSearch = query
+        ? item.productName.toLowerCase().replace(/\s+/g, "").includes(normalizedQuery)
+        : true;
+      const matchesFilter = filterElement.filterValue
+        ? item[filterElement.filterBy]?.toLowerCase().trim().includes(filterValue)
+        : true;
+      return matchesSearch && matchesFilter;
+    });
+  }, [items, query, filterElement]);
   const totalFilteredItems = filteredItems.length;
 
-  const currentItems = items
-    .filter(combinedFilter)
-    .slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = useMemo(
+    () => filteredItems.slice(indexOfFirstItem, indexOfLastItem),
+    [filteredItems, indexOfFirstItem, indexOfLastItem]
+  );
 
   const handlePaginationClick = (pageNumber: number) =>
     setCurrentPage(pageNumber);
