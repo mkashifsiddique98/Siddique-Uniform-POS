@@ -15,6 +15,25 @@ interface ProductCardProps {
   product: ProductFormState;
 }
 
+// Bundle component names rarely change: look each one up once per page load and share the request
+const componentNameCache = new Map<string, Promise<string | undefined>>();
+
+function getComponentName(id: string): Promise<string | undefined> {
+  let pending = componentNameCache.get(id);
+  if (!pending) {
+    pending = fetch(`/api/product/${id}`)
+      .then((res) => res.json())
+      .then(({ response }) => (response && response.productName ? String(response.productName) : undefined))
+      .catch((err) => {
+        componentNameCache.delete(id);
+        console.error("Error fetching subproduct:", err);
+        return undefined;
+      });
+    componentNameCache.set(id, pending);
+  }
+  return pending;
+}
+
 const ProductCard: FC<ProductCardProps> = ({ product }) => {
   const dispatch = useAppDispatch();
   const { toast } = useToast();
@@ -146,30 +165,25 @@ const ProductCard: FC<ProductCardProps> = ({ product }) => {
       </div>
     </>
   );
+  // A stable string key: the components array gets a new reference on every stock refresh
+  const componentsKey = product.isBundle ? (product.components ?? []).map(String).join(",") : "";
   useEffect(() => {
-    const fetchAllSubProductNames = async () => {
-      if (!product.isBundle || !product.components?.length) return;
-
-      const newNames: Record<string, string> = {};
-
-      for (const componentId of product.components) {
-        try {
-          const res = await fetch(`/api/product/${componentId}`);
-          const { response } = await res.json();
-
-          if (response && response.productName) {
-            newNames[componentId] = response.productName;
-          }
-        } catch (err) {
-          console.error("Error fetching subproduct:", err);
-        }
+    if (!componentsKey) return;
+    let cancelled = false;
+    Promise.all(componentsKey.split(",").map(async (id) => [id, await getComponentName(id)] as const)).then(
+      (pairs) => {
+        if (cancelled) return;
+        const newNames: Record<string, string> = {};
+        pairs.forEach(([id, name]) => {
+          if (name) newNames[id] = name;
+        });
+        setSubProductNames(newNames);
       }
-
-      setSubProductNames(newNames);
+    );
+    return () => {
+      cancelled = true;
     };
-
-    fetchAllSubProductNames();
-  }, [product.components, product.isBundle]);
+  }, [componentsKey]);
   return (
     <div className="w-32 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer flex flex-col justify-between">
       <div
